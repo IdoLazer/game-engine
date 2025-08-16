@@ -5,12 +5,12 @@ TARGET = Game
 BUILD_DIR = build
 
 # Source files
-ENGINE_SRC = src/Engine/Application.cpp
-GAME_SRC = src/Game/Game.cpp
+ENGINE_SRC = $(wildcard src/Engine/**/*.cpp) $(wildcard src/Engine/*.cpp)
+GAME_SRC = $(wildcard src/Game/**/*.cpp) $(wildcard src/Game/*.cpp)
 MAIN_SRC = src/main.cpp
 
 # Object files
-ENGINE_OBJ = $(BUILD_DIR)/Application.o
+ENGINE_OBJ = $(BUILD_DIR)/Engine.o
 GAME_OBJ = $(BUILD_DIR)/Game.o
 MAIN_OBJ = $(BUILD_DIR)/main.o
 
