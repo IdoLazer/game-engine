@@ -1,5 +1,18 @@
 #include "Game.h"
+#include "Engine/Input/Keyboard.h"
 #include <iostream>
+
+Engine::WindowConfig Game::GetWindowConfig() const
+{
+    Engine::WindowConfig config;
+
+    config.title = "Game";
+    config.width = 800;
+    config.height = 600;
+    config.fullscreen = false;
+    config.resizable = true;
+    return config;
+}
 
 void Game::Initialize()
 {
@@ -8,13 +21,18 @@ void Game::Initialize()
 
 void Game::Update()
 {
-    std::cout << "Updating game logic..." << std::endl;
+    // Exit game on Escape
+    if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_ESCAPE))
+    {
+        std::cout << "Escape pressed - exiting game!" << std::endl;
+        Close();
+    }
 }
 
 void Game::Render()
 {
-    std::cout << "Hello World from the Game!" << std::endl;
-    Close(); // Close the game after rendering once for demonstration
+    // Render your game here
+    // The window clearing and buffer swapping is handled by the Application class
 }
 
 void Game::Shutdown()

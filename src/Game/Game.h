@@ -10,4 +10,6 @@ public:
     void Update() override;
     void Render() override;
     void Shutdown() override;
+
+    Engine::WindowConfig GetWindowConfig() const override;
 };

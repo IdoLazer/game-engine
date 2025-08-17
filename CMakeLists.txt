@@ -26,6 +26,8 @@ add_executable(Game
 )
 
 # Set include directories
+target_include_directories(Game PRIVATE src/Engine)
+target_include_directories(Game PRIVATE src/Game)
 target_include_directories(Game PRIVATE src)
 
 # Link libraries

@@ -1,32 +1,153 @@
 #include "Application.h"
+#include <iostream>
 
 namespace Engine
 {
-    void Application()
+    Application::Application()
     {
         std::cout << "Application created." << std::endl;
     }
 
     Application::~Application()
     {
+        if (m_Initialized)
+        {
+            ShutdownEngine();
+        }
         std::cout << "Application destroyed." << std::endl;
+    }
+
+    bool Application::InitializeEngine()
+    {
+        if (m_Initialized)
+        {
+            std::cout << "Engine already initialized." << std::endl;
+            return true;
+        }
+
+        std::cout << "Initializing engine..." << std::endl;
+
+        // Initialize engine subsystems
+        if (!InitializeSubsystems())
+        {
+            std::cerr << "Failed to initialize engine subsystems!" << std::endl;
+            return false;
+        }
+
+        // Initialize game-specific code
+        Initialize();
+
+        m_Initialized = true;
+        std::cout << "Engine initialization complete." << std::endl;
+        return true;
     }
 
     void Application::Run()
     {
-        Initialize();
-
-        std::cout << "Starting application loop..." << std::endl;
-
-        while (m_Running) // Replace with actual running condition
+        if (!m_Initialized)
         {
-            Update();
-            Render();
-
-            // For now, just run once to demonstrate
-            break; // Remove this in a real application
+            if (!InitializeEngine())
+            {
+                std::cerr << "Failed to initialize engine. Aborting." << std::endl;
+                return;
+            }
         }
 
+        std::cout << "Starting main application loop..." << std::endl;
+
+        // Main application loop
+        while (m_Running && !m_Window->ShouldClose())
+        {
+            UpdateEngine(); // Update engine systems
+            Update();       // Update game logic
+            RenderFrame();  // Render the frame
+        }
+
+        std::cout << "Application loop ended." << std::endl;
+    }
+
+    void Application::ShutdownEngine()
+    {
+        if (!m_Initialized)
+            return;
+
+        std::cout << "Shutting down engine..." << std::endl;
+
+        // Shutdown game-specific code first
         Shutdown();
+
+        // Shutdown engine subsystems
+        ShutdownSubsystems();
+
+        m_Initialized = false;
+        std::cout << "Engine shutdown complete." << std::endl;
+    }
+
+    bool Application::InitializeSubsystems()
+    {
+        // Get window configuration from the game
+        WindowConfig config = GetWindowConfig();
+
+        // Create and initialize window with game-specific settings
+        m_Window = new Window(config.title, config.width, config.height);
+        if (!m_Window->Initialize())
+        {
+            std::cerr << "Failed to initialize window!" << std::endl;
+            return false;
+        }
+
+        // Initialize input systems
+        Keyboard::Initialize(m_Window->GetNativeWindow());
+
+        std::cout << "Engine subsystems initialized successfully." << std::endl;
+        std::cout << "Window: \"" << config.title << "\" (" << config.width << "x" << config.height << ")" << std::endl;
+        return true;
+    }
+
+    WindowConfig Application::GetWindowConfig() const
+    {
+        // Default window configuration - games can override this
+        WindowConfig config;
+
+        config.title = "Default Game Engine Window";
+        config.width = 800;
+        config.height = 600;
+        config.fullscreen = false;
+        config.resizable = true;
+        return config;
+    }
+
+    void Application::UpdateEngine()
+    {
+        // Update input systems
+        Keyboard::Update();
+
+        // Poll window events
+        m_Window->PollEvents();
+    }
+
+    void Application::RenderFrame()
+    {
+        // Clear the screen
+        glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+        // Render game content
+        Render();
+
+        // Present the frame
+        m_Window->SwapBuffers();
+    }
+
+    void Application::ShutdownSubsystems()
+    {
+        // Clean up window (this also cleans up GLFW)
+        if (m_Window)
+        {
+            delete m_Window;
+            m_Window = nullptr;
+        }
+
+        std::cout << "Engine subsystems shut down." << std::endl;
     }
 }
