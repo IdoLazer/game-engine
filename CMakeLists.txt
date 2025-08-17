@@ -6,6 +6,10 @@ project(GameEngine)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Find required packages
+find_package(glfw3 REQUIRED)
+find_package(OpenGL REQUIRED)
+
 # Collect all source files automatically
 file(GLOB_RECURSE ENGINE_SOURCES "src/Engine/*.cpp")
 file(GLOB_RECURSE GAME_SOURCES "src/Game/*.cpp")
@@ -25,3 +29,4 @@ add_executable(Game
 target_include_directories(Game PRIVATE src)
 
 # Link libraries
+target_link_libraries(Game PRIVATE glfw OpenGL::GL)
