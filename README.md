@@ -6,11 +6,9 @@ A barebones C++ project with clean separation between Engine utilities and Game 
 
 GameEngine/
 ├── Engine/                 # Engine utilities and core functionality
-│   ├── Application.h       # Application header
-│   └── Application.cpp     # Application implementation
+│   └── ...
 ├── Game/                   # Your game-specific code
-│   ├── Game.h              # Game header
-│   └── Game.cpp            # Game implementation
+│   └── ...
 ├── main.cpp                # Entry point
 ├── Makefile                # Build configuration
 └── build/                  # Compiled files (created when building)
@@ -25,29 +23,6 @@ GameEngine/
 
 ```bash
 # Build and run
-make run
-
-# Just build
-make
-
-# Clean build files
-make clean
+cmake --preset=default
+cmake --build build
 ```
-
-## Next Steps
-
-As you expand, you can add to the Engine:
-
-- Window creation and management
-- Graphics rendering
-- Input handling
-- Audio
-- File I/O utilities
-- Math utilities
-
-And to the Game:
-
-- Game states
-- Player logic
-- World/level management
-- Game-specific systems
