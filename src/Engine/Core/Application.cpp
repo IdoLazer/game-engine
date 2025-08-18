@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "Rendering/Renderer2D.h"
 #include <iostream>
 
 namespace Engine
@@ -96,6 +97,9 @@ namespace Engine
             return false;
         }
 
+        // Initialize 2D renderer
+        Renderer2D::Initialize(m_Window->GetNativeWindow(), config.width, config.height);
+
         // Initialize input systems
         Keyboard::Initialize(m_Window->GetNativeWindow());
 
@@ -128,12 +132,17 @@ namespace Engine
 
     void Application::RenderFrame()
     {
-        // Clear the screen
-        glClear(GL_COLOR_BUFFER_BIT);
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        // Begin 2D rendering
+        Renderer2D::BeginFrame();
+
+        // Clear the screen with a dark background
+        Renderer2D::Clear(Color(0.1f, 0.1f, 0.1f, 1.0f));
 
         // Render game content
         Render();
+
+        // End 2D rendering
+        Renderer2D::EndFrame();
 
         // Present the frame
         m_Window->SwapBuffers();
@@ -141,6 +150,9 @@ namespace Engine
 
     void Application::ShutdownSubsystems()
     {
+        // Shutdown renderer
+        Renderer2D::Shutdown();
+
         // Clean up window (this also cleans up GLFW)
         if (m_Window)
         {

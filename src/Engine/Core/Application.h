@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Rendering/Window.h"
+#include "Rendering/Renderer2D.h"
 #include "Input/Keyboard.h"
 
 namespace Engine
