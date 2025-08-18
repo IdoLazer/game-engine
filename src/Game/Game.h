@@ -12,4 +12,8 @@ public:
     void Shutdown() override;
 
     Engine::WindowConfig GetWindowConfig() const override;
+
+private:
+    Engine::Vec2 m_PlayerPosition;
+    Engine::Vec2 m_PlayerSize;
 };

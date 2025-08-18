@@ -31,7 +31,14 @@ namespace Engine
 
         static void Clear(const Color &color = Color(0.0f, 0.0f, 0.0f, 1.0f));
 
+        // Tile rendering
+        static void DrawTile(const Vec2 &position, const Vec2 &size, const Color &color);
+
     private:
         static void InitializeViewPort(GLFWwindow *window, int width, int height);
+
+        // Coordinate conversion helpers
+        static float WorldToOpenGL(float worldCoord);
+        static Vec2 WorldToOpenGL(const Vec2 &worldPos);
     };
 }
