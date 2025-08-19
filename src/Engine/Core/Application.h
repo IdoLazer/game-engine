@@ -28,7 +28,7 @@ namespace Engine
 
         // Game-specific methods for derived classes to implement
         virtual void Initialize() = 0;
-        virtual void Update() = 0;
+        virtual void Update(float deltaTime) = 0;
         virtual void Render() = 0;
         virtual void Shutdown() = 0;
 
@@ -50,5 +50,8 @@ namespace Engine
         bool m_Running = true;
         bool m_Initialized = false;
         Window *m_Window = nullptr;
+
+        // Delta time tracking
+        double m_LastFrameTime = 0.0;
     };
 }

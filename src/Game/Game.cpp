@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "Engine/Input/Keyboard.h"
 #include "Engine/Rendering/Renderer2D.h"
+#include <algorithm>
 #include <iostream>
 
 Engine::WindowConfig Game::GetWindowConfig() const
@@ -18,12 +19,9 @@ Engine::WindowConfig Game::GetWindowConfig() const
 void Game::Initialize()
 {
     std::cout << "Game initialized." << std::endl;
-
-    m_PlayerPosition = Engine::Vec2(50, 50);
-    m_PlayerSize = Engine::Vec2(5, 5);
 }
 
-void Game::Update()
+void Game::Update(float deltaTime)
 {
     // Exit game on Escape
     if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_ESCAPE))
@@ -32,41 +30,26 @@ void Game::Update()
         Close();
     }
 
-    // Move player position based on arrow keys
     if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_UP))
     {
-        m_PlayerPosition.y += 1;
+        m_MoveDirection = Engine::Vec2(0.0f, 1.0f);
     }
     if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_DOWN))
     {
-        m_PlayerPosition.y -= 1;
+        m_MoveDirection = Engine::Vec2(0.0f, -1.0f);
     }
     if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_LEFT))
     {
-        m_PlayerPosition.x -= 1;
+        m_MoveDirection = Engine::Vec2(-1.0f, 0.0f);
     }
     if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_RIGHT))
     {
-        m_PlayerPosition.x += 1;
+        m_MoveDirection = Engine::Vec2(1.0f, 0.0f);
     }
 
-    // Update player size based on input (for testing)
-    if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_W))
-    {
-        m_PlayerSize.y += 1;
-    }
-    if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_S))
-    {
-        m_PlayerSize.y -= 1;
-    }
-    if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_A))
-    {
-        m_PlayerSize.x -= 1;
-    }
-    if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_D))
-    {
-        m_PlayerSize.x += 1;
-    }
+    // Clamp player position within bounds (0-100 scale)
+    m_PlayerPosition.x = std::clamp(m_PlayerPosition.x + m_MoveDirection.x * m_MoveSpeed * deltaTime, 0.0f, 100.0f - m_PlayerSize.x);
+    m_PlayerPosition.y = std::clamp(m_PlayerPosition.y + m_MoveDirection.y * m_MoveSpeed * deltaTime, 0.0f, 100.0f - m_PlayerSize.y);
 }
 
 void Game::Render()

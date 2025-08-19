@@ -34,6 +34,9 @@ namespace Engine
         // Make the OpenGL context current
         glfwMakeContextCurrent(m_Window);
 
+        // Disable V-Sync for unlimited framerate
+        glfwSwapInterval(0);
+
         std::cout << "Window initialized successfully" << std::endl;
         return true;
     }
