@@ -3,9 +3,13 @@
 
 namespace Engine
 {
+    Camera2D Renderer2D::s_Camera(10.0f);
+
     void Renderer2D::Initialize(GLFWwindow *window, int width, int height)
     {
         InitializeViewPort(window, width, height);
+
+        s_Camera.SetWindowSize(width, height);
 
         // Enable alpha blending for transparency
         glEnable(GL_BLEND);
@@ -14,7 +18,7 @@ namespace Engine
         // Set the framebuffer size callback
         glfwSetFramebufferSizeCallback(window, InitializeViewPort);
 
-        std::cout << "Renderer2D initialized with world coordinate system (0-100)" << std::endl;
+        std::cout << "Renderer2D initialized with camera-based world coordinate system" << std::endl;
     }
 
     void Renderer2D::Shutdown()
@@ -44,39 +48,30 @@ namespace Engine
         glColor4f(color.r, color.g, color.b, color.a);
 
         // Calculate the corners of the rectangle in world coordinates
-        float left = position.x;
-        float right = position.x + size.x;
-        float bottom = position.y;
-        float top = position.y + size.y;
+        float halfWidth = size.x * 0.5f;
+        float halfHeight = size.y * 0.5f;
+
+        Vec2 bottomLeft = Vec2(position.x - halfWidth, position.y - halfHeight);
+        Vec2 topRight = Vec2(position.x + halfWidth, position.y + halfHeight);
 
         // Convert corners to OpenGL coordinates
-        left = WorldToOpenGL(left);
-        right = WorldToOpenGL(right);
-        bottom = WorldToOpenGL(bottom);
-        top = WorldToOpenGL(top);
+        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(bottomLeft);
+        Vec2 glTopRight = s_Camera.WorldToOpenGL(topRight);
 
         // Draw a filled rectangle using OpenGL immediate mode
         glBegin(GL_QUADS);
-        glVertex2f(left, bottom);  // Bottom-left
-        glVertex2f(right, bottom); // Bottom-right
-        glVertex2f(right, top);    // Top-right
-        glVertex2f(left, top);     // Top-left
+        glVertex2f(glBottomLeft.x, glBottomLeft.y); // Bottom-left
+        glVertex2f(glTopRight.x, glBottomLeft.y);   // Bottom-right
+        glVertex2f(glTopRight.x, glTopRight.y);     // Top-right
+        glVertex2f(glBottomLeft.x, glTopRight.y);   // Top-left
         glEnd();
     }
 
     void Renderer2D::InitializeViewPort(GLFWwindow *window, int width, int height)
     {
         glViewport(0, 0, width, height);
-    }
 
-    float Renderer2D::WorldToOpenGL(float worldCoord)
-    {
-        // Convert from world coordinates (0-100) to OpenGL coordinates (-1 to +1)
-        return (worldCoord / 100.0f) * 2.0f - 1.0f;
-    }
-
-    Vec2 Renderer2D::WorldToOpenGL(const Vec2 &worldPos)
-    {
-        return Vec2(WorldToOpenGL(worldPos.x), WorldToOpenGL(worldPos.y));
+        // Update camera when viewport changes
+        s_Camera.SetWindowSize(width, height);
     }
 }

@@ -10,6 +10,7 @@
 // Rendering System
 #include "Rendering/Window.h"
 #include "Rendering/Renderer2D.h"
+#include "Rendering/Camera2D.h"
 
 // Input System
 #include "Input/Keyboard.h"

@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 #include "Window.h"
+#include "Camera2D.h"
 
 namespace Engine
 {
@@ -34,11 +35,13 @@ namespace Engine
         // Tile rendering
         static void DrawTile(const Vec2 &position, const Vec2 &size, const Color &color);
 
+        // Camera access
+        static Camera2D &GetCamera() { return s_Camera; }
+
     private:
         static void InitializeViewPort(GLFWwindow *window, int width, int height);
 
-        // Coordinate conversion helpers
-        static float WorldToOpenGL(float worldCoord);
-        static Vec2 WorldToOpenGL(const Vec2 &worldPos);
+        // Camera instance
+        static Camera2D s_Camera;
     };
 }

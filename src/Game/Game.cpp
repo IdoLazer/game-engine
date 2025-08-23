@@ -45,16 +45,27 @@ void Game::Update(float deltaTime)
         m_MoveDirection = Engine::Vec2(1.0f, 0.0f);
     }
 
-    // Clamp player position within bounds (0-100 scale)
-    m_PlayerPosition.x = std::clamp(m_PlayerPosition.x + m_MoveDirection.x * m_MoveSpeed * deltaTime, 0.0f, 100.0f - m_PlayerSize.x);
-    m_PlayerPosition.y = std::clamp(m_PlayerPosition.y + m_MoveDirection.y * m_MoveSpeed * deltaTime, 0.0f, 100.0f - m_PlayerSize.y);
+    // Clamp player position within camera bounds (centered coordinates)
+    // Player position is now the CENTER of the tile
+    float worldWidth = Engine::Renderer2D::GetCamera().GetWorldWidth();
+    float worldHeight = Engine::Renderer2D::GetCamera().GetWorldHeight();
+
+    float halfWidth = worldWidth * 0.5f;
+    float halfHeight = worldHeight * 0.5f;
+    float tileHalfWidth = m_PlayerSize.x * 0.5f;
+    float tileHalfHeight = m_PlayerSize.y * 0.5f;
+
+    m_PlayerPosition.x = std::clamp(m_PlayerPosition.x + m_MoveDirection.x * m_MoveSpeed * deltaTime,
+                                    -halfWidth + tileHalfWidth, halfWidth - tileHalfWidth);
+    m_PlayerPosition.y = std::clamp(m_PlayerPosition.y + m_MoveDirection.y * m_MoveSpeed * deltaTime,
+                                    -halfHeight + tileHalfHeight, halfHeight - tileHalfHeight);
 }
 
 void Game::Render()
 {
-    // Test our tile rendering with world coordinates (0-100 scale)
+    // Test our new camera-based coordinate system with centered positioning
 
-    // Red tile at player position with player size
+    // Red square centered at player position - should always be square regardless of window size!
     Engine::Renderer2D::DrawTile(m_PlayerPosition, m_PlayerSize, Engine::Color(1.0f, 0.0f, 0.0f, 1.0f));
 }
 
