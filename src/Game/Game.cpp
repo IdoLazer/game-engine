@@ -17,9 +17,43 @@ Engine::WindowConfig Game::GetWindowConfig() const
 void Game::Initialize()
 {
     std::cout << "Game initialized." << std::endl;
+    PlaceFood();
 }
 
 void Game::Update(float deltaTime)
+{
+    ReadInput();
+    MovePlayer(deltaTime);
+    if (CheckCollision())
+    {
+        PlaceFood();
+        GrowPlayer();
+    }
+}
+
+void Game::Render()
+{
+    Engine::Renderer2D::DrawTile(m_PlayerPosition, m_PlayerSize, Engine::Color(1.0f, 0.0f, 0.0f, 1.0f));
+    Engine::Renderer2D::DrawTile(m_FoodPosition, m_FoodSize, Engine::Color(0.0f, 1.0f, 0.0f, 1.0f));
+}
+
+void Game::PlaceFood()
+{
+    // Randomly place food within camera bounds
+    float worldWidth = Engine::Renderer2D::GetCamera().GetWorldWidth();
+    float worldHeight = Engine::Renderer2D::GetCamera().GetWorldHeight();
+
+    float halfWidth = worldWidth * 0.5f;
+    float halfHeight = worldHeight * 0.5f;
+
+    // Random position within bounds
+    float foodX = static_cast<float>(rand()) / RAND_MAX * (worldWidth - 1.0f) - (halfWidth - 0.5f);
+    float foodY = static_cast<float>(rand()) / RAND_MAX * (worldHeight - 1.0f) - (halfHeight - 0.5f);
+
+    m_FoodPosition = Engine::Vec2(foodX, foodY);
+}
+
+void Game::ReadInput()
 {
     // Exit game on Escape
     if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_ESCAPE))
@@ -44,7 +78,10 @@ void Game::Update(float deltaTime)
     {
         m_MoveDirection = Engine::Vec2(1.0f, 0.0f);
     }
+}
 
+void Game::MovePlayer(float deltaTime)
+{
     // Clamp player position within camera bounds (centered coordinates)
     // Player position is now the CENTER of the tile
     float worldWidth = Engine::Renderer2D::GetCamera().GetWorldWidth();
@@ -61,12 +98,18 @@ void Game::Update(float deltaTime)
                                     -halfHeight + tileHalfHeight, halfHeight - tileHalfHeight);
 }
 
-void Game::Render()
+bool Game::CheckCollision() const
 {
-    // Test our new camera-based coordinate system with centered positioning
+    // Simple AABB collision detection
+    return (m_PlayerPosition.x - m_PlayerSize.x * 0.5f < m_FoodPosition.x + m_FoodSize.x * 0.5f &&
+            m_PlayerPosition.x + m_PlayerSize.x * 0.5f > m_FoodPosition.x - m_FoodSize.x * 0.5f &&
+            m_PlayerPosition.y - m_PlayerSize.y * 0.5f < m_FoodPosition.y + m_FoodSize.y * 0.5f &&
+            m_PlayerPosition.y + m_PlayerSize.y * 0.5f > m_FoodPosition.y - m_FoodSize.y * 0.5f);
+}
 
-    // Red square centered at player position - should always be square regardless of window size!
-    Engine::Renderer2D::DrawTile(m_PlayerPosition, m_PlayerSize, Engine::Color(1.0f, 0.0f, 0.0f, 1.0f));
+void Game::GrowPlayer()
+{
+    m_PlayerSize = Engine::Vec2(m_PlayerSize.x + 0.1f, m_PlayerSize.y + 0.1f);
 }
 
 void Game::Shutdown()
