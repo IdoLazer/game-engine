@@ -1,6 +1,4 @@
 #include "Game.h"
-#include "Engine/Input/Keyboard.h"
-#include "Engine/Rendering/Renderer2D.h"
 #include <algorithm>
 #include <iostream>
 
@@ -63,4 +61,14 @@ void Game::Render()
 void Game::Shutdown()
 {
     std::cout << "Game shutting down." << std::endl;
+}
+
+// Engine Entry Point Factory Function
+// This is called by the engine's main() to create our game instance
+namespace Engine
+{
+    Application *CreateApplication()
+    {
+        return new Game();
+    }
 }

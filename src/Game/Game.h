@@ -1,5 +1,5 @@
 #pragma once
-#include "Engine/Core/Application.h"
+#include <Engine.h> // Elegant system header syntax!
 
 class Game : public Engine::Application
 {

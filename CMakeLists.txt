@@ -14,19 +14,14 @@ find_package(OpenGL REQUIRED)
 file(GLOB_RECURSE ENGINE_SOURCES "src/Engine/*.cpp")
 file(GLOB_RECURSE GAME_SOURCES "src/Game/*.cpp")
 
-set(MAIN_SOURCES
-    src/main.cpp
-)
-
 # Create the executable
 add_executable(Game 
-    ${MAIN_SOURCES}
     ${ENGINE_SOURCES}
     ${GAME_SOURCES}
 )
 
 # Set include directories
-target_include_directories(Game PRIVATE src/Engine)
+target_include_directories(Game SYSTEM PRIVATE src/Engine)
 target_include_directories(Game PRIVATE src/Game)
 target_include_directories(Game PRIVATE src)
 

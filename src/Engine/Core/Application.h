@@ -54,4 +54,8 @@ namespace Engine
         // Delta time tracking
         double m_LastFrameTime = 0.0;
     };
+
+    // Factory function that must be implemented by the game
+    // The game will return an instance of their Application-derived class
+    Application *CreateApplication();
 }
