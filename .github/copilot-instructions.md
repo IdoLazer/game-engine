@@ -6,26 +6,31 @@ This is a **learning-focused C++ game engine project** designed as an educationa
 
 ### Architecture
 
-The project follows a layered architecture with clear separation of concerns:
+The project follows a layered architecture with clear separation of concerns and professional entry point management:
 
-```
+```text
 src/
-├── main.cpp                    # Entry point
 ├── Engine/                     # Core engine systems
-│   ├── Core/                   # Application lifecycle, main loop
-│   ├── Input/                  # Input handling (Keyboard, etc.)
-│   └── Rendering/              # Window management, rendering
-└── Game/                       # Game-specific implementation
-    ├── Game.h/.cpp            # Main game class inheriting from Engine::Application
+│   ├── Engine.h               # Single header API - everything a game needs
+│   ├── Core/                  # Application lifecycle, entry point management
+│   │   ├── Application.h      # Base application class + CreateApplication() declaration
+│   │   └── EntryPoint.h       # Engine-owned main() function
+│   ├── Input/                 # Input handling (Keyboard, etc.)
+│   └── Rendering/             # Window management, rendering
+└── Game/                      # Game-specific implementation
+    ├── Game.h                 # Game class inheriting from Engine::Application
+    └── Game.cpp               # Game implementation + CreateApplication() factory
 ```
 
 **Key Architectural Principles:**
 
-- Engine layer provides core systems and abstract interfaces
-- Game layer inherits from and implements engine interfaces
-- Clear separation between engine infrastructure and game logic
-- Component-based design with small, focused classes
-- CMake build system with vcpkg for dependency management
+- **Engine-Owned Entry Point:** Engine provides `main()` via `EntryPoint.h`, games implement factory function
+- **Single Header API:** Games only need `#include <Engine.h>` for complete engine access
+- **Factory Pattern:** Games implement `Engine::CreateApplication()` to provide their application instance
+- **Professional Include Style:** System headers (`<Engine.h>`) vs local headers (`"Game.h"`)
+- **Clear Separation:** Engine infrastructure separate from game logic
+- **Component-based design:** Small, focused classes with clear responsibilities
+- **CMake build system:** vcpkg for dependency management, system includes for engine headers
 
 ### Current Technology Stack
 
@@ -74,8 +79,12 @@ src/
 
 ### Common Patterns to Follow
 
+- **Engine-Owned Entry Point:** Engine provides `main()`, games implement `Engine::CreateApplication()`
+- **Single Header Include:** Games use `#include <Engine.h>` for all engine functionality
+- **Factory Pattern:** Games return their application instance via the CreateApplication() function
 - **Inheritance for Core Systems:** Game inherits from Engine::Application
 - **Abstract Interfaces:** Engine provides pure virtual methods for game implementation
+- **Professional Include Style:** `<Engine.h>` for engine, `"Game.h"` for local files
 - **Resource Management:** Use RAII, smart pointers where appropriate
 - **Error Handling:** Clear error messages and graceful degradation
 - **Configuration:** Use config structs for system setup (like WindowConfig)
@@ -92,11 +101,15 @@ src/
 
 The engine currently has:
 
+- ✅ Engine-owned entry point architecture (professional main() handling)
+- ✅ Single header API (`#include <Engine.h>`)
+- ✅ Factory pattern for application creation
 - ✅ Basic application lifecycle (Application class)
 - ✅ Window management with GLFW
 - ✅ Basic input handling (Keyboard)
-- ✅ Game/Engine separation
+- ✅ Clean Game/Engine separation
 - ✅ CMake build system with vcpkg
+- ✅ Professional include style (system vs local headers)
 
 Next logical areas for development:
 
