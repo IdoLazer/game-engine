@@ -3,24 +3,11 @@
 #include <GLFW/glfw3.h>
 #include "Window.h"
 #include "Camera2D.h"
+#include "Graphics/Color.h"
+#include "Math/Vec2.h"
 
 namespace Engine
 {
-    struct Color
-    {
-        float r, g, b, a;
-
-        Color(float red = 1.0f, float green = 1.0f, float blue = 1.0f, float alpha = 1.0f)
-            : r(red), g(green), b(blue), a(alpha) {}
-    };
-
-    struct Vec2
-    {
-        float x, y;
-
-        Vec2(float x = 0.0f, float y = 0.0f) : x(x), y(y) {}
-    };
-
     class Renderer2D
     {
     public:

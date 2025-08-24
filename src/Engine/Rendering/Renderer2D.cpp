@@ -48,11 +48,10 @@ namespace Engine
         glColor4f(color.r, color.g, color.b, color.a);
 
         // Calculate the corners of the rectangle in world coordinates
-        float halfWidth = size.x * 0.5f;
-        float halfHeight = size.y * 0.5f;
+        Vec2 halfSize = size * 0.5f;
 
-        Vec2 bottomLeft = Vec2(position.x - halfWidth, position.y - halfHeight);
-        Vec2 topRight = Vec2(position.x + halfWidth, position.y + halfHeight);
+        Vec2 bottomLeft = position - halfSize;
+        Vec2 topRight = position + halfSize;
 
         // Convert corners to OpenGL coordinates
         Vec2 glBottomLeft = s_Camera.WorldToOpenGL(bottomLeft);

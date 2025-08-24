@@ -2,9 +2,11 @@
 #include <algorithm>
 #include <iostream>
 
-Engine::WindowConfig Game::GetWindowConfig() const
+using namespace Engine;
+
+WindowConfig Game::GetWindowConfig() const
 {
-    Engine::WindowConfig config;
+    WindowConfig config;
 
     config.title = "Game";
     config.width = 800;
@@ -33,15 +35,15 @@ void Game::Update(float deltaTime)
 
 void Game::Render()
 {
-    Engine::Renderer2D::DrawTile(m_PlayerPosition, m_PlayerSize, Engine::Color(1.0f, 0.0f, 0.0f, 1.0f));
-    Engine::Renderer2D::DrawTile(m_FoodPosition, m_FoodSize, Engine::Color(0.0f, 1.0f, 0.0f, 1.0f));
+    Renderer2D::DrawTile(m_PlayerPosition, m_PlayerSize, Color(1.0f, 0.0f, 0.0f, 1.0f));
+    Renderer2D::DrawTile(m_FoodPosition, m_FoodSize, Color(0.0f, 1.0f, 0.0f, 1.0f));
 }
 
 void Game::PlaceFood()
 {
     // Randomly place food within camera bounds
-    float worldWidth = Engine::Renderer2D::GetCamera().GetWorldWidth();
-    float worldHeight = Engine::Renderer2D::GetCamera().GetWorldHeight();
+    float worldWidth = Renderer2D::GetCamera().GetWorldWidth();
+    float worldHeight = Renderer2D::GetCamera().GetWorldHeight();
 
     float halfWidth = worldWidth * 0.5f;
     float halfHeight = worldHeight * 0.5f;
@@ -50,33 +52,33 @@ void Game::PlaceFood()
     float foodX = static_cast<float>(rand()) / RAND_MAX * (worldWidth - 1.0f) - (halfWidth - 0.5f);
     float foodY = static_cast<float>(rand()) / RAND_MAX * (worldHeight - 1.0f) - (halfHeight - 0.5f);
 
-    m_FoodPosition = Engine::Vec2(foodX, foodY);
+    m_FoodPosition = Vec2(foodX, foodY);
 }
 
 void Game::ReadInput()
 {
     // Exit game on Escape
-    if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_ESCAPE))
+    if (Keyboard::IsKeyPressed(GLFW_KEY_ESCAPE))
     {
         std::cout << "Escape pressed - exiting game!" << std::endl;
         Close();
     }
 
-    if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_UP))
+    if (Keyboard::IsKeyPressed(GLFW_KEY_UP))
     {
-        m_MoveDirection = Engine::Vec2(0.0f, 1.0f);
+        m_MoveDirection = Vec2(0.0f, 1.0f);
     }
-    if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_DOWN))
+    if (Keyboard::IsKeyPressed(GLFW_KEY_DOWN))
     {
-        m_MoveDirection = Engine::Vec2(0.0f, -1.0f);
+        m_MoveDirection = Vec2(0.0f, -1.0f);
     }
-    if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_LEFT))
+    if (Keyboard::IsKeyPressed(GLFW_KEY_LEFT))
     {
-        m_MoveDirection = Engine::Vec2(-1.0f, 0.0f);
+        m_MoveDirection = Vec2(-1.0f, 0.0f);
     }
-    if (Engine::Keyboard::IsKeyPressed(GLFW_KEY_RIGHT))
+    if (Keyboard::IsKeyPressed(GLFW_KEY_RIGHT))
     {
-        m_MoveDirection = Engine::Vec2(1.0f, 0.0f);
+        m_MoveDirection = Vec2(1.0f, 0.0f);
     }
 }
 
@@ -84,8 +86,8 @@ void Game::MovePlayer(float deltaTime)
 {
     // Clamp player position within camera bounds (centered coordinates)
     // Player position is now the CENTER of the tile
-    float worldWidth = Engine::Renderer2D::GetCamera().GetWorldWidth();
-    float worldHeight = Engine::Renderer2D::GetCamera().GetWorldHeight();
+    float worldWidth = Renderer2D::GetCamera().GetWorldWidth();
+    float worldHeight = Renderer2D::GetCamera().GetWorldHeight();
 
     float halfWidth = worldWidth * 0.5f;
     float halfHeight = worldHeight * 0.5f;
@@ -109,7 +111,7 @@ bool Game::CheckCollision() const
 
 void Game::GrowPlayer()
 {
-    m_PlayerSize = Engine::Vec2(m_PlayerSize.x + 0.1f, m_PlayerSize.y + 0.1f);
+    m_PlayerSize = Vec2(m_PlayerSize.x + 0.1f, m_PlayerSize.y + 0.1f);
 }
 
 void Game::Shutdown()

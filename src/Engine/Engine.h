@@ -15,6 +15,12 @@
 // Input System
 #include "Input/Keyboard.h"
 
+// Math
+#include "Math/Vec2.h"
+
+// Graphics
+#include "Graphics/Color.h"
+
 // This header provides everything a game needs:
 // 1. Application base class to inherit from
 // 2. All engine subsystems (Renderer2D, Keyboard, etc.)
