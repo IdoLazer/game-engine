@@ -37,6 +37,39 @@ namespace Engine
         return *this * (1.0f / scalar);
     }
 
+    Vec2 &Vec2::operator+=(const Vec2 &other)
+    {
+        this->x += other.x;
+        this->y += other.y;
+        return *this;
+    }
+
+    Vec2 &Vec2::operator-=(const Vec2 &other)
+    {
+        this->x -= other.x;
+        this->y -= other.y;
+        return *this;
+    }
+
+    Vec2 &Vec2::operator*=(float scalar)
+    {
+        this->x *= scalar;
+        this->y *= scalar;
+        return *this;
+    }
+
+    Vec2 &Vec2::operator/=(float scalar)
+    {
+        this->x /= scalar;
+        this->y /= scalar;
+        return *this;
+    }
+
+    bool Vec2::operator==(const Vec2 &other) const
+    {
+        return this->x == other.x && this->y == other.y;
+    }
+
     float Vec2::Length() const
     {
         return std::sqrt(this->x * this->x + this->y * this->y);

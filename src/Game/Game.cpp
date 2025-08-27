@@ -2,8 +2,6 @@
 #include <algorithm>
 #include <iostream>
 
-using namespace Engine;
-
 WindowConfig Game::GetWindowConfig() const
 {
     WindowConfig config;
@@ -19,13 +17,41 @@ WindowConfig Game::GetWindowConfig() const
 void Game::Initialize()
 {
     std::cout << "Game initialized." << std::endl;
-    PlaceFood();
+
+    // Initialize world
+    float worldWidth = Renderer2D::GetCamera().GetWorldWidth();
+    float worldHeight = Renderer2D::GetCamera().GetWorldHeight();
+    int gridSizeX = static_cast<int>(worldWidth);
+    int gridSizeY = static_cast<int>(worldHeight);
+    m_GridSize = Vec2(gridSizeX, gridSizeY);
+    m_GridCells = std::vector<std::vector<Vec2>>(gridSizeX, std::vector<Vec2>(gridSizeY, Vec2(0.0f, 0.0f)));
+    for (int x = 0; x < gridSizeX; ++x)
+    {
+        for (int y = 0; y < gridSizeY; ++y)
+        {
+            m_GridCells[x][y] = Vec2(x - worldWidth * 0.5f + 0.5f, worldHeight * 0.5f - y - 0.5f);
+        }
+    }
+
+    // Initialize player
+    m_MoveDirection = Vec2(1.0f, 0.0f); // Moving right initially
+    m_TailSegments = std::vector<Vec2>();
+
+    // Initial food position at the center of the grid
+    float foodX = static_cast<float>(gridSizeX / 2);
+    float foodY = static_cast<float>(gridSizeY / 2);
+    m_FoodCell = Vec2{foodX, foodY};
 }
 
 void Game::Update(float deltaTime)
 {
     ReadInput();
-    MovePlayer(deltaTime);
+    m_TimeSinceLastMove += deltaTime;
+    if (m_TimeSinceLastMove > 1.0f / m_MoveSpeed)
+    {
+        m_TimeSinceLastMove = 0;
+        MovePlayer();
+    }
     if (CheckCollision())
     {
         PlaceFood();
@@ -35,24 +61,19 @@ void Game::Update(float deltaTime)
 
 void Game::Render()
 {
-    Renderer2D::DrawTile(m_PlayerPosition, m_PlayerSize, Color(1.0f, 0.0f, 0.0f, 1.0f));
-    Renderer2D::DrawTile(m_FoodPosition, m_FoodSize, Color(0.0f, 1.0f, 0.0f, 1.0f));
+    Renderer2D::DrawTile(m_GridCells[m_PlayerCell.x][m_PlayerCell.y], m_PlayerSize, m_PlayerColor);
+    Renderer2D::DrawTile(m_GridCells[m_FoodCell.x][m_FoodCell.y], m_FoodSize, m_FoodColor);
 }
 
 void Game::PlaceFood()
 {
-    // Randomly place food within camera bounds
-    float worldWidth = Renderer2D::GetCamera().GetWorldWidth();
-    float worldHeight = Renderer2D::GetCamera().GetWorldHeight();
+    // Randomly place food within grid
+    int gridWidth = static_cast<int>(m_GridSize.x);
+    int gridHeight = static_cast<int>(m_GridSize.y);
+    float foodX = rand() % gridWidth;
+    float foodY = rand() % gridHeight;
 
-    float halfWidth = worldWidth * 0.5f;
-    float halfHeight = worldHeight * 0.5f;
-
-    // Random position within bounds
-    float foodX = static_cast<float>(rand()) / RAND_MAX * (worldWidth - 1.0f) - (halfWidth - 0.5f);
-    float foodY = static_cast<float>(rand()) / RAND_MAX * (worldHeight - 1.0f) - (halfHeight - 0.5f);
-
-    m_FoodPosition = Vec2(foodX, foodY);
+    m_FoodCell = Vec2{foodX, foodY};
 }
 
 void Game::ReadInput()
@@ -66,11 +87,11 @@ void Game::ReadInput()
 
     if (Keyboard::IsKeyPressed(GLFW_KEY_UP))
     {
-        m_MoveDirection = Vec2(0.0f, 1.0f);
+        m_MoveDirection = Vec2(0.0f, -1.0f);
     }
     if (Keyboard::IsKeyPressed(GLFW_KEY_DOWN))
     {
-        m_MoveDirection = Vec2(0.0f, -1.0f);
+        m_MoveDirection = Vec2(0.0f, 1.0f);
     }
     if (Keyboard::IsKeyPressed(GLFW_KEY_LEFT))
     {
@@ -82,41 +103,27 @@ void Game::ReadInput()
     }
 }
 
-void Game::MovePlayer(float deltaTime)
+void Game::MovePlayer()
 {
-    // Clamp player position within camera bounds (centered coordinates)
-    // Player position is now the CENTER of the tile
-    float worldWidth = Renderer2D::GetCamera().GetWorldWidth();
-    float worldHeight = Renderer2D::GetCamera().GetWorldHeight();
-
-    float halfWidth = worldWidth * 0.5f;
-    float halfHeight = worldHeight * 0.5f;
-    float tileHalfWidth = m_PlayerSize.x * 0.5f;
-    float tileHalfHeight = m_PlayerSize.y * 0.5f;
-
-    m_PlayerPosition.x = std::clamp(m_PlayerPosition.x + m_MoveDirection.x * m_MoveSpeed * deltaTime,
-                                    -halfWidth + tileHalfWidth, halfWidth - tileHalfWidth);
-    m_PlayerPosition.y = std::clamp(m_PlayerPosition.y + m_MoveDirection.y * m_MoveSpeed * deltaTime,
-                                    -halfHeight + tileHalfHeight, halfHeight - tileHalfHeight);
+    m_PlayerCell += m_MoveDirection;
+    m_PlayerCell = Vec2{std::clamp(m_PlayerCell.x, 0.0f, m_GridSize.x - 1), std::clamp(m_PlayerCell.y, 0.0f, m_GridSize.y - 1)};
 }
 
 bool Game::CheckCollision() const
 {
     // Simple AABB collision detection
-    return (m_PlayerPosition.x - m_PlayerSize.x * 0.5f < m_FoodPosition.x + m_FoodSize.x * 0.5f &&
-            m_PlayerPosition.x + m_PlayerSize.x * 0.5f > m_FoodPosition.x - m_FoodSize.x * 0.5f &&
-            m_PlayerPosition.y - m_PlayerSize.y * 0.5f < m_FoodPosition.y + m_FoodSize.y * 0.5f &&
-            m_PlayerPosition.y + m_PlayerSize.y * 0.5f > m_FoodPosition.y - m_FoodSize.y * 0.5f);
+    return m_PlayerCell == m_FoodCell;
 }
 
 void Game::GrowPlayer()
 {
-    m_PlayerSize = Vec2(m_PlayerSize.x + 0.1f, m_PlayerSize.y + 0.1f);
+    m_TailSegments.push_back(m_PlayerCell);
 }
 
 void Game::Shutdown()
 {
     std::cout << "Game shutting down." << std::endl;
+    m_TailSegments.clear();
 }
 
 // Engine Entry Point Factory Function
