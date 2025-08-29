@@ -22,6 +22,10 @@ namespace Engine
         Vec2 &operator/=(float scalar);
         bool operator==(const Vec2 &other) const;
 
+        // Friend function for scalar * Vec2
+        friend Vec2 operator*(float scalar, const Vec2 &vec);
+        friend Vec2 operator/(float scalar, const Vec2 &vec);
+
         // Mathematical functions
         float Length() const;
         Vec2 Normalized() const;

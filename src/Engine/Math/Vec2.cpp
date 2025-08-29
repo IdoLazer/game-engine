@@ -87,4 +87,14 @@ namespace Engine
     {
         return this->x * other.x + this->y * other.y;
     }
+
+    Vec2 operator*(float scalar, const Vec2 &vec)
+    {
+        return vec * scalar;
+    }
+
+    Vec2 operator/(float scalar, const Vec2 &vec)
+    {
+        return vec / scalar;
+    }
 }

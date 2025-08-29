@@ -10,6 +10,7 @@ private:
     void ReadInput();
     void MovePlayer();
     bool CheckCollision() const;
+    bool CheckGameOver() const;
     void GrowPlayer();
     void PlaceFood();
 
@@ -27,15 +28,18 @@ private:
     Vec2 m_GridSize;
     Vec2 m_GridCellSize{1.0f, 1.0f};
     std::vector<std::vector<Vec2>> m_GridCells;
+    float m_MarginX{0.0f};
 
     // Player
     Vec2 m_PlayerCell{0.0f, 0.0f}; // Start at top-left corner
     Vec2 m_PlayerSize{1.0f, 1.0f}; // 1x1 world unit tile
     Color m_PlayerColor{1.0f, 0.0f, 0.0f, 1.0f};
+    int m_StartTailLength{1};
     Vec2 m_MoveDirection;
-    float m_MoveSpeed{5.0f}; // 5 grid cells per second
+    float m_MoveSpeed{6.0f}; // 5 grid cells per second
     std::vector<Vec2> m_TailSegments;
     float m_TimeSinceLastMove{0.0f};
+    bool m_UpdateMoveThisFrame{false};
 
     // Food
     Vec2 m_FoodCell;             // Start food at center (0,0)
