@@ -70,6 +70,11 @@ namespace Engine
         return this->x == other.x && this->y == other.y;
     }
 
+    bool Vec2::operator!=(const Vec2 &other) const
+    {
+        return !(*this == other);
+    }
+
     float Vec2::Length() const
     {
         return std::sqrt(this->x * this->x + this->y * this->y);

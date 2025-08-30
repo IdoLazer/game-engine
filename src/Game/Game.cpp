@@ -94,13 +94,22 @@ void Game::Render()
 
 void Game::PlaceFood()
 {
-    // Randomly place food within grid
-    int gridWidth = static_cast<int>(m_GridSize.x);
-    int gridHeight = static_cast<int>(m_GridSize.y);
-    float foodX = rand() % gridWidth;
-    float foodY = rand() % gridHeight;
+    // Randomly place food within grid, ensuring it doesn't overlap with the player or tail
+    while (true)
+    {
+        int gridWidth = static_cast<int>(m_GridSize.x);
+        int gridHeight = static_cast<int>(m_GridSize.y);
+        float foodX = rand() % gridWidth;
+        float foodY = rand() % gridHeight;
 
-    m_FoodCell = Vec2{foodX, foodY};
+        m_FoodCell = Vec2{foodX, foodY};
+
+        // Check for overlap with player and tail
+        if (m_FoodCell != m_PlayerCell && std::find(m_TailSegments.begin(), m_TailSegments.end(), m_FoodCell) == m_TailSegments.end())
+        {
+            break; // Valid position found
+        }
+    }
 }
 
 void Game::ReadInput()

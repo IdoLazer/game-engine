@@ -21,6 +21,7 @@ namespace Engine
         Vec2 &operator*=(float scalar);
         Vec2 &operator/=(float scalar);
         bool operator==(const Vec2 &other) const;
+        bool operator!=(const Vec2 &other) const;
 
         // Friend function for scalar * Vec2
         friend Vec2 operator*(float scalar, const Vec2 &vec);
