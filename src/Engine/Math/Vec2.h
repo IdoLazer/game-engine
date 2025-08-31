@@ -9,6 +9,7 @@ namespace Engine
 
         // Constructors
         Vec2(float x = 0.0f, float y = 0.0f);
+        Vec2(int x, int y);
 
         // Arithmetic operators
         Vec2 operator-() const;

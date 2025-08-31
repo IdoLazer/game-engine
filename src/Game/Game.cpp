@@ -202,18 +202,18 @@ void Game::InitializePlayer()
     m_TailSegments = std::vector<Vec2>(GameConstants::INITIAL_TAIL_LENGTH, Vec2(0.0f, 0.0f));
     for (int i = 0; i < GameConstants::INITIAL_TAIL_LENGTH; ++i)
     {
-        m_TailSegments[i] = Vec2(i, 0.0f);
+        m_TailSegments[i] = Vec2(i, 0);
     }
 
     // Position player head
-    m_PlayerCell = Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0.0f);
+    m_PlayerCell = Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0);
 }
 
 void Game::InitializeFood()
 {
     // Place initial food at center of grid
-    float foodX = static_cast<float>(m_GridSize.x / 2);
-    float foodY = static_cast<float>(m_GridSize.y / 2);
+    int foodX = static_cast<int>(m_GridSize.x / 2);
+    int foodY = static_cast<int>(m_GridSize.y / 2);
     m_FoodCell = Vec2{foodX, foodY};
 }
 

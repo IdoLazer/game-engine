@@ -12,6 +12,12 @@ namespace Engine
         this->y = y;
     }
 
+    Vec2::Vec2(int x, int y)
+    {
+        this->x = static_cast<float>(x);
+        this->y = static_cast<float>(y);
+    }
+
     Vec2 Vec2::operator-() const
     {
         return Vec2(-this->x, -this->y);
