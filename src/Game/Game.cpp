@@ -41,14 +41,14 @@ void Game::Initialize()
     }
 
     // Initialize player
-    m_MoveDirection = Vec2(1.0f, 0.0f); // Moving right initially
+    m_MoveDirection = GameConstants::DIRECTION_RIGHT; // Moving right initially
     // Initialize with 1 tail segment
-    m_TailSegments = std::vector<Vec2>(m_StartTailLength, Vec2(0.0f, 0.0f));
-    for (int i = 0; i < m_StartTailLength; ++i)
+    m_TailSegments = std::vector<Vec2>(GameConstants::INITIAL_TAIL_LENGTH, Vec2(0.0f, 0.0f));
+    for (int i = 0; i < GameConstants::INITIAL_TAIL_LENGTH; ++i)
     {
         m_TailSegments[i] = Vec2(i, 0.0f);
     }
-    m_PlayerCell = Vec2(m_StartTailLength, 0.0f);
+    m_PlayerCell = Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0.0f);
 
     // Initial food position at the center of the grid
     float foodX = static_cast<float>(gridSizeX / 2);
@@ -60,9 +60,9 @@ void Game::Update(float deltaTime)
 {
     ReadInput();
     m_TimeSinceLastMove += deltaTime;
-    if (m_TimeSinceLastMove > 1.0f / m_MoveSpeed)
+    if (m_TimeSinceLastMove > 1.0f / GameConstants::MOVE_SPEED)
     {
-        m_TimeSinceLastMove = 0;
+        m_TimeSinceLastMove = 0.0f;
         MovePlayer();
         if (CheckGameOver())
         {
@@ -80,16 +80,16 @@ void Game::Update(float deltaTime)
 void Game::Render()
 {
     // Draw Player
-    Renderer2D::DrawTile(m_GridCells[m_PlayerCell.x][m_PlayerCell.y], m_PlayerSize, m_PlayerColor);
-    Renderer2D::DrawTile(m_GridCells[m_FoodCell.x][m_FoodCell.y], m_FoodSize, m_FoodColor);
+    Renderer2D::DrawTile(m_GridCells[m_PlayerCell.x][m_PlayerCell.y], GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
+    Renderer2D::DrawTile(m_GridCells[m_FoodCell.x][m_FoodCell.y], GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
     for (const Vec2 &segment : m_TailSegments)
     {
-        Renderer2D::DrawTile(m_GridCells[segment.x][segment.y], m_PlayerSize, m_PlayerColor);
+        Renderer2D::DrawTile(m_GridCells[segment.x][segment.y], GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
     }
 
     // Draw world boundaries
-    Renderer2D::DrawTile(0.5f * Vec2{-m_GridSize.x - m_MarginX, 0.0f}, Vec2{m_MarginX, m_GridSize.y}, Color{0.0f, 0.0f, 1.0f, 1.0f});
-    Renderer2D::DrawTile(0.5f * Vec2{m_GridSize.x + m_MarginX, 0.0f}, Vec2{m_MarginX, m_GridSize.y}, Color{0.0f, 0.0f, 1.0f, 1.0f});
+    Renderer2D::DrawTile(0.5f * Vec2{-m_GridSize.x - m_MarginX, 0.0f}, Vec2{m_MarginX, m_GridSize.y}, GameConstants::BOUNDARY_COLOR);
+    Renderer2D::DrawTile(0.5f * Vec2{m_GridSize.x + m_MarginX, 0.0f}, Vec2{m_MarginX, m_GridSize.y}, GameConstants::BOUNDARY_COLOR);
 }
 
 void Game::PlaceFood()
@@ -127,22 +127,22 @@ void Game::ReadInput()
     if (Keyboard::IsKeyPressed(GLFW_KEY_UP) && m_MoveDirection.y != 1)
     {
         m_UpdateMoveThisFrame = true;
-        m_MoveDirection = Vec2(0.0f, -1.0f);
+        m_MoveDirection = GameConstants::DIRECTION_UP;
     }
     if (Keyboard::IsKeyPressed(GLFW_KEY_DOWN) && m_MoveDirection.y != -1)
     {
         m_UpdateMoveThisFrame = true;
-        m_MoveDirection = Vec2(0.0f, 1.0f);
+        m_MoveDirection = GameConstants::DIRECTION_DOWN;
     }
     if (Keyboard::IsKeyPressed(GLFW_KEY_LEFT) && m_MoveDirection.x != 1)
     {
         m_UpdateMoveThisFrame = true;
-        m_MoveDirection = Vec2(-1.0f, 0.0f);
+        m_MoveDirection = GameConstants::DIRECTION_LEFT;
     }
     if (Keyboard::IsKeyPressed(GLFW_KEY_RIGHT) && m_MoveDirection.x != -1)
     {
         m_UpdateMoveThisFrame = true;
-        m_MoveDirection = Vec2(1.0f, 0.0f);
+        m_MoveDirection = GameConstants::DIRECTION_RIGHT;
     }
 }
 

@@ -4,6 +4,30 @@
 
 using namespace Engine;
 
+// Game Constants
+namespace GameConstants
+{
+    // Player Settings
+    const Vec2 PLAYER_SIZE{1.0f, 1.0f};
+    const Color PLAYER_COLOR{1.0f, 0.0f, 0.0f, 1.0f}; // Red
+    static constexpr int INITIAL_TAIL_LENGTH = 1;
+    static constexpr float MOVE_SPEED = 6.0f; // Grid cells per second
+
+    // Food Settings
+    const Vec2 FOOD_SIZE{0.5f, 0.5f};
+    const Color FOOD_COLOR{0.0f, 1.0f, 0.0f, 1.0f}; // Green
+
+    // World Settings
+    const Vec2 GRID_CELL_SIZE{1.0f, 1.0f};
+    const Color BOUNDARY_COLOR{0.0f, 0.0f, 1.0f, 1.0f}; // Blue
+
+    // Movement
+    const Vec2 DIRECTION_UP{0.0f, -1.0f};
+    const Vec2 DIRECTION_DOWN{0.0f, 1.0f};
+    const Vec2 DIRECTION_LEFT{-1.0f, 0.0f};
+    const Vec2 DIRECTION_RIGHT{1.0f, 0.0f};
+}
+
 class Game : public Engine::Application
 {
 private:
@@ -26,23 +50,16 @@ public:
 private:
     // World
     Vec2 m_GridSize;
-    Vec2 m_GridCellSize{1.0f, 1.0f};
     std::vector<std::vector<Vec2>> m_GridCells;
-    float m_MarginX{0.0f};
+    float m_MarginX;
 
     // Player
-    Vec2 m_PlayerCell{0.0f, 0.0f}; // Start at top-left corner
-    Vec2 m_PlayerSize{1.0f, 1.0f}; // 1x1 world unit tile
-    Color m_PlayerColor{1.0f, 0.0f, 0.0f, 1.0f};
-    int m_StartTailLength{1};
+    Vec2 m_PlayerCell; // Start at top-left corner
     Vec2 m_MoveDirection;
-    float m_MoveSpeed{6.0f}; // 5 grid cells per second
     std::vector<Vec2> m_TailSegments;
-    float m_TimeSinceLastMove{0.0f};
+    float m_TimeSinceLastMove;
     bool m_UpdateMoveThisFrame{false};
 
     // Food
-    Vec2 m_FoodCell;             // Start food at center (0,0)
-    Vec2 m_FoodSize{0.5f, 0.5f}; // 0.5x0.5 world unit tile
-    Color m_FoodColor{0.0f, 1.0f, 0.0f, 1.0f};
+    Vec2 m_FoodCell;
 };
