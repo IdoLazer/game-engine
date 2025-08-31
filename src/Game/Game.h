@@ -35,6 +35,8 @@ private:
     void MovePlayer();
     bool CheckCollision() const;
     bool CheckGameOver() const;
+    bool CheckWallCollision() const;
+    bool CheckSelfCollision() const;
     void GrowPlayer();
     void PlaceFood();
 
@@ -42,6 +44,10 @@ private:
     void InitializeWorld();
     void InitializePlayer();
     void InitializeFood();
+
+    // Grid utility
+    Vec2 GridToWorldPosition(int gridX, int gridY, float worldWidth, float worldHeight) const;
+    bool IsValidFoodPosition(const Vec2 &position) const;
 
 public:
     Game() = default;

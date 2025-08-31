@@ -62,21 +62,21 @@ void Game::Render()
 void Game::PlaceFood()
 {
     // Randomly place food within grid, ensuring it doesn't overlap with the player or tail
-    while (true)
+    const int maxAttempts = 100; // Safety limit to prevent infinite loops
+    int attempts = 0;
+
+    do
     {
         int gridWidth = static_cast<int>(m_GridSize.x);
         int gridHeight = static_cast<int>(m_GridSize.y);
-        float foodX = rand() % gridWidth;
-        float foodY = rand() % gridHeight;
-
+        float foodX = static_cast<float>(rand() % gridWidth);
+        float foodY = static_cast<float>(rand() % gridHeight);
         m_FoodCell = Vec2{foodX, foodY};
 
-        // Check for overlap with player and tail
-        if (m_FoodCell != m_PlayerCell && std::find(m_TailSegments.begin(), m_TailSegments.end(), m_FoodCell) == m_TailSegments.end())
-        {
-            break; // Valid position found
-        }
-    }
+        attempts++;
+    } while (!IsValidFoodPosition(m_FoodCell) && attempts < maxAttempts);
+
+    // If we couldn't find a valid position, just place it anyway (game is probably about to end)
 }
 
 void Game::ReadInput()
@@ -91,22 +91,23 @@ void Game::ReadInput()
     if (m_UpdateMoveThisFrame)
         return;
 
-    if (Keyboard::IsKeyPressed(GLFW_KEY_UP) && m_MoveDirection.y != 1)
+    // Handle direction input - prevent immediate reversal into opposite direction
+    if (Keyboard::IsKeyPressed(GLFW_KEY_UP) && m_MoveDirection != GameConstants::DIRECTION_DOWN)
     {
         m_UpdateMoveThisFrame = true;
         m_MoveDirection = GameConstants::DIRECTION_UP;
     }
-    if (Keyboard::IsKeyPressed(GLFW_KEY_DOWN) && m_MoveDirection.y != -1)
+    else if (Keyboard::IsKeyPressed(GLFW_KEY_DOWN) && m_MoveDirection != GameConstants::DIRECTION_UP)
     {
         m_UpdateMoveThisFrame = true;
         m_MoveDirection = GameConstants::DIRECTION_DOWN;
     }
-    if (Keyboard::IsKeyPressed(GLFW_KEY_LEFT) && m_MoveDirection.x != 1)
+    else if (Keyboard::IsKeyPressed(GLFW_KEY_LEFT) && m_MoveDirection != GameConstants::DIRECTION_RIGHT)
     {
         m_UpdateMoveThisFrame = true;
         m_MoveDirection = GameConstants::DIRECTION_LEFT;
     }
-    if (Keyboard::IsKeyPressed(GLFW_KEY_RIGHT) && m_MoveDirection.x != -1)
+    else if (Keyboard::IsKeyPressed(GLFW_KEY_RIGHT) && m_MoveDirection != GameConstants::DIRECTION_LEFT)
     {
         m_UpdateMoveThisFrame = true;
         m_MoveDirection = GameConstants::DIRECTION_RIGHT;
@@ -122,25 +123,28 @@ void Game::MovePlayer()
         m_TailSegments.front() = m_PlayerCell;
     }
     m_PlayerCell += m_MoveDirection;
-    m_PlayerCell = Vec2{std::clamp(m_PlayerCell.x, 0.0f, m_GridSize.x - 1), std::clamp(m_PlayerCell.y, 0.0f, m_GridSize.y - 1)};
     m_UpdateMoveThisFrame = false;
 }
 
 bool Game::CheckCollision() const
 {
-    // Simple AABB collision detection
     return m_PlayerCell == m_FoodCell;
 }
 
 bool Game::CheckGameOver() const
 {
-    // Check if the player has collided with the walls
-    if (m_PlayerCell.x < 0 || m_PlayerCell.x >= m_GridSize.x ||
-        m_PlayerCell.y < 0 || m_PlayerCell.y >= m_GridSize.y)
-    {
-        return true;
-    }
+    return CheckWallCollision() || CheckSelfCollision();
+}
 
+bool Game::CheckWallCollision() const
+{
+    // Check if the player has collided with the walls
+    return m_PlayerCell.x < 0 || m_PlayerCell.x >= m_GridSize.x ||
+           m_PlayerCell.y < 0 || m_PlayerCell.y >= m_GridSize.y;
+}
+
+bool Game::CheckSelfCollision() const
+{
     // Check if the player has collided with its own tail
     for (const Vec2 &segment : m_TailSegments)
     {
@@ -149,7 +153,6 @@ bool Game::CheckGameOver() const
             return true;
         }
     }
-
     return false;
 }
 
@@ -185,7 +188,7 @@ void Game::InitializeWorld()
     {
         for (int y = 0; y < gridSizeY; ++y)
         {
-            m_GridCells[x][y] = Vec2(x - worldWidth * 0.5f + 0.5f + m_MarginX, worldHeight * 0.5f - y - 0.5f);
+            m_GridCells[x][y] = GridToWorldPosition(x, y, worldWidth, worldHeight);
         }
     }
 }
@@ -212,6 +215,24 @@ void Game::InitializeFood()
     float foodX = static_cast<float>(m_GridSize.x / 2);
     float foodY = static_cast<float>(m_GridSize.y / 2);
     m_FoodCell = Vec2{foodX, foodY};
+}
+
+Vec2 Game::GridToWorldPosition(int gridX, int gridY, float worldWidth, float worldHeight) const
+{
+    // Convert grid coordinates to world coordinates
+    // Grid origin (0,0) is at top-left, world origin (0,0) is at center
+    float worldX = gridX - worldWidth * 0.5f + 0.5f + m_MarginX;
+    float worldY = worldHeight * 0.5f - gridY - 0.5f;
+    return Vec2(worldX, worldY);
+}
+
+bool Game::IsValidFoodPosition(const Vec2 &position) const
+{
+    // Check if position doesn't overlap with player or tail segments
+    if (position == m_PlayerCell)
+        return false;
+
+    return std::find(m_TailSegments.begin(), m_TailSegments.end(), position) == m_TailSegments.end();
 }
 
 // Engine Entry Point Factory Function
