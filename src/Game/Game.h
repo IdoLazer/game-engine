@@ -38,6 +38,11 @@ private:
     void GrowPlayer();
     void PlaceFood();
 
+    // Initialization helpers
+    void InitializeWorld();
+    void InitializePlayer();
+    void InitializeFood();
+
 public:
     Game() = default;
     void Initialize() override;

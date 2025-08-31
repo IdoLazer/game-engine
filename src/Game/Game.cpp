@@ -18,42 +18,9 @@ void Game::Initialize()
 {
     std::cout << "Game initialized." << std::endl;
 
-    // Initialize world
-    float worldWidth = Renderer2D::GetCamera().GetWorldWidth();
-    float worldHeight = Renderer2D::GetCamera().GetWorldHeight();
-    int gridSizeX = static_cast<int>(worldWidth);
-    int gridSizeY = static_cast<int>(worldHeight);
-    m_MarginX = (worldWidth - gridSizeX) * 0.5f;
-    m_GridSize = Vec2(gridSizeX, gridSizeY);
-
-    // print the grid size, the margin and the world width
-    std::cout << "Grid Size: " << m_GridSize.x << "x" << m_GridSize.y << std::endl;
-    std::cout << "Margin: " << m_MarginX << std::endl;
-    std::cout << "World Width: " << worldWidth << std::endl;
-
-    m_GridCells = std::vector<std::vector<Vec2>>(gridSizeX, std::vector<Vec2>(gridSizeY, Vec2(0.0f, 0.0f)));
-    for (int x = 0; x < gridSizeX; ++x)
-    {
-        for (int y = 0; y < gridSizeY; ++y)
-        {
-            m_GridCells[x][y] = Vec2(x - worldWidth * 0.5f + 0.5f + m_MarginX, worldHeight * 0.5f - y - 0.5f);
-        }
-    }
-
-    // Initialize player
-    m_MoveDirection = GameConstants::DIRECTION_RIGHT; // Moving right initially
-    // Initialize with 1 tail segment
-    m_TailSegments = std::vector<Vec2>(GameConstants::INITIAL_TAIL_LENGTH, Vec2(0.0f, 0.0f));
-    for (int i = 0; i < GameConstants::INITIAL_TAIL_LENGTH; ++i)
-    {
-        m_TailSegments[i] = Vec2(i, 0.0f);
-    }
-    m_PlayerCell = Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0.0f);
-
-    // Initial food position at the center of the grid
-    float foodX = static_cast<float>(gridSizeX / 2);
-    float foodY = static_cast<float>(gridSizeY / 2);
-    m_FoodCell = Vec2{foodX, foodY};
+    InitializeWorld();
+    InitializePlayer();
+    InitializeFood();
 }
 
 void Game::Update(float deltaTime)
@@ -195,6 +162,56 @@ void Game::Shutdown()
 {
     std::cout << "Game shutting down." << std::endl;
     m_TailSegments.clear();
+}
+
+void Game::InitializeWorld()
+{
+    // Set up grid based on camera world size
+    float worldWidth = Renderer2D::GetCamera().GetWorldWidth();
+    float worldHeight = Renderer2D::GetCamera().GetWorldHeight();
+    int gridSizeX = static_cast<int>(worldWidth);
+    int gridSizeY = static_cast<int>(worldHeight);
+    m_MarginX = (worldWidth - gridSizeX) * 0.5f;
+    m_GridSize = Vec2(gridSizeX, gridSizeY);
+
+    // Debug output for world setup
+    std::cout << "Grid Size: " << m_GridSize.x << "x" << m_GridSize.y << std::endl;
+    std::cout << "Margin: " << m_MarginX << std::endl;
+    std::cout << "World Width: " << worldWidth << std::endl;
+
+    // Create grid cells with world positions
+    m_GridCells = std::vector<std::vector<Vec2>>(gridSizeX, std::vector<Vec2>(gridSizeY, Vec2(0.0f, 0.0f)));
+    for (int x = 0; x < gridSizeX; ++x)
+    {
+        for (int y = 0; y < gridSizeY; ++y)
+        {
+            m_GridCells[x][y] = Vec2(x - worldWidth * 0.5f + 0.5f + m_MarginX, worldHeight * 0.5f - y - 0.5f);
+        }
+    }
+}
+
+void Game::InitializePlayer()
+{
+    // Set initial movement direction
+    m_MoveDirection = GameConstants::DIRECTION_RIGHT;
+
+    // Create initial tail segments
+    m_TailSegments = std::vector<Vec2>(GameConstants::INITIAL_TAIL_LENGTH, Vec2(0.0f, 0.0f));
+    for (int i = 0; i < GameConstants::INITIAL_TAIL_LENGTH; ++i)
+    {
+        m_TailSegments[i] = Vec2(i, 0.0f);
+    }
+
+    // Position player head
+    m_PlayerCell = Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0.0f);
+}
+
+void Game::InitializeFood()
+{
+    // Place initial food at center of grid
+    float foodX = static_cast<float>(m_GridSize.x / 2);
+    float foodY = static_cast<float>(m_GridSize.y / 2);
+    m_FoodCell = Vec2{foodX, foodY};
 }
 
 // Engine Entry Point Factory Function
