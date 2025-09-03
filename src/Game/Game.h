@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine.h> // Elegant system header syntax!
 #include <vector>
+#include <functional>
 
 using namespace Engine;
 
@@ -28,17 +29,76 @@ namespace GameConstants
     const Vec2 DIRECTION_RIGHT{1.0f, 0.0f};
 }
 
+// Simple timer utility for game timing
+class Timer
+{
+public:
+    using Callback = std::function<void()>;
+
+private:
+    float m_interval;
+    float m_accumulator;
+    Callback m_callback;
+    bool m_isLooping;
+    bool m_isActive;
+
+public:
+    Timer(float interval, Callback callback, bool isLooping = true)
+        : m_interval(interval), m_accumulator(0.0f), m_callback(callback),
+          m_isLooping(isLooping), m_isActive(true) {}
+
+    // Update the timer and execute callback if needed
+    void Update(float deltaTime)
+    {
+        if (!m_isActive)
+            return;
+
+        m_accumulator += deltaTime;
+        if (m_accumulator >= m_interval)
+        {
+            if (m_callback)
+            {
+                m_callback();
+            }
+
+            if (m_isLooping)
+            {
+                m_accumulator = 0.0f;
+            }
+            else
+            {
+                m_isActive = false; // One-shot timer stops after first execution
+            }
+        }
+    }
+
+    // Control methods
+    void Reset()
+    {
+        m_accumulator = 0.0f;
+        m_isActive = true;
+    }
+    void Stop() { m_isActive = false; }
+    void Start() { m_isActive = true; }
+    void SetInterval(float interval) { m_interval = interval; }
+    void SetCallback(Callback callback) { m_callback = callback; }
+    bool IsActive() const { return m_isActive; }
+};
+
 class Game : public Engine::Application
 {
 private:
     void ReadInput();
     void MovePlayer();
-    bool CheckCollision() const;
     bool CheckGameOver() const;
+    bool CheckFoodCollision() const;
     bool CheckWallCollision() const;
     bool CheckSelfCollision() const;
     void GrowPlayer();
     void PlaceFood();
+
+    // Timer callbacks
+    void OnMoveTimer();
 
     // Initialization helpers
     void InitializeWorld();
@@ -68,7 +128,8 @@ private:
     Vec2 m_PlayerCell; // Start at top-left corner
     Vec2 m_MoveDirection;
     std::vector<Vec2> m_TailSegments;
-    float m_TimeSinceLastMove;
+    Timer m_MoveTimer{1.0f / GameConstants::MOVE_SPEED, [this]()
+                      { OnMoveTimer(); }, true};
     bool m_UpdateMoveThisFrame{false};
 
     // Food

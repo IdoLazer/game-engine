@@ -26,18 +26,19 @@ void Game::Initialize()
 void Game::Update(float deltaTime)
 {
     ReadInput();
-    m_TimeSinceLastMove += deltaTime;
-    if (m_TimeSinceLastMove > 1.0f / GameConstants::MOVE_SPEED)
+    m_MoveTimer.Update(deltaTime);
+}
+
+void Game::OnMoveTimer()
+{
+    MovePlayer();
+
+    if (CheckGameOver())
     {
-        m_TimeSinceLastMove = 0.0f;
-        MovePlayer();
-        if (CheckGameOver())
-        {
-            std::cout << "Game Over!" << std::endl;
-            Close();
-        }
+        std::cout << "Game Over!" << std::endl;
+        Close();
     }
-    if (CheckCollision())
+    else if (CheckFoodCollision())
     {
         PlaceFood();
         GrowPlayer();
@@ -126,14 +127,14 @@ void Game::MovePlayer()
     m_UpdateMoveThisFrame = false;
 }
 
-bool Game::CheckCollision() const
-{
-    return m_PlayerCell == m_FoodCell;
-}
-
 bool Game::CheckGameOver() const
 {
     return CheckWallCollision() || CheckSelfCollision();
+}
+
+bool Game::CheckFoodCollision() const
+{
+    return m_PlayerCell == m_FoodCell;
 }
 
 bool Game::CheckWallCollision() const
