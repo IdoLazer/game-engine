@@ -47,17 +47,18 @@ void Game::OnMoveTimer()
 
 void Game::Render()
 {
-    // Draw Player
-    Renderer2D::DrawTile(m_GridCells[m_PlayerCell.x][m_PlayerCell.y], GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
-    Renderer2D::DrawTile(m_GridCells[m_FoodCell.x][m_FoodCell.y], GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
+    // Draw grid boundaries for visual reference
+    Vec2 gridWorldSize = m_Grid.GetSize();
+    Vec2 gridCenter = m_Grid.GetPosition();
+    Renderer2D::DrawTile(gridCenter, gridWorldSize, GameConstants::BACKGROUND_COLOR);
+
+    // Draw Player - use Grid to convert grid coordinates to world positions
+    Renderer2D::DrawTile(m_Grid.GridToWorld(m_PlayerCell), m_Grid.GetCellSize().x * GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
+    Renderer2D::DrawTile(m_Grid.GridToWorld(m_FoodCell), m_Grid.GetCellSize().x * GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
     for (const Vec2 &segment : m_TailSegments)
     {
-        Renderer2D::DrawTile(m_GridCells[segment.x][segment.y], GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
+        Renderer2D::DrawTile(m_Grid.GridToWorld(segment), m_Grid.GetCellSize().x * GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
     }
-
-    // Draw world boundaries
-    Renderer2D::DrawTile(0.5f * Vec2{-m_GridSize.x - m_MarginX, 0.0f}, Vec2{m_MarginX, m_GridSize.y}, GameConstants::BOUNDARY_COLOR);
-    Renderer2D::DrawTile(0.5f * Vec2{m_GridSize.x + m_MarginX, 0.0f}, Vec2{m_MarginX, m_GridSize.y}, GameConstants::BOUNDARY_COLOR);
 }
 
 void Game::PlaceFood()
@@ -68,8 +69,9 @@ void Game::PlaceFood()
 
     do
     {
-        int gridWidth = static_cast<int>(m_GridSize.x);
-        int gridHeight = static_cast<int>(m_GridSize.y);
+        Vec2 cellCount = m_Grid.GetCellCount();
+        int gridWidth = static_cast<int>(cellCount.x);
+        int gridHeight = static_cast<int>(cellCount.y);
         float foodX = static_cast<float>(rand() % gridWidth);
         float foodY = static_cast<float>(rand() % gridHeight);
         m_FoodCell = Vec2{foodX, foodY};
@@ -139,9 +141,8 @@ bool Game::CheckFoodCollision() const
 
 bool Game::CheckWallCollision() const
 {
-    // Check if the player has collided with the walls
-    return m_PlayerCell.x < 0 || m_PlayerCell.x >= m_GridSize.x ||
-           m_PlayerCell.y < 0 || m_PlayerCell.y >= m_GridSize.y;
+    // Check if the player has collided with the walls using Grid's boundary checking
+    return !m_Grid.IsInBounds(m_PlayerCell);
 }
 
 bool Game::CheckSelfCollision() const
@@ -173,25 +174,16 @@ void Game::InitializeWorld()
     // Set up grid based on camera world size
     float worldWidth = Renderer2D::GetCamera().GetWorldWidth();
     float worldHeight = Renderer2D::GetCamera().GetWorldHeight();
-    int gridSizeX = static_cast<int>(worldWidth);
-    int gridSizeY = static_cast<int>(worldHeight);
-    m_MarginX = (worldWidth - gridSizeX) * 0.5f;
-    m_GridSize = Vec2(gridSizeX, gridSizeY);
 
-    // Debug output for world setup
-    std::cout << "Grid Size: " << m_GridSize.x << "x" << m_GridSize.y << std::endl;
-    std::cout << "Margin: " << m_MarginX << std::endl;
-    std::cout << "World Width: " << worldWidth << std::endl;
+    // For Snake, we want a grid that takes up most of the world space
+    // Leave some margin around the edges for visual appeal
+    float gridHeight = worldHeight * 0.8f;
+    float cellSize = gridHeight / GameConstants::GRID_CELL_COUNT.y;
+    float gridWidth = cellSize * GameConstants::GRID_CELL_COUNT.x;
+    Vec2 gridSize = Vec2(gridWidth, gridHeight);
+    Vec2 gridPosition = Vec2(0.0f, 0.0f);
 
-    // Create grid cells with world positions
-    m_GridCells = std::vector<std::vector<Vec2>>(gridSizeX, std::vector<Vec2>(gridSizeY, Vec2(0.0f, 0.0f)));
-    for (int x = 0; x < gridSizeX; ++x)
-    {
-        for (int y = 0; y < gridSizeY; ++y)
-        {
-            m_GridCells[x][y] = GridToWorldPosition(x, y, worldWidth, worldHeight);
-        }
-    }
+    m_Grid.Initialize(gridPosition, gridSize, GameConstants::GRID_CELL_COUNT);
 }
 
 void Game::InitializePlayer()
@@ -213,18 +205,10 @@ void Game::InitializePlayer()
 void Game::InitializeFood()
 {
     // Place initial food at center of grid
-    int foodX = static_cast<int>(m_GridSize.x / 2);
-    int foodY = static_cast<int>(m_GridSize.y / 2);
+    Vec2 cellCount = m_Grid.GetCellCount();
+    int foodX = static_cast<int>(cellCount.x / 2);
+    int foodY = static_cast<int>(cellCount.y / 2);
     m_FoodCell = Vec2{foodX, foodY};
-}
-
-Vec2 Game::GridToWorldPosition(int gridX, int gridY, float worldWidth, float worldHeight) const
-{
-    // Convert grid coordinates to world coordinates
-    // Grid origin (0,0) is at top-left, world origin (0,0) is at center
-    float worldX = gridX - worldWidth * 0.5f + 0.5f + m_MarginX;
-    float worldY = worldHeight * 0.5f - gridY - 0.5f;
-    return Vec2(worldX, worldY);
 }
 
 bool Game::IsValidFoodPosition(const Vec2 &position) const

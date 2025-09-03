@@ -19,8 +19,8 @@ namespace GameConstants
     const Color FOOD_COLOR{0.0f, 1.0f, 0.0f, 1.0f}; // Green
 
     // World Settings
-    const Vec2 GRID_CELL_SIZE{1.0f, 1.0f};
-    const Color BOUNDARY_COLOR{0.0f, 0.0f, 1.0f, 1.0f}; // Blue
+    const Vec2 GRID_CELL_COUNT{13.0f, 10.0f};
+    const Color BACKGROUND_COLOR{0.0f, 0.0f, 1.0f, 1.0f}; // Blue
 
     // Movement
     const Vec2 DIRECTION_UP{0.0f, -1.0f};
@@ -85,6 +85,66 @@ public:
     bool IsActive() const { return m_isActive; }
 };
 
+// Grid coordinate system - simple grid entity with configurable dimensions
+class Grid
+{
+private:
+    Vec2 m_position;  // World position of grid center
+    Vec2 m_size;      // Total size of grid in world units
+    Vec2 m_cellCount; // Number of cells (width x height)
+    Vec2 m_cellSize;  // Size of each cell in world units (calculated)
+    Vec2 m_topLeft;   // Cached top-left position for conversions
+
+public:
+    Grid() = default;
+
+    Grid(Vec2 position, Vec2 size, Vec2 cellCount)
+        : m_position(position), m_size(size), m_cellCount(cellCount)
+    {
+        m_cellSize = Vec2(m_size.x / m_cellCount.x, m_size.y / m_cellCount.y);
+        m_topLeft = Vec2(m_position.x - m_size.x * 0.5f, m_position.y + m_size.y * 0.5f);
+    }
+
+    void Initialize(Vec2 position, Vec2 size, Vec2 cellCount)
+    {
+        m_position = position;
+        m_size = size;
+        m_cellCount = cellCount;
+        m_cellSize = Vec2(m_size.x / m_cellCount.x, m_size.y / m_cellCount.y);
+        m_topLeft = Vec2(m_position.x - m_size.x * 0.5f, m_position.y + m_size.y * 0.5f);
+    }
+
+    Vec2 GridToWorld(Vec2 gridPos) const
+    {
+        // Grid (0,0) is top-left for game convenience
+        // World Y increases upward, but grid Y increases downward
+        float worldX = m_topLeft.x + (gridPos.x + 0.5f) * m_cellSize.x;
+        float worldY = m_topLeft.y - (gridPos.y + 0.5f) * m_cellSize.y;
+        return Vec2(worldX, worldY);
+    }
+
+    // Convert world position to grid coordinates
+    Vec2 WorldToGrid(Vec2 worldPos) const
+    {
+        float gridX = (worldPos.x - m_topLeft.x) / m_cellSize.x;
+        float gridY = (m_topLeft.y - worldPos.y) / m_cellSize.y;
+        return Vec2(gridX, gridY);
+    }
+
+    // Check if grid position is within bounds
+    bool IsInBounds(Vec2 gridPos) const
+    {
+        return gridPos.x >= 0 && gridPos.x < m_cellCount.x &&
+               gridPos.y >= 0 && gridPos.y < m_cellCount.y;
+    }
+
+    // Getters
+    Vec2 GetPosition() const { return m_position; }
+    Vec2 GetSize() const { return m_size; }
+    Vec2 GetCellCount() const { return m_cellCount; }
+    Vec2 GetCellSize() const { return m_cellSize; }
+};
+
 class Game : public Engine::Application
 {
 private:
@@ -105,8 +165,7 @@ private:
     void InitializePlayer();
     void InitializeFood();
 
-    // Grid utility
-    Vec2 GridToWorldPosition(int gridX, int gridY, float worldWidth, float worldHeight) const;
+    // Validation helpers
     bool IsValidFoodPosition(const Vec2 &position) const;
 
 public:
@@ -120,9 +179,7 @@ public:
 
 private:
     // World
-    Vec2 m_GridSize;
-    std::vector<std::vector<Vec2>> m_GridCells;
-    float m_MarginX;
+    Grid m_Grid; // Our grid coordinate system
 
     // Player
     Vec2 m_PlayerCell; // Start at top-left corner
