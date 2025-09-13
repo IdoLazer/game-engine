@@ -3,8 +3,8 @@
 #include <Core/EntryPoint.h>
 #include <vector>
 #include <functional>
-#include "Timer.h"
 #include "Grid.h"
+#include "Player.h"
 
 using namespace Engine;
 
@@ -36,20 +36,13 @@ class Game : public Engine::Application
 {
 private:
     void ReadInput();
-    void MovePlayer();
     bool CheckGameOver() const;
     bool CheckFoodCollision() const;
     bool CheckWallCollision() const;
-    bool CheckSelfCollision() const;
-    void GrowPlayer();
     void PlaceFood();
-
-    // Timer callbacks
-    void OnMoveTimer();
 
     // Initialization helpers
     void InitializeWorld();
-    void InitializePlayer();
     void InitializeFood();
 
     // Validation helpers
@@ -69,12 +62,7 @@ private:
     Grid m_Grid; // Our grid coordinate system
 
     // Player
-    Vec2 m_PlayerCell; // Start at top-left corner
-    Vec2 m_MoveDirection;
-    std::vector<Vec2> m_TailSegments;
-    Timer m_MoveTimer{1.0f / GameConstants::MOVE_SPEED, [this]()
-                      { OnMoveTimer(); }, true};
-    bool m_UpdateMoveThisFrame{false};
+    Player m_Player;
 
     // Food
     Vec2 m_FoodCell;

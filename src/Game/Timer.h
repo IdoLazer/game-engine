@@ -16,6 +16,7 @@ private:
     bool m_isActive;
 
 public:
+    Timer() : m_interval(0.0f), m_accumulator(0.0f), m_isLooping(true), m_isActive(false) {}
     Timer(float interval, Callback callback, bool isLooping = true)
         : m_interval(interval), m_accumulator(0.0f), m_callback(callback),
           m_isLooping(isLooping), m_isActive(true) {}

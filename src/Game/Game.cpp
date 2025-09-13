@@ -19,20 +19,21 @@ void Game::Initialize()
     std::cout << "Game initialized." << std::endl;
 
     InitializeWorld();
-    InitializePlayer();
+    m_Player.Initialize(
+        &m_Grid,
+        Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0),
+        GameConstants::PLAYER_SIZE,
+        GameConstants::PLAYER_COLOR,
+        GameConstants::DIRECTION_RIGHT,
+        GameConstants::INITIAL_TAIL_LENGTH,
+        GameConstants::MOVE_SPEED);
     InitializeFood();
 }
 
 void Game::Update(float deltaTime)
 {
+    m_Player.Update(deltaTime);
     ReadInput();
-    m_MoveTimer.Update(deltaTime);
-}
-
-void Game::OnMoveTimer()
-{
-    MovePlayer();
-
     if (CheckGameOver())
     {
         std::cout << "Game Over!" << std::endl;
@@ -41,7 +42,7 @@ void Game::OnMoveTimer()
     else if (CheckFoodCollision())
     {
         PlaceFood();
-        GrowPlayer();
+        m_Player.Grow();
     }
 }
 
@@ -53,11 +54,8 @@ void Game::Render()
     Renderer2D::DrawTile(gridCenter, gridWorldSize, GameConstants::BACKGROUND_COLOR);
 
     // Draw Player - use Grid to convert grid coordinates to world positions
-    Renderer2D::DrawTile(m_Grid.GridToWorld(m_PlayerCell), m_Grid.GetCellSize() * GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
-    for (const Vec2 &segment : m_TailSegments)
-    {
-        Renderer2D::DrawTile(m_Grid.GridToWorld(segment), m_Grid.GetCellSize() * GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
-    }
+    m_Player.Render();
+
     // Draw Food
     Renderer2D::DrawTile(m_Grid.GridToWorld(m_FoodCell), m_Grid.GetCellSize() * GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
 }
@@ -92,82 +90,45 @@ void Game::ReadInput()
         Close();
     }
 
-    if (m_UpdateMoveThisFrame)
-        return;
-
     // Handle direction input - prevent immediate reversal into opposite direction
-    if (Keyboard::IsKeyPressed(GLFW_KEY_UP) && m_MoveDirection != GameConstants::DIRECTION_DOWN)
+    if (Keyboard::IsKeyPressed(GLFW_KEY_UP) && m_Player.GetDirection() != GameConstants::DIRECTION_DOWN)
     {
-        m_UpdateMoveThisFrame = true;
-        m_MoveDirection = GameConstants::DIRECTION_UP;
+        m_Player.SetDirection(GameConstants::DIRECTION_UP);
     }
-    else if (Keyboard::IsKeyPressed(GLFW_KEY_DOWN) && m_MoveDirection != GameConstants::DIRECTION_UP)
+    else if (Keyboard::IsKeyPressed(GLFW_KEY_DOWN) && m_Player.GetDirection() != GameConstants::DIRECTION_UP)
     {
-        m_UpdateMoveThisFrame = true;
-        m_MoveDirection = GameConstants::DIRECTION_DOWN;
+        m_Player.SetDirection(GameConstants::DIRECTION_DOWN);
     }
-    else if (Keyboard::IsKeyPressed(GLFW_KEY_LEFT) && m_MoveDirection != GameConstants::DIRECTION_RIGHT)
+    else if (Keyboard::IsKeyPressed(GLFW_KEY_LEFT) && m_Player.GetDirection() != GameConstants::DIRECTION_RIGHT)
     {
-        m_UpdateMoveThisFrame = true;
-        m_MoveDirection = GameConstants::DIRECTION_LEFT;
+        m_Player.SetDirection(GameConstants::DIRECTION_LEFT);
     }
-    else if (Keyboard::IsKeyPressed(GLFW_KEY_RIGHT) && m_MoveDirection != GameConstants::DIRECTION_LEFT)
+    else if (Keyboard::IsKeyPressed(GLFW_KEY_RIGHT) && m_Player.GetDirection() != GameConstants::DIRECTION_LEFT)
     {
-        m_UpdateMoveThisFrame = true;
-        m_MoveDirection = GameConstants::DIRECTION_RIGHT;
+        m_Player.SetDirection(GameConstants::DIRECTION_RIGHT);
     }
-}
-
-void Game::MovePlayer()
-{
-    // Move the tail segments by shifting them forward and placing the previous head position at the front
-    if (!m_TailSegments.empty())
-    {
-        std::rotate(m_TailSegments.rbegin(), m_TailSegments.rbegin() + 1, m_TailSegments.rend());
-        m_TailSegments.front() = m_PlayerCell;
-    }
-    m_PlayerCell += m_MoveDirection;
-    m_UpdateMoveThisFrame = false;
 }
 
 bool Game::CheckGameOver() const
 {
-    return CheckWallCollision() || CheckSelfCollision();
+    return CheckWallCollision() || m_Player.CheckSelfCollision();
 }
 
 bool Game::CheckFoodCollision() const
 {
-    return m_PlayerCell == m_FoodCell;
+    return m_Player.GetPosition() == m_FoodCell;
 }
 
 bool Game::CheckWallCollision() const
 {
     // Check if the player has collided with the walls using Grid's boundary checking
-    return !m_Grid.IsInBounds(m_PlayerCell);
-}
-
-bool Game::CheckSelfCollision() const
-{
-    // Check if the player has collided with its own tail
-    for (const Vec2 &segment : m_TailSegments)
-    {
-        if (m_PlayerCell == segment)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-void Game::GrowPlayer()
-{
-    m_TailSegments.push_back(m_PlayerCell);
+    return !m_Grid.IsInBounds(m_Player.GetPosition());
 }
 
 void Game::Shutdown()
 {
     std::cout << "Game shutting down." << std::endl;
-    m_TailSegments.clear();
+    m_Player.Destroy();
 }
 
 void Game::InitializeWorld()
@@ -187,22 +148,6 @@ void Game::InitializeWorld()
     m_Grid.Initialize(gridPosition, cellSize, GameConstants::GRID_CELL_COUNT);
 }
 
-void Game::InitializePlayer()
-{
-    // Set initial movement direction
-    m_MoveDirection = GameConstants::DIRECTION_RIGHT;
-
-    // Create initial tail segments
-    m_TailSegments = std::vector<Vec2>(GameConstants::INITIAL_TAIL_LENGTH, Vec2(0.0f, 0.0f));
-    for (int i = 0; i < GameConstants::INITIAL_TAIL_LENGTH; ++i)
-    {
-        m_TailSegments[i] = Vec2(i, 0);
-    }
-
-    // Position player head
-    m_PlayerCell = Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0);
-}
-
 void Game::InitializeFood()
 {
     // Place initial food at center of grid
@@ -215,10 +160,10 @@ void Game::InitializeFood()
 bool Game::IsValidFoodPosition(const Vec2 &position) const
 {
     // Check if position doesn't overlap with player or tail segments
-    if (position == m_PlayerCell)
+    if (position == m_Player.GetPosition())
         return false;
 
-    return std::find(m_TailSegments.begin(), m_TailSegments.end(), position) == m_TailSegments.end();
+    return std::find(m_Player.GetTailSegments().begin(), m_Player.GetTailSegments().end(), position) == m_Player.GetTailSegments().end();
 }
 
 // Engine Entry Point Factory Function
