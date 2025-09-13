@@ -5,7 +5,6 @@
 
 // Core Engine Systems
 #include "Core/Application.h"
-#include "Core/EntryPoint.h" // This brings in main()
 
 // Rendering System
 #include "Rendering/Window.h"
