@@ -1,6 +1,7 @@
 #include "Game.h"
 #include <algorithm>
 #include <iostream>
+#include "GameConstants.h"
 
 WindowConfig Game::GetWindowConfig() const
 {
@@ -57,7 +58,7 @@ void Game::Render()
     m_Player.Render();
 
     // Draw Food
-    Renderer2D::DrawTile(m_Grid.GridToWorld(m_FoodCell), m_Grid.GetCellSize() * GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
+    m_food.Render();
 }
 
 void Game::PlaceFood()
@@ -65,7 +66,7 @@ void Game::PlaceFood()
     // Randomly place food within grid, ensuring it doesn't overlap with the player or tail
     const int maxAttempts = 100; // Safety limit to prevent infinite loops
     int attempts = 0;
-
+    Vec2 foodPosition;
     do
     {
         Vec2 cellCount = m_Grid.GetCellCount();
@@ -73,10 +74,11 @@ void Game::PlaceFood()
         int gridHeight = static_cast<int>(cellCount.y);
         float foodX = static_cast<float>(rand() % gridWidth);
         float foodY = static_cast<float>(rand() % gridHeight);
-        m_FoodCell = Vec2{foodX, foodY};
+        foodPosition = Vec2{foodX, foodY};
 
         attempts++;
-    } while (!IsValidFoodPosition(m_FoodCell) && attempts < maxAttempts);
+    } while (!IsValidFoodPosition(foodPosition) && attempts < maxAttempts);
+    m_food.SetPosition(foodPosition);
 
     // If we couldn't find a valid position, just place it anyway (game is probably about to end)
 }
@@ -116,7 +118,7 @@ bool Game::CheckGameOver() const
 
 bool Game::CheckFoodCollision() const
 {
-    return m_Player.GetPosition() == m_FoodCell;
+    return m_Player.GetPosition() == m_food.GetPosition();
 }
 
 bool Game::CheckWallCollision() const
@@ -154,7 +156,8 @@ void Game::InitializeFood()
     Vec2 cellCount = m_Grid.GetCellCount();
     int foodX = static_cast<int>(cellCount.x / 2);
     int foodY = static_cast<int>(cellCount.y / 2);
-    m_FoodCell = Vec2{foodX, foodY};
+    Vec2 foodPosition = Vec2{foodX, foodY};
+    m_food.Initialize(&m_Grid, foodPosition, GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
 }
 
 bool Game::IsValidFoodPosition(const Vec2 &position) const
