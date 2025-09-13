@@ -49,10 +49,8 @@ void Game::Update(float deltaTime)
 
 void Game::Render()
 {
-    // Draw grid boundaries for visual reference
-    Vec2 gridWorldSize = m_Grid.GetSize();
-    Vec2 gridCenter = m_Grid.GetPosition();
-    Renderer2D::DrawTile(gridCenter, gridWorldSize, GameConstants::BACKGROUND_COLOR);
+    // Draw grid
+    m_Grid.Render();
 
     // Draw Player - use Grid to convert grid coordinates to world positions
     m_Player.Render();
@@ -147,7 +145,7 @@ void Game::InitializeWorld()
     float cellSize = std::min(cellSizeX, cellSizeY); // Fit both dimensions
 
     Vec2 gridPosition = Vec2(0.0f, 0.0f);
-    m_Grid.Initialize(gridPosition, cellSize, GameConstants::GRID_CELL_COUNT);
+    m_Grid.Initialize(gridPosition, cellSize, GameConstants::GRID_CELL_COUNT, GameConstants::BACKGROUND_COLOR);
 }
 
 void Game::InitializeFood()
@@ -166,7 +164,13 @@ bool Game::IsValidFoodPosition(const Vec2 &position) const
     if (position == m_Player.GetPosition())
         return false;
 
-    return std::find(m_Player.GetTailSegments().begin(), m_Player.GetTailSegments().end(), position) == m_Player.GetTailSegments().end();
+    for (const GridTile &segment : m_Player.GetTailSegments())
+    {
+        if (position == segment.GetPosition())
+            return false;
+    }
+
+    return true;
 }
 
 // Engine Entry Point Factory Function
