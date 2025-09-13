@@ -92,25 +92,26 @@ private:
     Vec2 m_position;  // World position of grid center
     Vec2 m_size;      // Total size of grid in world units
     Vec2 m_cellCount; // Number of cells (width x height)
-    Vec2 m_cellSize;  // Size of each cell in world units (calculated)
+    float m_cellSize; // Size of each cell in world units (assuming square cells)
     Vec2 m_topLeft;   // Cached top-left position for conversions
 
 public:
     Grid() = default;
 
-    Grid(Vec2 position, Vec2 size, Vec2 cellCount)
-        : m_position(position), m_size(size), m_cellCount(cellCount)
+    Grid(Vec2 position, float cellSize, Vec2 cellCount)
+        : m_position(position), m_cellSize(cellSize), m_cellCount(cellCount)
     {
-        m_cellSize = Vec2(m_size.x / m_cellCount.x, m_size.y / m_cellCount.y);
+        // Calculate total world size from cell size and count
+        m_size = Vec2(m_cellSize * m_cellCount.x, m_cellSize * m_cellCount.y);
         m_topLeft = Vec2(m_position.x - m_size.x * 0.5f, m_position.y + m_size.y * 0.5f);
     }
 
-    void Initialize(Vec2 position, Vec2 size, Vec2 cellCount)
+    void Initialize(Vec2 position, float cellSize, Vec2 cellCount)
     {
         m_position = position;
-        m_size = size;
+        m_cellSize = cellSize;
         m_cellCount = cellCount;
-        m_cellSize = Vec2(m_size.x / m_cellCount.x, m_size.y / m_cellCount.y);
+        m_size = Vec2(m_cellSize * m_cellCount.x, m_cellSize * m_cellCount.y);
         m_topLeft = Vec2(m_position.x - m_size.x * 0.5f, m_position.y + m_size.y * 0.5f);
     }
 
@@ -118,16 +119,16 @@ public:
     {
         // Grid (0,0) is top-left for game convenience
         // World Y increases upward, but grid Y increases downward
-        float worldX = m_topLeft.x + (gridPos.x + 0.5f) * m_cellSize.x;
-        float worldY = m_topLeft.y - (gridPos.y + 0.5f) * m_cellSize.y;
+        float worldX = m_topLeft.x + (gridPos.x + 0.5f) * m_cellSize;
+        float worldY = m_topLeft.y - (gridPos.y + 0.5f) * m_cellSize;
         return Vec2(worldX, worldY);
     }
 
     // Convert world position to grid coordinates
     Vec2 WorldToGrid(Vec2 worldPos) const
     {
-        float gridX = (worldPos.x - m_topLeft.x) / m_cellSize.x;
-        float gridY = (m_topLeft.y - worldPos.y) / m_cellSize.y;
+        float gridX = (worldPos.x - m_topLeft.x) / m_cellSize;
+        float gridY = (m_topLeft.y - worldPos.y) / m_cellSize;
         return Vec2(gridX, gridY);
     }
 
@@ -142,7 +143,7 @@ public:
     Vec2 GetPosition() const { return m_position; }
     Vec2 GetSize() const { return m_size; }
     Vec2 GetCellCount() const { return m_cellCount; }
-    Vec2 GetCellSize() const { return m_cellSize; }
+    float GetCellSize() const { return m_cellSize; }
 };
 
 class Game : public Engine::Application

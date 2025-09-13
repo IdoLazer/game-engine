@@ -53,12 +53,13 @@ void Game::Render()
     Renderer2D::DrawTile(gridCenter, gridWorldSize, GameConstants::BACKGROUND_COLOR);
 
     // Draw Player - use Grid to convert grid coordinates to world positions
-    Renderer2D::DrawTile(m_Grid.GridToWorld(m_PlayerCell), m_Grid.GetCellSize().x * GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
-    Renderer2D::DrawTile(m_Grid.GridToWorld(m_FoodCell), m_Grid.GetCellSize().x * GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
+    Renderer2D::DrawTile(m_Grid.GridToWorld(m_PlayerCell), m_Grid.GetCellSize() * GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
     for (const Vec2 &segment : m_TailSegments)
     {
-        Renderer2D::DrawTile(m_Grid.GridToWorld(segment), m_Grid.GetCellSize().x * GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
+        Renderer2D::DrawTile(m_Grid.GridToWorld(segment), m_Grid.GetCellSize() * GameConstants::PLAYER_SIZE, GameConstants::PLAYER_COLOR);
     }
+    // Draw Food
+    Renderer2D::DrawTile(m_Grid.GridToWorld(m_FoodCell), m_Grid.GetCellSize() * GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
 }
 
 void Game::PlaceFood()
@@ -171,19 +172,19 @@ void Game::Shutdown()
 
 void Game::InitializeWorld()
 {
-    // Set up grid based on camera world size
     float worldWidth = Renderer2D::GetCamera().GetWorldWidth();
     float worldHeight = Renderer2D::GetCamera().GetWorldHeight();
 
-    // For Snake, we want a grid that takes up most of the world space
-    // Leave some margin around the edges for visual appeal
-    float gridHeight = worldHeight * 0.8f;
-    float cellSize = gridHeight / GameConstants::GRID_CELL_COUNT.y;
-    float gridWidth = cellSize * GameConstants::GRID_CELL_COUNT.x;
-    Vec2 gridSize = Vec2(gridWidth, gridHeight);
-    Vec2 gridPosition = Vec2(0.0f, 0.0f);
+    // Calculate cell size to fit grid in viewport with margins
+    float availableWidth = worldWidth * 0.8f;
+    float availableHeight = worldHeight * 0.8f;
 
-    m_Grid.Initialize(gridPosition, gridSize, GameConstants::GRID_CELL_COUNT);
+    float cellSizeX = availableWidth / GameConstants::GRID_CELL_COUNT.x;
+    float cellSizeY = availableHeight / GameConstants::GRID_CELL_COUNT.y;
+    float cellSize = std::min(cellSizeX, cellSizeY); // Fit both dimensions
+
+    Vec2 gridPosition = Vec2(0.0f, 0.0f);
+    m_Grid.Initialize(gridPosition, cellSize, GameConstants::GRID_CELL_COUNT);
 }
 
 void Game::InitializePlayer()
