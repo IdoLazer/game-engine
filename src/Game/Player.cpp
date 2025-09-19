@@ -1,24 +1,18 @@
 #include "Player.h"
 
-void Player::Initialize(Grid *grid, const Vec2 &startPos, const Vec2 &size, const Color &color, const Vec2 &startDir, int initialTailLength, float moveSpeed)
+void Player::Initialize()
 {
-    m_grid = grid;
-    m_position = startPos;
-    m_size = size;
-    m_color = color;
-
-    m_direction = startDir;
-
-    // Create initial tail segments
-    m_tailSegments = std::vector<GridTile>(initialTailLength, GridTile(m_grid, startPos, size, color));
-    for (int i = 0; i < initialTailLength; ++i)
-    {
-        m_tailSegments[i].SetPosition(Vec2(startPos.x - (i + 1) * startDir.x, startPos.y - (i + 1) * startDir.y));
-    }
-
-    m_moveSpeed = moveSpeed;
+    // Set up movement timer
     m_moveTimer = Timer{1.0f / m_moveSpeed, [this]()
                         { Move(); }, true};
+
+    // Create initial tail segments
+    for (int i = 0; i < m_tailSegments.capacity(); ++i)
+    {
+        Vec2 tailPosition = Vec2(m_gridPosition.x - (i + 1) * m_direction.x, m_gridPosition.y - (i + 1) * m_direction.y);
+        GridTile gridTile(m_grid, tailPosition, m_gridSize, m_color);
+        m_tailSegments.emplace_back(gridTile);
+    }
 }
 
 void Player::Destroy()
@@ -33,8 +27,10 @@ void Player::Update(float deltaTime)
 
 void Player::Render()
 {
-    // Draw Player - use Grid to convert grid coordinates to world positions
-    Renderer2D::DrawTile(m_grid->GridToWorld(m_position), m_grid->GetCellSize() * m_size, m_color);
+    // Draw Player head using inherited world coordinates (automatically synced from grid position)
+    Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
+
+    // Draw tail segments
     for (const GridTile &segment : m_tailSegments)
     {
         segment.Render();
@@ -45,16 +41,18 @@ void Player::Move()
 {
     if (m_growTailOnNextMove)
     {
-        m_tailSegments.push_back(GridTile(m_grid, m_position, m_size, m_color));
+        m_tailSegments.push_back(GridTile(m_grid, m_gridPosition, m_gridSize, m_color));
         m_growTailOnNextMove = false;
     }
     // Move the tail segments by shifting them forward and placing the previous head position at the front
     if (!m_tailSegments.empty())
     {
         std::rotate(m_tailSegments.rbegin(), m_tailSegments.rbegin() + 1, m_tailSegments.rend());
-        m_tailSegments.front().SetPosition(m_position);
+        m_tailSegments.front().SetGridPosition(m_gridPosition);
     }
-    m_position += m_direction;
+
+    // Update grid position (this automatically updates world position via inheritance)
+    SetGridPosition(m_gridPosition + m_direction);
     m_updateMoveThisFrame = false;
 }
 
@@ -69,7 +67,7 @@ bool Player::CheckSelfCollision() const
     bool isColliding = false;
     for (const GridTile &segment : m_tailSegments)
     {
-        if (m_position == segment.GetPosition())
+        if (m_gridPosition == segment.GetGridPosition())
         {
             isColliding = true;
             break;

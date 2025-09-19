@@ -1,26 +1,25 @@
 #pragma once
 
 #include "Engine.h"
+#include "Entity.h"
 
 using namespace Engine;
 
 // Grid coordinate system - simple grid entity with configurable dimensions
-class Grid
+class Grid : public Entity
 {
 private:
-    Vec2 m_position;  // World position of grid center
-    Vec2 m_size;      // Total size of grid in world units
-    Color m_color;    // Color of the grid
     Vec2 m_cellCount; // Number of cells (width x height)
     float m_cellSize; // Size of each cell in world units (assuming square cells)
     Vec2 m_topLeft;   // Cached top-left position for conversions
 
 public:
-    Grid() = default;
+    Grid(const Vec2 &position, const Color &color, float cellSize, const Vec2 &cellCount)
+        : Entity(position, Vec2(1, 1), color), m_cellSize(cellSize), m_cellCount(cellCount) {}
 
-    void Initialize(Vec2 position, float cellSize, Vec2 cellCount, Color color);
+    virtual void Initialize() override;
 
-    void Render() const;
+    virtual void Render() override;
 
     Vec2 GridToWorld(Vec2 gridPos) const;
 
@@ -31,8 +30,6 @@ public:
     bool IsInBounds(Vec2 gridPos) const;
 
     // Getters
-    Vec2 GetPosition() const { return m_position; }
-    Vec2 GetSize() const { return m_size; }
     Vec2 GetCellCount() const { return m_cellCount; }
     float GetCellSize() const { return m_cellSize; }
 };

@@ -1,18 +1,15 @@
 #include "Grid.h"
 
-void Grid::Initialize(Vec2 position, float cellSize, Vec2 cellCount, Color color)
+void Grid::Initialize()
 {
-    m_position = position;
-    m_cellSize = cellSize;
-    m_cellCount = cellCount;
-    m_size = Vec2(m_cellSize * m_cellCount.x, m_cellSize * m_cellCount.y);
-    m_color = color;
-    m_topLeft = Vec2(m_position.x - m_size.x * 0.5f, m_position.y + m_size.y * 0.5f);
+    // Calculate total world size from cell size and count
+    m_worldSize = Vec2(m_cellSize * m_cellCount.x, m_cellSize * m_cellCount.y);
+    m_topLeft = Vec2(m_worldPosition.x - m_worldSize.x * 0.5f, m_worldPosition.y + m_worldSize.y * 0.5f);
 }
 
-void Grid::Render() const
+void Grid::Render()
 {
-    Renderer2D::DrawTile(m_position, m_size, m_color);
+    Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
 }
 
 Vec2 Grid::GridToWorld(Vec2 gridPos) const

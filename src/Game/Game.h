@@ -3,9 +3,9 @@
 #include <Core/EntryPoint.h>
 #include <vector>
 #include <functional>
+#include <memory>
 #include "Grid.h"
 #include "Player.h"
-#include "Food.h"
 
 using namespace Engine;
 
@@ -28,6 +28,7 @@ private:
 public:
     Game() = default;
     void Initialize() override;
+    void InitializePlayer();
     void Update(float deltaTime) override;
     void Render() override;
     void Shutdown() override;
@@ -36,11 +37,11 @@ public:
 
 private:
     // World
-    Grid m_Grid; // Our grid coordinate system
+    std::unique_ptr<Grid> m_Grid; // Our grid coordinate system
 
     // Player
-    Player m_Player;
+    std::unique_ptr<Player> m_Player;
 
     // Food
-    Food m_food;
+    std::unique_ptr<GridTile> m_food;
 };
