@@ -4,7 +4,6 @@
 #include <vector>
 #include <functional>
 #include <memory>
-#include "Grid.h"
 #include "Player.h"
 
 using namespace Engine;

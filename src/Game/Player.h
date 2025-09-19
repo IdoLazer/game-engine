@@ -1,8 +1,8 @@
 #pragma once
 
-#include "GridEntity.h"
-#include "Timer.h"
-#include "GridTile.h"
+#include <Engine.h>
+
+using namespace Engine;
 
 class Player : public GridEntity
 {

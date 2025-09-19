@@ -15,11 +15,22 @@ src/
 │   ├── Core/                  # Application lifecycle, entry point management
 │   │   ├── Application.h      # Base application class + CreateApplication() declaration
 │   │   └── EntryPoint.h       # Engine-owned main() function
+│   ├── Entity/                # Entity component system
+│   │   ├── Entity.h           # Base entity class for game objects
+│   │   ├── GridEntity.h       # Grid-based entity with coordinate management
+│   │   └── GridTile.h         # Simple renderable grid tile
+│   ├── World/                 # World and spatial systems
+│   │   └── Grid.h             # Grid coordinate system for spatial organization
+│   ├── Utilities/             # General-purpose utilities
+│   │   └── Timer.h            # Game timing and callback utility
 │   ├── Input/                 # Input handling (Keyboard, etc.)
+│   ├── Math/                  # Mathematical utilities (Vec2, etc.)
+│   ├── Graphics/              # Graphics primitives (Color, etc.)
 │   └── Rendering/             # Window management, rendering
 └── Game/                      # Game-specific implementation
     ├── Game.h                 # Game class inheriting from Engine::Application
-    └── Game.cpp               # Game implementation + CreateApplication() factory
+    ├── Game.cpp               # Game implementation + CreateApplication() factory
+    └── Player.h               # Game-specific player class (Snake-specific)
 ```
 
 **Key Architectural Principles:**
@@ -31,6 +42,8 @@ src/
 - **Clear Separation:** Engine infrastructure separate from game logic
 - **Component-based design:** Small, focused classes with clear responsibilities
 - **CMake build system:** vcpkg for dependency management, system includes for engine headers
+- **Modular Engine Organization:** Entity system, World systems, Utilities clearly separated
+- **Generic vs Game-Specific:** Reusable classes in Engine, specific implementations in Game
 
 ### Current Technology Stack
 
@@ -110,15 +123,19 @@ The engine currently has:
 - ✅ Clean Game/Engine separation
 - ✅ CMake build system with vcpkg
 - ✅ Professional include style (system vs local headers)
+- ✅ Entity system (Entity, GridEntity, GridTile)
+- ✅ World systems (Grid coordinate system)
+- ✅ Utilities (Timer for game timing)
+- ✅ Modular Engine organization
 
 Next logical areas for development:
 
 - Rendering pipeline improvements
-- Entity-Component System
 - Resource management
 - Audio system
 - Physics integration
 - Scene management
+- Enhanced Entity-Component System features
 
 ### Questions to Ask Yourself Before Making Changes
 
