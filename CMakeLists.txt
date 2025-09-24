@@ -6,6 +6,11 @@ project(GameEngine)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Set build type to Debug if not specified
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Debug)
+endif()
+
 # Find required packages
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -27,3 +32,13 @@ target_include_directories(Game PRIVATE src)
 
 # Link libraries
 target_link_libraries(Game PRIVATE glfw OpenGL::GL)
+
+# Enable debug symbols and disable optimizations for Debug builds
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(MSVC)
+        target_compile_options(Game PRIVATE /Zi /Od)
+        target_link_options(Game PRIVATE /DEBUG)
+    else()
+        target_compile_options(Game PRIVATE -g -O0)
+    endif()
+endif()
