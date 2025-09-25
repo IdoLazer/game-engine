@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Command.h"
-#include "CommandQueue.h"
+#include <Engine.h>
 #include "../GameConstants.h"
 
 class IMovable
@@ -15,7 +14,7 @@ public:
 // Concrete movement commands implementing the Command interface
 // Each command encapsulates a specific direction change request
 
-class MoveCommand : public Command
+class MoveCommand : public Engine::Command
 {
     IMovable *m_movable;
     Vec2 m_direction;
@@ -61,7 +60,7 @@ public:
     MoveRightCommand(IMovable *movable) : MoveCommand(movable, GameConstants::DIRECTION_RIGHT, "MoveRight") {}
 };
 
-class MovementCommandConflictResolver : public ICommandConflictResolver
+class MovementCommandConflictResolver : public Engine::ICommandConflictResolver
 {
 public:
     bool IsConflict(Command *newCmd, Command *queuedCmd) override

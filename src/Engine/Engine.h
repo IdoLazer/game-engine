@@ -17,6 +17,10 @@
 // Math
 #include "Math/Vec2.h"
 
+// Patterns
+#include "Patterns/Command/Command.h"
+#include "Patterns/Command/CommandQueue.h"
+
 // Graphics
 #include "Graphics/Color.h"
 
