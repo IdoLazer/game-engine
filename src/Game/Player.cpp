@@ -1,4 +1,5 @@
 #include "Player.h"
+#include "Commands/InputManager.h"
 
 void Player::Initialize()
 {
@@ -39,6 +40,9 @@ void Player::Render()
 
 void Player::Move()
 {
+    // Process any queued commands before moving
+    ProcessQueuedCommand();
+
     if (m_growTailOnNextMove)
     {
         m_tailSegments.push_back(GridTile(m_grid, m_gridPosition, m_gridSize, m_color));
@@ -76,9 +80,22 @@ bool Player::CheckSelfCollision() const
     return isColliding;
 }
 
+void Player::ProcessQueuedCommand()
+{
+    if (m_inputManager && m_inputManager->HasQueuedMovementCommands())
+    {
+        auto command = m_inputManager->GetNextMovementCommand();
+        if (command)
+        {
+            command->Execute();
+        }
+    }
+}
+
 void Player::SetDirection(const Vec2 &dir)
 {
-    if (m_updateMoveThisFrame)
+    // Only set direction if it won't cause immediate reversal
+    if (m_direction == -dir)
         return;
     m_updateMoveThisFrame = true;
     m_direction = dir;

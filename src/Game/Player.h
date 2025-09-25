@@ -1,10 +1,11 @@
 #pragma once
 
 #include <Engine.h>
+#include "Commands/MovementCommands.h"
 
 using namespace Engine;
 
-class Player : public GridEntity
+class Player : public GridEntity, public IMovable
 {
 private:
     Vec2 m_direction;
@@ -13,6 +14,9 @@ private:
     Timer m_moveTimer;
     bool m_updateMoveThisFrame{false};
     bool m_growTailOnNextMove{false};
+
+    // Input manager reference for command processing
+    class InputManager *m_inputManager{nullptr};
 
 public:
     Player(const Grid *grid,
@@ -43,5 +47,10 @@ public:
     Vec2 GetDirection() const { return m_direction; }
 
     // Setters
-    void SetDirection(const Vec2 &dir);
+    void SetDirection(const Vec2 &dir) override;
+    void SetInputManager(class InputManager *inputManager) { m_inputManager = inputManager; }
+
+private:
+    // Command processing - executes next queued command if available
+    void ProcessQueuedCommand();
 };

@@ -26,6 +26,9 @@ void Game::Initialize()
 
 void Game::Update(float deltaTime)
 {
+    // Process input and convert to commands
+    m_inputManager->ProcessInput();
+
     m_Player->Update(deltaTime);
     ReadInput();
     if (CheckGameOver())
@@ -77,28 +80,10 @@ void Game::PlaceFood()
 void Game::ReadInput()
 {
     // Exit game on Escape
-    if (Keyboard::IsKeyPressed(GLFW_KEY_ESCAPE))
+    if (m_inputManager->IsExitRequested())
     {
         std::cout << "Escape pressed - exiting game!" << std::endl;
         Close();
-    }
-
-    // Handle direction input - prevent immediate reversal into opposite direction
-    if (Keyboard::IsKeyPressed(GLFW_KEY_UP) && m_Player->GetDirection() != GameConstants::DIRECTION_DOWN)
-    {
-        m_Player->SetDirection(GameConstants::DIRECTION_UP);
-    }
-    else if (Keyboard::IsKeyPressed(GLFW_KEY_DOWN) && m_Player->GetDirection() != GameConstants::DIRECTION_UP)
-    {
-        m_Player->SetDirection(GameConstants::DIRECTION_DOWN);
-    }
-    else if (Keyboard::IsKeyPressed(GLFW_KEY_LEFT) && m_Player->GetDirection() != GameConstants::DIRECTION_RIGHT)
-    {
-        m_Player->SetDirection(GameConstants::DIRECTION_LEFT);
-    }
-    else if (Keyboard::IsKeyPressed(GLFW_KEY_RIGHT) && m_Player->GetDirection() != GameConstants::DIRECTION_LEFT)
-    {
-        m_Player->SetDirection(GameConstants::DIRECTION_RIGHT);
     }
 }
 
@@ -153,6 +138,12 @@ void Game::InitializePlayer()
         GameConstants::INITIAL_TAIL_LENGTH,
         GameConstants::MOVE_SPEED);
     m_Player->Initialize();
+
+    // Initialize Input Manager
+    m_inputManager = std::make_unique<InputManager>(m_Player.get());
+
+    // Connect the input manager to the player for command processing
+    m_Player->SetInputManager(m_inputManager.get());
 }
 
 void Game::InitializeFood()

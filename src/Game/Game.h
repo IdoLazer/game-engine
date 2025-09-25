@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include "Player.h"
+#include "Commands/InputManager.h"
 
 using namespace Engine;
 
@@ -35,6 +36,9 @@ public:
     WindowConfig GetWindowConfig() const override;
 
 private:
+    // Input Management
+    std::unique_ptr<InputManager> m_inputManager;
+
     // World
     std::unique_ptr<Grid> m_Grid; // Our grid coordinate system
 
