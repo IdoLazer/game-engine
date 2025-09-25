@@ -1,29 +1,33 @@
 #pragma once
 
 #include "Command.h"
-#include "../Player.h"
+#include "CommandQueue.h"
 #include "../GameConstants.h"
+
+class IMovable
+{
+public:
+    virtual ~IMovable() = default;
+
+    virtual void SetDirection(const Vec2 &direction) = 0;
+};
 
 // Concrete movement commands implementing the Command interface
 // Each command encapsulates a specific direction change request
 
 class MoveCommand : public Command
 {
-    Player *m_player;
+    IMovable *m_movable;
     Vec2 m_direction;
     const char *m_name;
 
 public:
-    MoveCommand(Player *player, const Vec2 &direction, const char *name)
-        : m_player(player), m_direction(direction), m_name(name) {}
+    MoveCommand(IMovable *movable, const Vec2 &direction, const char *name)
+        : m_movable(movable), m_direction(direction), m_name(name) {}
 
     void Execute() override
     {
-        // Only set direction if it won't cause immediate reversal
-        if (m_player->GetDirection() != -m_direction)
-        {
-            m_player->SetDirection(m_direction);
-        }
+        m_movable->SetDirection(m_direction);
     }
 
     const char *GetName() const override { return m_name; }
@@ -33,28 +37,28 @@ class MoveUpCommand : public MoveCommand
 {
 public:
     MoveUpCommand() = delete;
-    MoveUpCommand(Player *player) : MoveCommand(player, GameConstants::DIRECTION_UP, "MoveUp") {}
+    MoveUpCommand(IMovable *movable) : MoveCommand(movable, GameConstants::DIRECTION_UP, "MoveUp") {}
 };
 
 class MoveDownCommand : public MoveCommand
 {
 public:
     MoveDownCommand() = delete;
-    MoveDownCommand(Player *player) : MoveCommand(player, GameConstants::DIRECTION_DOWN, "MoveDown") {}
+    MoveDownCommand(IMovable *movable) : MoveCommand(movable, GameConstants::DIRECTION_DOWN, "MoveDown") {}
 };
 
 class MoveLeftCommand : public MoveCommand
 {
 public:
     MoveLeftCommand() = delete;
-    MoveLeftCommand(Player *player) : MoveCommand(player, GameConstants::DIRECTION_LEFT, "MoveLeft") {}
+    MoveLeftCommand(IMovable *movable) : MoveCommand(movable, GameConstants::DIRECTION_LEFT, "MoveLeft") {}
 };
 
 class MoveRightCommand : public MoveCommand
 {
 public:
     MoveRightCommand() = delete;
-    MoveRightCommand(Player *player) : MoveCommand(player, GameConstants::DIRECTION_RIGHT, "MoveRight") {}
+    MoveRightCommand(IMovable *movable) : MoveCommand(movable, GameConstants::DIRECTION_RIGHT, "MoveRight") {}
 };
 
 class MovementCommandConflictResolver : public ICommandConflictResolver
