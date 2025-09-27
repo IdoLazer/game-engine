@@ -1,0 +1,117 @@
+{
+  "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "projectName",
+      "description": "Select the project to build",
+      "type": "pickString",
+      "options": ["Game", "Chess"],
+      "default": "Game"
+    }
+  ],
+  "tasks": [
+    {
+      "label": "CMake Configure",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--preset", "default", "-DTARGET_PROJECT=${input:projectName}"],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Configure CMake project for selected target"
+    },
+    {
+      "label": "CMake Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "out/build", "--config", "Debug"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "dependsOn": "CMake Configure",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": ["$gcc"],
+      "detail": "Build the configured project"
+    },
+    {
+      "label": "CMake Clean",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "out/build",
+        "--config",
+        "Debug",
+        "--target",
+        "clean"
+      ],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Clean build files"
+    },
+    {
+      "label": "CMake Clean Build",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "out/build", "--config", "Debug"],
+      "group": "build",
+      "dependsOrder": "sequence",
+      "dependsOn": ["CMake Clean", "CMake Configure"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": ["$gcc"],
+      "detail": "Clean, reconfigure and build selected project"
+    },
+    {
+      "label": "CMake Run",
+      "type": "shell",
+      "command": ".\\out\\install\\Windows_x64\\Debug\\${input:projectName}.exe",
+      "group": "build",
+      "dependsOn": "CMake Build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Build and run selected project"
+    },
+    {
+      "label": "CMake Clean Run",
+      "type": "shell",
+      "command": ".\\out\\install\\Windows_x64\\Debug\\${input:projectName}.exe",
+      "group": "build",
+      "dependsOn": "CMake Clean Build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": [],
+      "detail": "Clean, reconfigure, build and run selected project"
+    }
+  ]
+}
