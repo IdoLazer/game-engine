@@ -2,11 +2,11 @@
 
 namespace Engine
 {
-    static const Color Red(1.0f, 0.0f, 0.0f, 1.0f);
-    static const Color Green(0.0f, 1.0f, 0.0f, 1.0f);
-    static const Color Blue(0.0f, 0.0f, 1.0f, 1.0f);
-    static const Color White(1.0f, 1.0f, 1.0f, 1.0f);
-    static const Color Black(0.0f, 0.0f, 0.0f, 1.0f);
+    const Color Color::Red(1.0f, 0.0f, 0.0f, 1.0f);
+    const Color Color::Green(0.0f, 1.0f, 0.0f, 1.0f);
+    const Color Color::Blue(0.0f, 0.0f, 1.0f, 1.0f);
+    const Color Color::White(1.0f, 1.0f, 1.0f, 1.0f);
+    const Color Color::Black(0.0f, 0.0f, 0.0f, 1.0f);
 
     Color::Color(float r, float g, float b, float a)
     {
