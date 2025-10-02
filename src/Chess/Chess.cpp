@@ -1,4 +1,5 @@
 #include "Chess.h"
+#include "Pieces/Pawn.h"
 
 void Chess::Initialize()
 {
@@ -8,6 +9,18 @@ void Chess::Initialize()
 
     m_board = new ChessBoard(position, cellSize);
     m_board->Initialize();
+
+    // Initialize pieces
+    // Initialize pawns
+    for (int x = 0; x < 8; ++x)
+    {
+        auto whitePawn = new Pawn(m_board, Vec2{x, 1}, Color::White);
+        whitePawn->Initialize();
+        m_board->AddPiece(whitePawn);
+        auto blackPawn = new Pawn(m_board, Vec2{x, 6}, Color::Black);
+        blackPawn->Initialize();
+        m_board->AddPiece(blackPawn);
+    }
 
     m_inputManager = new InputManager();
 }
