@@ -30,6 +30,7 @@ namespace Engine
 
         // Grid property accessors
         Vec2 GetGridPosition() const { return m_gridPosition; }
+        Vec2 GetGridCell() const { return m_grid->GetCellFromGridPosition(m_gridPosition); }
         Vec2 GetGridSize() const { return m_gridSize; }
         const Grid *GetGrid() const { return m_grid; }
 

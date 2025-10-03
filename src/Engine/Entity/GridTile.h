@@ -10,9 +10,9 @@ namespace Engine
     public:
         using GridEntity::GridEntity; // Inherit constructors
 
-        void Render() const
+        virtual void Render() override
         {
-            Renderer2D::DrawTile(m_worldPosition, m_grid->GetCellSize() * m_gridSize, m_color);
+            Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
         }
     };
 }

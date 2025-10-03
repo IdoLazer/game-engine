@@ -3,6 +3,7 @@
 #include "../Math/Vec2.h"
 #include "../Graphics/Color.h"
 #include "../Entity/Entity.h"
+#include <cmath>
 
 namespace Engine
 {
@@ -33,5 +34,6 @@ namespace Engine
         // Getters
         Vec2 GetCellCount() const { return m_cellCount; }
         float GetCellSize() const { return m_cellSize; }
+        Vec2 GetCellFromGridPosition(const Vec2 &gridPos) const { return Vec2{std::floor(gridPos.x), std::floor(gridPos.y)}; }
     };
 }
