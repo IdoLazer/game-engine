@@ -110,6 +110,7 @@ namespace Engine
 
         // Initialize input systems
         Keyboard::Initialize(m_Window->GetNativeWindow());
+        Mouse::Initialize(m_Window->GetNativeWindow());
 
         std::cout << "Engine subsystems initialized successfully." << std::endl;
         std::cout << "Window: \"" << config.title << "\" (" << config.width << "x" << config.height << ")" << std::endl;
@@ -133,6 +134,7 @@ namespace Engine
     {
         // Update input systems
         Keyboard::Update();
+        Mouse::Update();
 
         // Poll window events
         m_Window->PollEvents();

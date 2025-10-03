@@ -13,6 +13,7 @@
 
 // Input System
 #include "Input/Keyboard.h"
+#include "Input/Mouse.h"
 
 // Math
 #include "Math/Vec2.h"

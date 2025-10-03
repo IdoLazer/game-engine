@@ -3,6 +3,7 @@
 #include "Rendering/Window.h"
 #include "Rendering/Renderer2D.h"
 #include "Input/Keyboard.h"
+#include "Input/Mouse.h"
 
 namespace Engine
 {
