@@ -5,7 +5,7 @@ std::vector<Vec2> Pawn::GetPossibleMoves() const
     std::vector<Vec2> possibleMoves;
 
     // Pawns can move forward one square
-    Vec2 forwardMove = m_gridPosition + Vec2(0, 1);
+    Vec2 forwardMove = m_gridPosition + (m_ChessPieceColor == ChessPieceColor::White ? Vec2(0, 1) : Vec2(0, -1));
     if (m_board->IsValidPosition(forwardMove))
     {
         possibleMoves.push_back(forwardMove);
@@ -14,7 +14,7 @@ std::vector<Vec2> Pawn::GetPossibleMoves() const
     // If the pawn hasn't moved yet, it can move forward two squares
     if (!m_hasMoved)
     {
-        Vec2 doubleForwardMove = m_gridPosition + Vec2(0, 2);
+        Vec2 doubleForwardMove = m_gridPosition + (m_ChessPieceColor == ChessPieceColor::White ? Vec2(0, 2) : Vec2(0, -2));
         if (m_board->IsValidPosition(doubleForwardMove))
         {
             possibleMoves.push_back(doubleForwardMove);
