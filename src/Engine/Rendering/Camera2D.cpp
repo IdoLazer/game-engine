@@ -38,4 +38,20 @@ namespace Engine
     {
         return Vec2(WorldToOpenGLX(worldPos.x), WorldToOpenGLY(worldPos.y));
     }
+
+    Vec2 Camera2D::ScreenToWorld(const Vec2 &screenPos) const
+    {
+        // Convert screen coordinates (pixels) to world coordinates
+        float worldX = (screenPos.x / m_PixelWidth) * m_WorldWidth - (m_WorldWidth * 0.5f);
+        float worldY = ((m_PixelHeight - screenPos.y) / m_PixelHeight) * m_WorldHeight - (m_WorldHeight * 0.5f);
+        return Vec2(worldX, worldY);
+    }
+
+    Vec2 Camera2D::WorldToScreen(const Vec2 &worldPos) const
+    {
+        // Convert world coordinates to screen coordinates (pixels)
+        float screenX = ((worldPos.x + (m_WorldWidth * 0.5f)) / m_WorldWidth) * m_PixelWidth;
+        float screenY = m_PixelHeight - (((worldPos.y + (m_WorldHeight * 0.5f)) / m_WorldHeight) * m_PixelHeight);
+        return Vec2(screenX, screenY);
+    }
 }
