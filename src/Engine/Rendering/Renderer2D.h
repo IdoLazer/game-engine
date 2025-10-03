@@ -19,8 +19,10 @@ namespace Engine
 
         static void Clear(const Color &color = Color(0.0f, 0.0f, 0.0f, 1.0f));
 
-        // Tile rendering
+        // Basic rendering
         static void DrawTile(const Vec2 &position, const Vec2 &size, const Color &color);
+        static void DrawCircle(const Vec2 &center, float radius, const Color &color);
+        static void DrawRectOutline(const Vec2 &position, const Vec2 &size, const Color &color, float thickness = 0.05f);
 
         // Camera access
         static Camera2D &GetCamera() { return s_Camera; }

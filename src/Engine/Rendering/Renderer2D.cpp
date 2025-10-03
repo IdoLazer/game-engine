@@ -1,5 +1,6 @@
 #include "Renderer2D.h"
 #include <iostream>
+#include <cmath>
 
 namespace Engine
 {
@@ -63,6 +64,84 @@ namespace Engine
         glVertex2f(glTopRight.x, glBottomLeft.y);   // Bottom-right
         glVertex2f(glTopRight.x, glTopRight.y);     // Top-right
         glVertex2f(glBottomLeft.x, glTopRight.y);   // Top-left
+        glEnd();
+    }
+
+    void Renderer2D::DrawCircle(const Vec2 &center, float radius, const Color &color)
+    {
+        const int segments = 32; // Number of segments to approximate the circle
+
+        // Set the color for this circle
+        glColor4f(color.r, color.g, color.b, color.a);
+
+        // Convert center to OpenGL coordinates
+        Vec2 glCenter = s_Camera.WorldToOpenGL(center);
+        float glRadiusX = radius / (s_Camera.GetWorldWidth() * 0.5f);
+        float glRadiusY = radius / (s_Camera.GetWorldHeight() * 0.5f);
+
+        // Draw a filled circle using triangle fan
+        glBegin(GL_TRIANGLE_FAN);
+        glVertex2f(glCenter.x, glCenter.y); // Center of the circle
+        for (int i = 0; i <= segments; ++i)
+        {
+            float angle = i * 2.0f * 3.1415926f / segments;
+            float x = glCenter.x + cos(angle) * glRadiusX;
+            float y = glCenter.y + sin(angle) * glRadiusY;
+            glVertex2f(x, y);
+        }
+        glEnd();
+    }
+
+    void Renderer2D::DrawRectOutline(const Vec2 &position, const Vec2 &size, const Color &color, float thickness)
+    {
+        // Set the color for this outline
+        glColor4f(color.r, color.g, color.b, color.a);
+
+        // Calculate the corners of the rectangle in world coordinates
+        Vec2 halfSize = size * 0.5f;
+
+        Vec2 bottomLeft = position - halfSize;
+        Vec2 topRight = position + halfSize;
+        Vec2 topLeft = Vec2(bottomLeft.x, topRight.y);
+        Vec2 bottomRight = Vec2(topRight.x, bottomLeft.y);
+
+        // Convert corners to OpenGL coordinates
+        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(bottomLeft);
+        Vec2 glTopRight = s_Camera.WorldToOpenGL(topRight);
+        Vec2 glTopLeft = s_Camera.WorldToOpenGL(topLeft);
+        Vec2 glBottomRight = s_Camera.WorldToOpenGL(bottomRight);
+
+        float thicknessX = thickness * halfSize.x;
+        float thicknessY = thickness * halfSize.y;
+        float glThicknessX = thicknessX / (s_Camera.GetWorldWidth() * 0.5f);
+        float glThicknessY = thicknessY / (s_Camera.GetWorldHeight() * 0.5f);
+
+        // Draw the outline as four rectangles (quads)
+        glBegin(GL_QUADS);
+        // Bottom edge
+        glVertex2f(glBottomLeft.x, glBottomLeft.y);
+        glVertex2f(glBottomRight.x, glBottomRight.y);
+        glVertex2f(glBottomRight.x, glBottomRight.y + glThicknessY);
+        glVertex2f(glBottomLeft.x, glBottomLeft.y + glThicknessY);
+
+        // Right edge
+        glVertex2f(glBottomRight.x - glThicknessX, glBottomRight.y + glThicknessY);
+        glVertex2f(glTopRight.x - glThicknessX, glTopRight.y);
+        glVertex2f(glTopRight.x, glTopRight.y);
+        glVertex2f(glBottomRight.x, glBottomRight.y + glThicknessY);
+
+        // Top edge
+        glVertex2f(glTopLeft.x, glTopLeft.y - glThicknessY);
+        glVertex2f(glTopRight.x - glThicknessX, glTopRight.y - glThicknessY);
+        glVertex2f(glTopRight.x - glThicknessX, glTopRight.y);
+        glVertex2f(glTopLeft.x, glTopLeft.y);
+
+        // Left edge
+        glVertex2f(glBottomLeft.x, glBottomLeft.y + glThicknessY);
+        glVertex2f(glTopLeft.x, glTopLeft.y - glThicknessY);
+        glVertex2f(glTopLeft.x + glThicknessX, glTopLeft.y - glThicknessY);
+        glVertex2f(glBottomLeft.x + glThicknessX, glBottomLeft.y + glThicknessY);
+
         glEnd();
     }
 
