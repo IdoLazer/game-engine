@@ -8,7 +8,11 @@ ChessBoard::~ChessBoard()
     {
         delete tile;
     }
-    for (auto piece : m_pieces)
+    for (auto piece : m_whitePieces)
+    {
+        delete piece;
+    }
+    for (auto piece : m_blackPieces)
     {
         delete piece;
     }
@@ -40,7 +44,12 @@ void ChessBoard::Render()
         tile->Render();
     }
 
-    for (const auto &piece : m_pieces)
+    for (const auto &piece : m_whitePieces)
+    {
+        piece->Render();
+    }
+
+    for (const auto &piece : m_blackPieces)
     {
         piece->Render();
     }
@@ -50,7 +59,7 @@ void ChessBoard::Update(float deltaTime)
 {
     Vec2 mousePos = Mouse::GetWorldPosition();
     Vec2 gridPos = WorldToGrid(mousePos);
-    if (IsValidPosition(gridPos) && Mouse::IsButtonPressed(GLFW_MOUSE_BUTTON_1))
+    if (IsInBounds(gridPos) && Mouse::IsButtonPressed(GLFW_MOUSE_BUTTON_1))
     {
         OnMouseClick(gridPos);
     }
@@ -58,19 +67,47 @@ void ChessBoard::Update(float deltaTime)
 
 bool ChessBoard::IsValidPosition(const Vec2 &gridPos) const
 {
-    return gridPos.x >= 0 && gridPos.x < GetCellCount().x && gridPos.y >= 0 && gridPos.y < GetCellCount().y;
+    return IsInBounds(gridPos) && !IsOccupied(gridPos);
+}
+
+bool ChessBoard::IsOccupied(const Vec2 &gridPos) const
+{
+    for (const auto &piece : m_whitePieces)
+    {
+        if (piece->GetGridCell() == gridPos)
+        {
+            return true;
+        }
+    }
+    for (const auto &piece : m_blackPieces)
+    {
+        if (piece->GetGridCell() == gridPos)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void ChessBoard::AddPiece(ChessPiece *piece)
 {
-    m_pieces.push_back(piece);
+    if (piece->GetPieceColor() == ChessPieceColor::Black)
+    {
+        m_blackPieces.push_back(piece);
+    }
+    else
+    {
+        m_whitePieces.push_back(piece);
+    }
 }
 
 void ChessBoard::OnMouseClick(const Vec2 &gridPos)
 {
     // Check if a piece exists at the clicked cell
     Vec2 cell = GetCellFromGridPosition(gridPos);
-    for (const auto &piece : m_pieces)
+    auto pieces = (m_currentPlayerColor == ChessPieceColor::White) ? m_whitePieces : m_blackPieces;
+    // Check for piece selection
+    for (const auto &piece : pieces)
     {
         if (piece->GetGridCell() == cell)
         {
@@ -84,11 +121,32 @@ void ChessBoard::OnMouseClick(const Vec2 &gridPos)
             return;
         }
     }
+    // If a piece is already selected, attempt to move it
+    if (m_selectedPiece)
+    {
+        auto possibleMoves = m_selectedPiece->GetPossibleMoves();
+        if (std::find(possibleMoves.begin(), possibleMoves.end(), cell) != possibleMoves.end())
+        {
+            // Move is valid
+            m_selectedPiece->Deselect();
+            m_selectedPiece->OnMove(cell);
+            m_selectedPiece = nullptr;
+
+            // Switch player turn
+            m_currentPlayerColor = (m_currentPlayerColor == ChessPieceColor::White) ? ChessPieceColor::Black : ChessPieceColor::White;
+        }
+        else
+        {
+            // Invalid move, just deselect
+            m_selectedPiece->Deselect();
+            m_selectedPiece = nullptr;
+        }
+    }
 }
 
 ChessTile *ChessBoard::GetTile(const Vec2 &cell) const
 {
-    if (!IsValidPosition(cell))
+    if (!IsInBounds(cell))
         return nullptr;
     int index = static_cast<int>(cell.y) * 8 + static_cast<int>(cell.x);
     if (index >= 0 && index < static_cast<int>(m_tiles.size()))

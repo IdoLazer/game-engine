@@ -24,7 +24,10 @@ public:
 
     virtual std::vector<Vec2> GetPossibleMoves() const = 0; // Pure virtual function for possible moves
 
-    virtual void OnMove(const Vec2 &newPosition) = 0;
+    virtual void OnMove(const Vec2 &newPosition)
+    {
+        SetGridPosition(newPosition);
+    }
 
     void Select();
     void Deselect();

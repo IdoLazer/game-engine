@@ -33,6 +33,7 @@ void Pawn::Initialize()
 
 void Pawn::OnMove(const Vec2 &newPosition)
 {
-    m_gridPosition = newPosition;
+    ChessPiece::OnMove(newPosition);
+
     m_hasMoved = true;
 }
