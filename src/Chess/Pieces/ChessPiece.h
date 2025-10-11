@@ -2,15 +2,9 @@
 #include "../ChessBoard.h"
 #include <vector>
 #include <Engine.h>
+#include "../ChessConstants.h"
 
 using namespace Engine;
-
-// Define white and black types
-enum class ChessPieceColor
-{
-    White,
-    Black
-};
 
 class ChessPiece : public GridTile
 {
@@ -34,4 +28,6 @@ public:
 
     void Select();
     void Deselect();
+
+    ChessPieceColor GetPieceColor() const { return m_ChessPieceColor; }
 };
