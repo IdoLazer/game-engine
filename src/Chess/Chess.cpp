@@ -1,5 +1,5 @@
 #include "Chess.h"
-#include "Pieces/Pawn.h"
+#include "Pieces/ChessPieces.h"
 
 void Chess::Initialize()
 {
@@ -21,6 +21,19 @@ void Chess::Initialize()
         blackPawn->Initialize();
         m_board->AddPiece(blackPawn);
     }
+    // Initialize rooks
+    auto whiteRook1 = new Rook(m_board, Vec2{0, 0}, ChessPieceColor::White);
+    whiteRook1->Initialize();
+    m_board->AddPiece(whiteRook1);
+    auto whiteRook2 = new Rook(m_board, Vec2{7, 0}, ChessPieceColor::White);
+    whiteRook2->Initialize();
+    m_board->AddPiece(whiteRook2);
+    auto blackRook1 = new Rook(m_board, Vec2{0, 7}, ChessPieceColor::Black);
+    blackRook1->Initialize();
+    m_board->AddPiece(blackRook1);
+    auto blackRook2 = new Rook(m_board, Vec2{7, 7}, ChessPieceColor::Black);
+    blackRook2->Initialize();
+    m_board->AddPiece(blackRook2);
 
     m_inputManager = new InputManager();
 

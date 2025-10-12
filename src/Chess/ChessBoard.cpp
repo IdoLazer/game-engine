@@ -170,3 +170,23 @@ ChessTile *ChessBoard::GetTile(const Vec2 &cell) const
         return m_tiles[index];
     return nullptr;
 }
+
+ChessPiece *ChessBoard::GetPieceAt(const Vec2 &gridPos) const
+{
+    Vec2 cell = GetCellFromGridPosition(gridPos);
+    for (const auto &piece : m_whitePieces)
+    {
+        if (piece->GetGridCell() == cell)
+        {
+            return piece;
+        }
+    }
+    for (const auto &piece : m_blackPieces)
+    {
+        if (piece->GetGridCell() == cell)
+        {
+            return piece;
+        }
+    }
+    return nullptr;
+}

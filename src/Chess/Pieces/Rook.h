@@ -1,15 +1,15 @@
 #pragma once
-#include <Engine.h>
+
 #include "ChessPiece.h"
 
-class Pawn : public ChessPiece
+class Rook : public ChessPiece
 {
 private:
-    bool m_hasMoved{false};
+    bool m_hasMoved;
 
 public:
-    Pawn(const ChessBoard *board, const Vec2 &position, ChessPieceColor color)
-        : ChessPiece(board, position, Vec2(0.5f, 0.5f), color) {}
+    Rook(const ChessBoard *board, const Vec2 &position, ChessPieceColor color)
+        : ChessPiece(board, position, Vec2(0.4f, 0.6f), color) {}
 
     virtual void Initialize() override;
 

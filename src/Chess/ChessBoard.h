@@ -25,6 +25,7 @@ public:
     void AddPiece(class ChessPiece *piece);
     void OnMouseClick(const Vec2 &gridPos);
     ChessTile *GetTile(const Vec2 &gridPos) const;
+    ChessPiece *GetPieceAt(const Vec2 &gridPos) const;
 
 private:
     std::vector<ChessTile *> m_tiles;
