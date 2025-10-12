@@ -11,11 +11,11 @@ std::vector<Vec2> Pawn::GetPossibleMoves() const
         possibleMoves.push_back(forwardMove);
     }
 
-    // If the pawn hasn't moved yet, it can move forward two squares
+    // If the pawn hasn't moved yet, it can move forward two squares, but only if both squares are unoccupied
     if (!m_hasMoved)
     {
         Vec2 doubleForwardMove = m_gridPosition + (m_ChessPieceColor == ChessPieceColor::White ? Vec2(0, 2) : Vec2(0, -2));
-        if (m_board->IsValidPosition(doubleForwardMove))
+        if (m_board->IsValidPosition(forwardMove) && m_board->IsValidPosition(doubleForwardMove))
         {
             possibleMoves.push_back(doubleForwardMove);
         }
