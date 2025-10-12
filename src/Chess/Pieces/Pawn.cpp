@@ -21,6 +21,18 @@ std::vector<Vec2> Pawn::GetPossibleMoves() const
         }
     }
 
+    // Pawns can capture diagonally
+    Vec2 captureLeft = m_gridPosition + (m_ChessPieceColor == ChessPieceColor::White ? Vec2(-1, 1) : Vec2(-1, -1));
+    Vec2 captureRight = m_gridPosition + (m_ChessPieceColor == ChessPieceColor::White ? Vec2(1, 1) : Vec2(1, -1));
+    if (m_board->IsInBounds(captureLeft) && m_board->IsOccupied(captureLeft))
+    {
+        possibleMoves.push_back(captureLeft);
+    }
+    if (m_board->IsInBounds(captureRight) && m_board->IsOccupied(captureRight))
+    {
+        possibleMoves.push_back(captureRight);
+    }
+
     return possibleMoves;
 }
 

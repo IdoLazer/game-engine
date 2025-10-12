@@ -132,6 +132,23 @@ void ChessBoard::OnMouseClick(const Vec2 &gridPos)
             m_selectedPiece->OnMove(cell);
             m_selectedPiece = nullptr;
 
+            // If there's an opponent piece at the destination, capture it
+            auto &opponentPieces = (m_currentPlayerColor == ChessPieceColor::White) ? m_blackPieces : m_whitePieces;
+            ChessPiece *capturedPiece = nullptr;
+            for (const auto &opponentPiece : opponentPieces)
+            {
+                if (opponentPiece->GetGridCell() == cell)
+                {
+                    capturedPiece = opponentPiece;
+                    break;
+                }
+            }
+            if (capturedPiece)
+            {
+                opponentPieces.erase(std::remove(opponentPieces.begin(), opponentPieces.end(), capturedPiece), opponentPieces.end());
+                delete capturedPiece;
+            }
+
             // Switch player turn
             m_currentPlayerColor = (m_currentPlayerColor == ChessPieceColor::White) ? ChessPieceColor::Black : ChessPieceColor::White;
         }
