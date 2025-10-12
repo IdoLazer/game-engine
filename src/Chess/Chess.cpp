@@ -35,6 +35,20 @@ void Chess::Initialize()
     blackRook2->Initialize();
     m_board->AddPiece(blackRook2);
 
+    // Initialize knights
+    auto whiteKnight1 = new Knight(m_board, Vec2{1, 0}, ChessPieceColor::White);
+    whiteKnight1->Initialize();
+    m_board->AddPiece(whiteKnight1);
+    auto whiteKnight2 = new Knight(m_board, Vec2{6, 0}, ChessPieceColor::White);
+    whiteKnight2->Initialize();
+    m_board->AddPiece(whiteKnight2);
+    auto blackKnight1 = new Knight(m_board, Vec2{1, 7}, ChessPieceColor::Black);
+    blackKnight1->Initialize();
+    m_board->AddPiece(blackKnight1);
+    auto blackKnight2 = new Knight(m_board, Vec2{6, 7}, ChessPieceColor::Black);
+    blackKnight2->Initialize();
+    m_board->AddPiece(blackKnight2);
+
     m_inputManager = new InputManager();
 
     Mouse::SetCursorVisibility(false);
