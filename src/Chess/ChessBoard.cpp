@@ -37,7 +37,7 @@ void ChessBoard::Initialize()
     }
 }
 
-void ChessBoard::Render()
+void ChessBoard::Render() const
 {
     for (const auto &tile : m_tiles)
     {

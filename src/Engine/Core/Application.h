@@ -30,7 +30,7 @@ namespace Engine
         // Game-specific methods for derived classes to implement
         virtual void Initialize() = 0;
         virtual void Update(float deltaTime) = 0;
-        virtual void Render() = 0;
+        virtual void Render() const = 0;
         virtual void Shutdown() = 0;
 
         // Window configuration - override this in your game class

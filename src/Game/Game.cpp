@@ -43,7 +43,7 @@ void Game::Update(float deltaTime)
     }
 }
 
-void Game::Render()
+void Game::Render() const
 {
     // Draw grid
     m_Grid->Render();

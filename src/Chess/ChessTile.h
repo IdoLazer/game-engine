@@ -9,7 +9,7 @@ class ChessTile : public GridTile
 public:
     using GridTile::GridTile;
 
-    virtual void Render() override;
+    virtual void Render() const override;
 
     void ToggleHighlight(bool highlighted)
     {

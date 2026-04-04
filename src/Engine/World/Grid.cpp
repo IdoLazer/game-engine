@@ -10,7 +10,7 @@ namespace Engine
         m_topLeft = Vec2(m_worldPosition.x - m_worldSize.x * 0.5f, m_worldPosition.y + m_worldSize.y * 0.5f);
     }
 
-    void Grid::Render()
+    void Grid::Render() const
     {
         Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
     }

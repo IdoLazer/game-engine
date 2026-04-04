@@ -36,7 +36,7 @@ public:
     // Entity interface implementation
     void Initialize() override;
     void Update(float deltaTime) override;
-    void Render() override;
+    void Render() const override;
 
     void Destroy();
     void Move();

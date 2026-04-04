@@ -1,6 +1,6 @@
 #include "Knight.h"
 
-void Knight::Render()
+void Knight::Render() const
 {
     // Render the knight as a rectangle with an elongated "face" represented by another rectangle
     Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);

@@ -13,7 +13,7 @@ public:
 
     virtual void Initialize() override;
 
-    virtual void Render() override;
+    virtual void Render() const override;
 
     virtual std::vector<Vec2> GetPossibleMoves() const override;
 

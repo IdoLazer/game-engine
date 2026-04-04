@@ -17,7 +17,7 @@ public:
     ~ChessBoard();
 
     void Initialize() override;
-    void Render() override;
+    void Render() const override;
     void Update(float deltaTime) override;
 
     bool IsValidPosition(const Vec2 &gridPos) const;

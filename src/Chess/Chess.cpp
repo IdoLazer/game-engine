@@ -64,7 +64,7 @@ void Chess::Update(float deltaTime)
     m_board->Update(deltaTime);
 }
 
-void Chess::Render()
+void Chess::Render() const
 {
     m_board->Render();
     Vec2 mousePosition = Mouse::GetWorldPosition();

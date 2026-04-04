@@ -49,7 +49,7 @@ void Pawn::Initialize()
     m_hasMoved = false;
 }
 
-void Pawn::Render()
+void Pawn::Render() const
 {
     // Render the pawn as a circle with a small rectangle base
     // First, render the base rectangle

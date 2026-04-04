@@ -21,7 +21,7 @@ namespace Engine
 
         virtual void Initialize() override;
 
-        virtual void Render() override;
+        virtual void Render() const override;
 
         Vec2 GridToWorld(Vec2 gridPos) const;
 

@@ -6,7 +6,7 @@ void Rook::Initialize()
     m_hasMoved = false;
 }
 
-void Rook::Render()
+void Rook::Render() const
 {
     // Render the knight as a rectangle with merlons
     // First, render the base rectangle

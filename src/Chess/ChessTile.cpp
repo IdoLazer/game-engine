@@ -1,6 +1,6 @@
 #include "ChessTile.h"
 
-void ChessTile::Render()
+void ChessTile::Render() const
 {
     GridTile::Render();
 

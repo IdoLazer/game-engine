@@ -25,7 +25,7 @@ namespace Engine
         // Core entity lifecycle - can be overridden by subclasses, default to empty implementation
         virtual void Initialize() {}
         virtual void Update(float deltaTime) {}
-        virtual void Render() {}
+        virtual void Render() const {}
 
         // World property accessors
         Vec2 GetWorldPosition() const { return m_worldPosition; }

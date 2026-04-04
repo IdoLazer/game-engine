@@ -30,7 +30,7 @@ public:
     void Initialize() override;
     void InitializePlayer();
     void Update(float deltaTime) override;
-    void Render() override;
+    void Render() const override;
     void Shutdown() override;
 
     WindowConfig GetWindowConfig() const override;

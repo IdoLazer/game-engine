@@ -26,7 +26,7 @@ void Player::Update(float deltaTime)
     m_moveTimer.Update(deltaTime);
 }
 
-void Player::Render()
+void Player::Render() const
 {
     // Draw Player head using inherited world coordinates (automatically synced from grid position)
     Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
