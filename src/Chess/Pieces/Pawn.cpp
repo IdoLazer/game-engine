@@ -51,14 +51,13 @@ void Pawn::Initialize()
 
 void Pawn::Render() const
 {
-    // Render the pawn as a circle with a small rectangle base
-    // First, render the base rectangle
-    Vec2 baseSize = Vec2(m_worldSize.x * 0.8f, m_worldSize.y * 0.4f);
-    Renderer2D::DrawTile(m_worldPosition - Vec2(0.0f, baseSize.y / 2.0f), baseSize, m_color);
-
-    // Then, render the circular top
-    float radius = m_worldSize.x * 0.3f;
-    Renderer2D::DrawCircle(m_worldPosition + Vec2(0.0f, radius), radius, m_color);
+    // Draw the pawn as a triangle with a circle on top
+    Vec2 topCenter = m_worldPosition + Vec2(0.0f, m_worldSize.y / 4.0f);
+    Vec2 leftBase = m_worldPosition + Vec2(-m_worldSize.x / 5.0f, -m_worldSize.y / 4.0f);
+    Vec2 rightBase = m_worldPosition + Vec2(m_worldSize.x / 5.0f, -m_worldSize.y / 4.0f);
+    Renderer2D::DrawTriangle(topCenter, leftBase, rightBase, m_color);
+    // Draw the circle on top of the triangle
+    Renderer2D::DrawCircle(topCenter, m_worldSize.x / 7.0f, m_color);
 }
 
 void Pawn::OnMove(const Vec2 &newPosition)

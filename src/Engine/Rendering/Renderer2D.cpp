@@ -92,6 +92,24 @@ namespace Engine
         glEnd();
     }
 
+    void Renderer2D::DrawTriangle(const Vec2 &point1, const Vec2 &point2, const Vec2 &point3, const Color &color)
+    {
+        // Set the color for this triangle
+        glColor4f(color.r, color.g, color.b, color.a);
+
+        // Convert points to OpenGL coordinates
+        Vec2 glPoint1 = s_Camera.WorldToOpenGL(point1);
+        Vec2 glPoint2 = s_Camera.WorldToOpenGL(point2);
+        Vec2 glPoint3 = s_Camera.WorldToOpenGL(point3);
+
+        // Draw a filled triangle using OpenGL immediate mode
+        glBegin(GL_TRIANGLES);
+        glVertex2f(glPoint1.x, glPoint1.y);
+        glVertex2f(glPoint2.x, glPoint2.y);
+        glVertex2f(glPoint3.x, glPoint3.y);
+        glEnd();
+    }
+
     void Renderer2D::DrawRectOutline(const Vec2 &position, const Vec2 &size, const Color &color, float thickness)
     {
         // Set the color for this outline

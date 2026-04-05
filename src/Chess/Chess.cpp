@@ -49,6 +49,20 @@ void Chess::Initialize()
     blackKnight2->Initialize();
     m_board->AddPiece(blackKnight2);
 
+    // Initialize bishops
+    auto whiteBishop1 = new Bishop(m_board, Vec2{2, 0}, ChessPieceColor::White);
+    whiteBishop1->Initialize();
+    m_board->AddPiece(whiteBishop1);
+    auto whiteBishop2 = new Bishop(m_board, Vec2{5, 0}, ChessPieceColor::White);
+    whiteBishop2->Initialize();
+    m_board->AddPiece(whiteBishop2);
+    auto blackBishop1 = new Bishop(m_board, Vec2{2, 7}, ChessPieceColor::Black);
+    blackBishop1->Initialize();
+    m_board->AddPiece(blackBishop1);
+    auto blackBishop2 = new Bishop(m_board, Vec2{5, 7}, ChessPieceColor::Black);
+    blackBishop2->Initialize();
+    m_board->AddPiece(blackBishop2);
+
     m_inputManager = new InputManager();
 
     Mouse::SetCursorVisibility(false);

@@ -4,3 +4,4 @@
 #include "Pawn.h"
 #include "Rook.h"
 #include "Knight.h"
+#include "Bishop.h"

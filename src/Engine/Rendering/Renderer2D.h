@@ -22,6 +22,7 @@ namespace Engine
         // Basic rendering
         static void DrawTile(const Vec2 &position, const Vec2 &size, const Color &color);
         static void DrawCircle(const Vec2 &center, float radius, const Color &color);
+        static void DrawTriangle(const Vec2 &point1, const Vec2 &point2, const Vec2 &point3, const Color &color);
         static void DrawRectOutline(const Vec2 &position, const Vec2 &size, const Color &color, float thickness = 0.05f);
 
         // Camera access

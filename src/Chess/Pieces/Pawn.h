@@ -9,7 +9,7 @@ private:
 
 public:
     Pawn(const ChessBoard *board, const Vec2 &position, ChessPieceColor color)
-        : ChessPiece(board, position, Vec2(0.5f, 0.5f), color) {}
+        : ChessPiece(board, position, Vec2(1.0f, 1.0f), color) {}
 
     virtual void Initialize() override;
 
