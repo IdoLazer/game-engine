@@ -10,6 +10,7 @@ namespace Engine
     {
     public:
         static void Initialize(GLFWwindow *window);
+        static void Shutdown();
         static void Update();
 
         // Mouse button queries

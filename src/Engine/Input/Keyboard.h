@@ -9,6 +9,7 @@ namespace Engine
     {
     public:
         static void Initialize(GLFWwindow *window);
+        static void Shutdown();
         static void Update();
         static bool IsKeyDown(int glfwKey);
         static bool IsKeyPressed(int glfwKey);

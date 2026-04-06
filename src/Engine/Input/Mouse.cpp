@@ -35,6 +35,21 @@ namespace Engine
         std::cout << "Mouse initialized with GLFW" << std::endl;
     }
 
+    void Mouse::Shutdown()
+    {
+        if (!m_Initialized)
+            return;
+
+        glfwSetMouseButtonCallback(m_Window, nullptr);
+        glfwSetCursorPosCallback(m_Window, nullptr);
+        glfwSetScrollCallback(m_Window, nullptr);
+        m_CurrentButtonState.clear();
+        m_PreviousButtonState.clear();
+        m_Window = nullptr;
+        m_Initialized = false;
+        std::cout << "Mouse shut down" << std::endl;
+    }
+
     void Mouse::Update()
     {
         if (!m_Initialized)

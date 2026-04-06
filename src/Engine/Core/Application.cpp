@@ -11,10 +11,6 @@ namespace Engine
 
     Application::~Application()
     {
-        if (m_Initialized)
-        {
-            ShutdownEngine();
-        }
         std::cout << "Application destroyed." << std::endl;
     }
 
@@ -73,6 +69,8 @@ namespace Engine
         }
 
         std::cout << "Application loop ended." << std::endl;
+
+        ShutdownEngine();
     }
 
     void Application::ShutdownEngine()
@@ -160,16 +158,17 @@ namespace Engine
 
     void Application::ShutdownSubsystems()
     {
-        // Shutdown renderer
+        // Shutdown in reverse order of initialization
+        Mouse::Shutdown();
+        Keyboard::Shutdown();
         Renderer2D::Shutdown();
 
-        // Clean up window (this also cleans up GLFW)
         if (m_Window)
         {
             delete m_Window;
             m_Window = nullptr;
         }
-
+        
         std::cout << "Engine subsystems shut down." << std::endl;
     }
 }

@@ -24,6 +24,7 @@ namespace Engine
 
     void Renderer2D::Shutdown()
     {
+        glfwSetFramebufferSizeCallback(glfwGetCurrentContext(), nullptr);
         std::cout << "Renderer2D shutdown" << std::endl;
     }
 

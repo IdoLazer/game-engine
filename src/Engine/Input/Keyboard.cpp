@@ -23,6 +23,19 @@ namespace Engine
         std::cout << "Keyboard initialized with GLFW" << std::endl;
     }
 
+    void Keyboard::Shutdown()
+    {
+        if (!m_Initialized)
+            return;
+
+        glfwSetKeyCallback(m_Window, nullptr);
+        m_CurrentKeyState.clear();
+        m_PreviousKeyState.clear();
+        m_Window = nullptr;
+        m_Initialized = false;
+        std::cout << "Keyboard shut down" << std::endl;
+    }
+
     void Keyboard::Update()
     {
         if (!m_Initialized)
