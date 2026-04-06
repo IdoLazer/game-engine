@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.21)
 
 project(GameEngine)
 
@@ -11,64 +11,47 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
+# Direct final artifacts to clean locations within the build tree
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
+
+# Set debug/release compile and link options globally
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(MSVC)
+        add_compile_options(/Zi /Od)
+        add_link_options(/DEBUG)
+    else()
+        add_compile_options(-g -O0)
+    endif()
+endif()
+
 # Find required packages
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 
-# Define available projects
-set(AVAILABLE_PROJECTS "Game" "Chess")
-
-# Check if TARGET_PROJECT is specified
-if(NOT DEFINED TARGET_PROJECT)
-    message(FATAL_ERROR "TARGET_PROJECT must be specified. Available options: ${AVAILABLE_PROJECTS}")
-endif()
-
-# Validate TARGET_PROJECT
-if(NOT TARGET_PROJECT IN_LIST AVAILABLE_PROJECTS)
-    message(STATUS "Received TARGET_PROJECT: '${TARGET_PROJECT}'")
-    message(FATAL_ERROR "Invalid TARGET_PROJECT '${TARGET_PROJECT}'. Available options: ${AVAILABLE_PROJECTS}")
-endif()
-
-# Set up clean output directories
-set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/out/install")
-set(PLATFORM_DIR "Windows_x64")
-set(CONFIG_DIR "${CMAKE_BUILD_TYPE}")
-set(FINAL_OUTPUT_DIR "${OUTPUT_DIR}/${PLATFORM_DIR}/${CONFIG_DIR}")
-
-# Create output directory if it doesn't exist
-file(MAKE_DIRECTORY ${FINAL_OUTPUT_DIR})
-
-# Collect all source files automatically
+# ---------- Engine (static library) ----------
 file(GLOB_RECURSE ENGINE_SOURCES "src/Engine/*.cpp")
-file(GLOB_RECURSE PROJECT_SOURCES "src/${TARGET_PROJECT}/*.cpp")
+file(GLOB_RECURSE ENGINE_HEADERS "src/Engine/*.h")
 
-# Create the executable
-add_executable(${TARGET_PROJECT}
-    ${ENGINE_SOURCES}
-    ${PROJECT_SOURCES}
-)
+add_library(Engine STATIC ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
-# Set the output directory for the executable
-set_target_properties(${TARGET_PROJECT} PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${FINAL_OUTPUT_DIR}
-    RUNTIME_OUTPUT_DIRECTORY_DEBUG ${FINAL_OUTPUT_DIR}
-    RUNTIME_OUTPUT_DIRECTORY_RELEASE ${FINAL_OUTPUT_DIR}
-)
+target_include_directories(Engine PUBLIC src/Engine)
+target_include_directories(Engine PUBLIC src)
+target_link_libraries(Engine PUBLIC glfw OpenGL::GL)
 
-# Set include directories
-target_include_directories(${TARGET_PROJECT} SYSTEM PRIVATE src/Engine)
-target_include_directories(${TARGET_PROJECT} PRIVATE src/${TARGET_PROJECT})
-target_include_directories(${TARGET_PROJECT} PRIVATE src)
+# ---------- Game projects ----------
+# To add a new game project, just add another entry below.
 
-# Link libraries
-target_link_libraries(${TARGET_PROJECT} PRIVATE glfw OpenGL::GL)
+# Game (Snake)
+file(GLOB_RECURSE GAME_SOURCES "src/Game/*.cpp")
+add_executable(Game ${GAME_SOURCES})
+target_include_directories(Game PRIVATE src/Game)
+target_link_libraries(Game PRIVATE Engine)
+set_target_properties(Game PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Game)
 
-# Enable debug symbols and disable optimizations for Debug builds
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    if(MSVC)
-        target_compile_options(${TARGET_PROJECT} PRIVATE /Zi /Od)
-        target_link_options(${TARGET_PROJECT} PRIVATE /DEBUG)
-    else()
-        target_compile_options(${TARGET_PROJECT} PRIVATE -g -O0)
-    endif()
-endif()
+# Chess
+file(GLOB_RECURSE CHESS_SOURCES "src/Chess/*.cpp")
+add_executable(Chess ${CHESS_SOURCES})
+target_include_directories(Chess PRIVATE src/Chess)
+target_link_libraries(Chess PRIVATE Engine)
+set_target_properties(Chess PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Chess)
