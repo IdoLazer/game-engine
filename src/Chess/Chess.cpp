@@ -63,6 +63,14 @@ void Chess::Initialize()
     blackBishop2->Initialize();
     m_board->AddPiece(blackBishop2);
 
+    // Initialize queens
+    auto whiteQueen = new Queen(m_board, Vec2{3, 0}, ChessPieceColor::White);
+    whiteQueen->Initialize();
+    m_board->AddPiece(whiteQueen);
+    auto blackQueen = new Queen(m_board, Vec2{3, 7}, ChessPieceColor::Black);
+    blackQueen->Initialize();
+    m_board->AddPiece(blackQueen);
+
     m_inputManager = new InputManager();
 
     Mouse::SetCursorVisibility(false);

@@ -5,3 +5,4 @@
 #include "Rook.h"
 #include "Knight.h"
 #include "Bishop.h"
+#include "Queen.h"
