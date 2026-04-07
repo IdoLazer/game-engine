@@ -80,6 +80,7 @@ src/
 - **Present Options:** When multiple approaches exist, explain pros/cons and ask for preference
 - **Stop and Ask:** If you encounter issues, present options rather than trying multiple solutions
 - **Educational Focus:** Teaching moments are more important than just getting things working
+- **Reference Sources:** When using patterns or techniques, reference learning materials or documentation (use the references provided in the project under references/)
 
 ### Implementation Workflow
 
