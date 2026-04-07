@@ -1,5 +1,6 @@
 #include "Chess.h"
 #include "Pieces/ChessPieces.h"
+#include <iostream>
 
 void Chess::Initialize()
 {
@@ -71,6 +72,14 @@ void Chess::Initialize()
     blackQueen->Initialize();
     m_board->AddPiece(blackQueen);
 
+    // Initialize kings
+    auto whiteKing = new King(m_board, Vec2{4, 0}, ChessPieceColor::White);
+    whiteKing->Initialize();
+    m_board->AddPiece(whiteKing);
+    auto blackKing = new King(m_board, Vec2{4, 7}, ChessPieceColor::Black);
+    blackKing->Initialize();
+    m_board->AddPiece(blackKing);
+
     m_inputManager = new InputManager();
 
     Mouse::SetCursorVisibility(false);
@@ -84,6 +93,11 @@ void Chess::Update(float deltaTime)
         Close();
     }
     m_board->Update(deltaTime);
+    if (m_board->IsGameOver())
+    {
+        std::cout << "Game Over! " << ((m_board->GetCurrentPlayerColor() == ChessPieceColor::White) ? "White" : "Black") << " wins!" << std::endl;
+        Close();
+    }
 }
 
 void Chess::Render() const

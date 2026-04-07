@@ -26,6 +26,8 @@ public:
     void OnMouseClick(const Vec2 &gridPos);
     ChessTile *GetTile(const Vec2 &gridPos) const;
     ChessPiece *GetPieceAt(const Vec2 &gridPos) const;
+    bool IsGameOver() const { return m_gameOver; }
+    ChessPieceColor GetCurrentPlayerColor() const { return m_currentPlayerColor; }
 
 private:
     std::vector<ChessTile *> m_tiles;
@@ -33,4 +35,5 @@ private:
     std::vector<class ChessPiece *> m_blackPieces;
     ChessPiece *m_selectedPiece{nullptr};
     ChessPieceColor m_currentPlayerColor{ChessPieceColor::White};
+    bool m_gameOver{false};
 };

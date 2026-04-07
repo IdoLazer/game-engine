@@ -1,6 +1,6 @@
 #include "ChessBoard.h"
 #include "Pieces/ChessPiece.h"
-#include <iostream>
+#include "Pieces/ChessPieces.h"
 
 ChessBoard::~ChessBoard()
 {
@@ -57,6 +57,9 @@ void ChessBoard::Render() const
 
 void ChessBoard::Update(float deltaTime)
 {
+    if (m_gameOver)
+        return;
+
     Vec2 mousePos = Mouse::GetWorldPosition();
     Vec2 gridPos = WorldToGrid(mousePos);
     if (IsInBounds(gridPos) && Mouse::IsButtonPressed(GLFW_MOUSE_BUTTON_1))
@@ -103,6 +106,9 @@ void ChessBoard::AddPiece(ChessPiece *piece)
 
 void ChessBoard::OnMouseClick(const Vec2 &gridPos)
 {
+    if (m_gameOver)
+        return;
+
     // Check if a piece exists at the clicked cell
     Vec2 cell = GetCellFromGridPosition(gridPos);
     auto pieces = (m_currentPlayerColor == ChessPieceColor::White) ? m_whitePieces : m_blackPieces;
@@ -145,6 +151,13 @@ void ChessBoard::OnMouseClick(const Vec2 &gridPos)
             }
             if (capturedPiece)
             {
+                // If the captured piece is the king, end the game
+                // First, cast to ChessPiece to check if it's a King
+                if (dynamic_cast<King *>(capturedPiece))
+                {
+                    m_gameOver = true;
+                    return;
+                }
                 opponentPieces.erase(std::remove(opponentPieces.begin(), opponentPieces.end(), capturedPiece), opponentPieces.end());
                 delete capturedPiece;
             }
