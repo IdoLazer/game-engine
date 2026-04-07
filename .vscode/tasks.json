@@ -7,32 +7,34 @@
       "type": "pickString",
       "options": ["Game", "Chess"],
       "default": "Game"
-    },
-    {
-      "id": "presetName",
-      "description": "Select the CMake preset",
-      "type": "pickString",
-      "options": ["windows-x64-debug", "windows-x64-release"],
-      "default": "windows-x64-debug"
     }
   ],
   "tasks": [
     {
-      "label": "Configure",
+      "label": "Configure (Debug)",
       "type": "shell",
       "command": "cmake",
-      "args": ["--preset", "${input:presetName}"],
+      "args": ["--preset", "windows-x64-debug", "--fresh"],
       "group": "build",
       "problemMatcher": [],
-      "detail": "Configure all targets for the selected preset"
+      "detail": "Configure debug preset"
     },
     {
-      "label": "Build",
+      "label": "Clean (Debug)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "build/windows-x64-debug", "--target", "clean"],
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "Clean debug build artifacts"
+    },
+    {
+      "label": "Build (Debug)",
       "type": "shell",
       "command": "cmake",
       "args": [
         "--build",
-        "build/${input:presetName}",
+        "build/windows-x64-debug",
         "--target",
         "${input:targetName}"
       ],
@@ -40,57 +42,121 @@
         "kind": "build",
         "isDefault": true
       },
-      "dependsOn": "Configure",
       "problemMatcher": ["$gcc"],
-      "detail": "Configure + build a target"
+      "detail": "Build a target with the debug preset"
     },
     {
-      "label": "Clean",
-      "type": "shell",
-      "command": "cmake",
-      "args": ["--build", "build/${input:presetName}", "--target", "clean"],
-      "group": "build",
-      "problemMatcher": [],
-      "detail": "Clean built artifacts"
-    },
-    {
-      "label": "Clean Build",
+      "label": "Clean Build (Debug)",
       "type": "shell",
       "command": "cmake",
       "args": [
         "--build",
-        "build/${input:presetName}",
+        "build/windows-x64-debug",
         "--target",
         "${input:targetName}"
       ],
       "group": "build",
       "dependsOrder": "sequence",
-      "dependsOn": ["Clean", "Configure"],
+      "dependsOn": ["Clean (Debug)", "Configure (Debug)"],
+      "problemMatcher": ["$gcc"],
+      "detail": "Clean, reconfigure and build a target with the debug preset"
+    },
+    {
+      "label": "Build + Run (Debug)",
+      "type": "shell",
+      "command": ".\\build\\windows-x64-debug\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "group": "build",
+      "dependsOn": "Build (Debug)",
+      "problemMatcher": [],
+      "detail": "Build and run a target with the debug preset"
+    },
+    {
+      "label": "Clean Build + Run (Debug)",
+      "type": "shell",
+      "command": ".\\build\\windows-x64-debug\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "group": "build",
+      "dependsOn": "Clean Build (Debug)",
+      "problemMatcher": [],
+      "detail": "Clean, reconfigure, build and run a target with the debug preset"
+    },
+    {
+      "label": "Run (Debug)",
+      "type": "shell",
+      "command": ".\\build\\windows-x64-debug\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "Run a target with the debug preset without building"
+    },
+    {
+      "label": "Configure (Release)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--preset", "windows-x64-release", "--fresh"],
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "Configure release preset"
+    },
+    {
+      "label": "Build (Release)",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "build/windows-x64-release",
+        "--target",
+        "${input:targetName}"
+      ],
+      "group": "build",
+      "problemMatcher": ["$gcc"],
+      "detail": "Configure + build a target"
+    },
+    {
+      "label": "Clean (Release)",
+      "type": "shell",
+      "command": "cmake",
+      "args": ["--build", "build/windows-x64-release", "--target", "clean"],
+      "group": "build",
+      "problemMatcher": [],
+      "detail": "Clean built artifacts"
+    },
+    {
+      "label": "Clean Build (Release)",
+      "type": "shell",
+      "command": "cmake",
+      "args": [
+        "--build",
+        "build/windows-x64-release",
+        "--target",
+        "${input:targetName}"
+      ],
+      "group": "build",
+      "dependsOrder": "sequence",
+      "dependsOn": ["Clean (Release)", "Configure (Release)"],
       "problemMatcher": ["$gcc"],
       "detail": "Clean, reconfigure and build a target"
     },
     {
-      "label": "Build + Run",
+      "label": "Build + Run (Release)",
       "type": "shell",
-      "command": ".\\build\\${input:presetName}\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "command": ".\\build\\windows-x64-release\\bin\\${input:targetName}\\${input:targetName}.exe",
       "group": "build",
-      "dependsOn": "Build",
+      "dependsOn": "Build (Release)",
       "problemMatcher": [],
       "detail": "Build and run a target"
     },
     {
-      "label": "Clean Build + Run",
+      "label": "Clean Build + Run (Release)",
       "type": "shell",
-      "command": ".\\build\\${input:presetName}\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "command": ".\\build\\windows-x64-release\\bin\\${input:targetName}\\${input:targetName}.exe",
       "group": "build",
-      "dependsOn": "Clean Build",
+      "dependsOn": "Clean Build (Release)",
       "problemMatcher": [],
       "detail": "Clean, reconfigure, build and run a target"
     },
     {
-      "label": "Run",
+      "label": "Run (Release)",
       "type": "shell",
-      "command": ".\\build\\${input:presetName}\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "command": ".\\build\\windows-x64-release\\bin\\${input:targetName}\\${input:targetName}.exe",
       "group": "build",
       "problemMatcher": [],
       "detail": "Run a target without building"
