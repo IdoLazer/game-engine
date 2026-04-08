@@ -11,15 +11,15 @@ using namespace Engine;
 class Chess : public Application
 {
 private:
-    ChessBoard *m_board;
-    InputManager *m_inputManager;
+    ChessBoard *m_board{nullptr};
+    InputManager m_inputManager;
 
 public:
     Chess() = default;
     void Initialize() override;
     void Update(float deltaTime) override;
     void Render() const override;
-    void Shutdown() override;
+    void Shutdown() override {};
 
     WindowConfig GetWindowConfig() const override;
 };

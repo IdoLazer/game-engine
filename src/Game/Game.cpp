@@ -123,24 +123,22 @@ void Game::InitializeWorld()
     float cellSize = std::min(cellSizeX, cellSizeY); // Fit both dimensions
 
     Vec2 gridPosition = Vec2(0.0f, 0.0f);
-    m_Grid = std::make_unique<Grid>(gridPosition, GameConstants::BACKGROUND_COLOR, cellSize, GameConstants::GRID_CELL_COUNT);
-    m_Grid->Initialize();
+    m_Grid = GetScene()->Instantiate<Grid>(gridPosition, GameConstants::BACKGROUND_COLOR, cellSize, GameConstants::GRID_CELL_COUNT);
 }
 
 void Game::InitializePlayer()
 {
-    m_Player = std::make_unique<Player>(
-        m_Grid.get(),
+    m_Player = GetScene()->Instantiate<Player>(
+        m_Grid,
         Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0),
         GameConstants::PLAYER_SIZE,
         GameConstants::PLAYER_COLOR,
         GameConstants::DIRECTION_RIGHT,
         GameConstants::INITIAL_TAIL_LENGTH,
         GameConstants::MOVE_SPEED);
-    m_Player->Initialize();
 
     // Initialize Input Manager
-    m_inputManager = std::make_unique<InputManager>(m_Player.get());
+    m_inputManager = std::make_unique<InputManager>(m_Player);
 
     // Connect the input manager to the player for command processing
     m_Player->SetInputManager(m_inputManager.get());
@@ -153,7 +151,7 @@ void Game::InitializeFood()
     int foodX = static_cast<int>(cellCount.x / 2);
     int foodY = static_cast<int>(cellCount.y / 2);
     Vec2 foodPosition = Vec2{foodX, foodY};
-    m_food = std::make_unique<GridTile>(m_Grid.get(), foodPosition, GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
+    m_food = GetScene()->Instantiate<GridTile>(m_Grid, foodPosition, GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
 }
 
 bool Game::IsValidFoodPosition(const Vec2 &position) const

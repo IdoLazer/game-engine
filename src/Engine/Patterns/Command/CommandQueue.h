@@ -28,7 +28,7 @@ namespace Engine
         static constexpr size_t MAX_QUEUE_SIZE = 2;
         std::queue<std::unique_ptr<Command>> m_commands;
 
-        ICommandConflictResolver *m_conflictResolver{nullptr};
+        std::unique_ptr<ICommandConflictResolver> m_conflictResolver;
 
     public:
         CommandQueue() = default;
@@ -53,7 +53,7 @@ namespace Engine
         size_t GetSize() const { return m_commands.size(); }
 
         // Set the conflict resolver
-        void SetConflictResolver(ICommandConflictResolver *resolver) { m_conflictResolver = resolver; }
+        void SetConflictResolver(std::unique_ptr<ICommandConflictResolver> resolver) { m_conflictResolver = std::move(resolver); }
 
         // Clear all commands (useful for game state resets)
         void Clear();

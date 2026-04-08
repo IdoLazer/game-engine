@@ -12,25 +12,30 @@ The project follows a layered architecture with clear separation of concerns and
 src/
 ├── Engine/                     # Core engine systems
 │   ├── Engine.h               # Single header API - everything a game needs
-│   ├── Core/                  # Application lifecycle, entry point management
+│   ├── Core/                  # Application lifecycle, entry point, scene management
 │   │   ├── Application.h      # Base application class + CreateApplication() declaration
-│   │   └── EntryPoint.h       # Engine-owned main() function
-│   ├── Entity/                # Entity component system
-│   │   ├── Entity.h           # Base entity class for game objects
+│   │   ├── EntryPoint.h       # Engine-owned main() function
+│   │   └── Scene.h            # Entity ownership and lifecycle management
+│   ├── Entity/                # Entity system
+│   │   ├── Entity.h           # Base entity class (with Scene access for spawning)
 │   │   ├── GridEntity.h       # Grid-based entity with coordinate management
 │   │   └── GridTile.h         # Simple renderable grid tile
 │   ├── World/                 # World and spatial systems
 │   │   └── Grid.h             # Grid coordinate system for spatial organization
 │   ├── Utilities/             # General-purpose utilities
 │   │   └── Timer.h            # Game timing and callback utility
-│   ├── Input/                 # Input handling (Keyboard, etc.)
+│   ├── Input/                 # Input handling (Keyboard, Mouse)
 │   ├── Math/                  # Mathematical utilities (Vec2, etc.)
 │   ├── Graphics/              # Graphics primitives (Color, etc.)
 │   └── Rendering/             # Window management, rendering
-└── Game/                      # Game-specific implementation
-    ├── Game.h                 # Game class inheriting from Engine::Application
-    ├── Game.cpp               # Game implementation + CreateApplication() factory
-    └── Player.h               # Game-specific player class (Snake-specific)
+├── Game/                      # Snake game implementation
+│   ├── Game.h                 # Game class inheriting from Engine::Application
+│   ├── Game.cpp               # Game implementation + CreateApplication() factory
+│   └── Player.h               # Snake player class
+└── Chess/                     # Chess game implementation
+    ├── Chess.h                # Chess class inheriting from Engine::Application
+    ├── ChessBoard.h           # Board with tile and piece management
+    └── Pieces/                # Chess piece hierarchy (Pawn, Rook, etc.)
 ```
 
 **Key Architectural Principles:**
@@ -119,8 +124,9 @@ The engine currently has:
 - ✅ Single header API (`#include <Engine.h>`)
 - ✅ Factory pattern for application creation
 - ✅ Basic application lifecycle (Application class)
+- ✅ Scene-based entity ownership (Scene class with Instantiate/Destroy/Clear)
 - ✅ Window management with GLFW
-- ✅ Basic input handling (Keyboard)
+- ✅ Input handling (Keyboard, Mouse)
 - ✅ Clean Game/Engine separation
 - ✅ CMake build system with vcpkg
 - ✅ Professional include style (system vs local headers)
@@ -135,7 +141,7 @@ Next logical areas for development:
 - Resource management
 - Audio system
 - Physics integration
-- Scene management
+- Scene lifecycle (switching, loading)
 - Enhanced Entity-Component System features
 
 ### Questions to Ask Yourself Before Making Changes

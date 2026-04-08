@@ -8,36 +8,41 @@ A learning-focused C++ game engine with a clean, professional architecture featu
 src/
 ├── Engine/                     # Core engine systems
 │   ├── Engine.h               # Single header - everything a game needs!
-│   ├── Core/                  # Application lifecycle, entry point
+│   ├── Core/                  # Application lifecycle, entry point, scene management
 │   │   ├── Application.h      # Base application class
-│   │   └── EntryPoint.h       # Engine-owned main() function
-│   ├── Entity/                # Entity component system
-│   │   ├── Entity.h           # Base entity class
+│   │   ├── EntryPoint.h       # Engine-owned main() function
+│   │   └── Scene.h            # Entity ownership and lifecycle management
+│   ├── Entity/                # Entity system
+│   │   ├── Entity.h           # Base entity class (with Scene access)
 │   │   ├── GridEntity.h       # Grid-based entity
 │   │   └── GridTile.h         # Simple renderable grid tile
 │   ├── World/                 # World and spatial systems
 │   │   └── Grid.h             # Grid coordinate system
 │   ├── Utilities/             # General-purpose utilities
 │   │   └── Timer.h            # Game timing utility
-│   ├── Input/                 # Input handling (Keyboard, etc.)
+│   ├── Input/                 # Input handling (Keyboard, Mouse)
 │   ├── Math/                  # Mathematical utilities (Vec2, etc.)
 │   ├── Graphics/              # Graphics primitives (Color, etc.)
 │   └── Rendering/             # Window management, rendering
-└── Game/                      # Game-specific implementation
-    ├── Game.h                 # Game class inheriting from Engine::Application
-    ├── Game.cpp               # Game implementation + CreateApplication() factory
-    └── Player.h               # Game-specific player class
+├── Game/                      # Snake game implementation
+│   ├── Game.h                 # Game class inheriting from Engine::Application
+│   ├── Game.cpp               # Game implementation + CreateApplication() factory
+│   └── Player.h               # Snake player class
+└── Chess/                     # Chess game implementation
+    ├── Chess.h                # Chess class inheriting from Engine::Application
+    ├── ChessBoard.h           # Board with tile and piece management
+    └── Pieces/                # Chess piece hierarchy (Pawn, Rook, etc.)
 ```
 
 ## Architecture Highlights
 
 - **Engine-Owned Entry Point:** The engine provides `main()` - games just implement a factory function
 - **Single Header API:** Games only need `#include <Engine.h>` for complete engine access
+- **Scene-Based Entity Ownership:** `Scene` owns all entities; any entity can create others via `GetScene()`
 - **Professional Design:** Clean separation between engine infrastructure and game logic
 - **Factory Pattern:** Games implement `Engine::CreateApplication()` to provide their application instance
 - **Entity System:** Base `Entity` class with `GridEntity` for grid-based games
 - **Modular Organization:** Clear separation of concerns (Core, Entity, World, Utilities, etc.)
-- **Generic Utilities:** Reusable systems like `Timer`, `Grid`, and spatial management
 
 ## How to Create a Game
 

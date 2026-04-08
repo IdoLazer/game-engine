@@ -3,7 +3,6 @@
 #include <Core/EntryPoint.h>
 #include <vector>
 #include <functional>
-#include <memory>
 #include "Player.h"
 #include "Commands/InputManager.h"
 
@@ -40,11 +39,11 @@ private:
     std::unique_ptr<InputManager> m_inputManager;
 
     // World
-    std::unique_ptr<Grid> m_Grid; // Our grid coordinate system
+    Grid *m_Grid{nullptr};
 
     // Player
-    std::unique_ptr<Player> m_Player;
+    Player *m_Player{nullptr};
 
     // Food
-    std::unique_ptr<GridTile> m_food;
+    GridTile *m_food{nullptr};
 };

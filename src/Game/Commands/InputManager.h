@@ -24,7 +24,7 @@ public:
 
     InputManager(IMovable *movable) : m_movable(movable)
     {
-        m_movementCommandQueue.SetConflictResolver(new MovementCommandConflictResolver());
+        m_movementCommandQueue.SetConflictResolver(std::make_unique<MovementCommandConflictResolver>());
     }
     ~InputManager() = default;
 

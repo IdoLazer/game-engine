@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+#include "Scene.h"
 #include "Rendering/Window.h"
 #include "Rendering/Renderer2D.h"
 #include "Input/Keyboard.h"
@@ -39,7 +41,8 @@ namespace Engine
         void Close() { m_Running = false; }
 
     protected:
-        Window *GetWindow() { return m_Window; }
+        Window *GetWindow() { return m_Window.get(); }
+        Scene *GetScene() { return &m_scene; }
 
     private:
         // Engine subsystem management
@@ -50,7 +53,8 @@ namespace Engine
 
         bool m_Running = true;
         bool m_Initialized = false;
-        Window *m_Window = nullptr;
+        std::unique_ptr<Window> m_Window;
+        Scene m_scene;
 
         // Delta time tracking
         double m_LastFrameTime = 0.0;

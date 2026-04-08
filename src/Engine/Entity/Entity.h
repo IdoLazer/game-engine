@@ -5,14 +5,20 @@
 
 namespace Engine
 {
+    class Scene; // Forward declaration — Scene sets itself on entities it creates
+
     // Base class for all game world entities
     // Represents something in the game world with position, size, and behavior
     class Entity
     {
+        friend class Scene; // Scene needs to call SetScene()
+
     protected:
         Vec2 m_worldPosition; // Position in world coordinates
         Vec2 m_worldSize;     // Size in world units
         Color m_color;        // Visual color for rendering
+
+        Scene *GetScene() const { return m_scene; }
 
     public:
         Entity() = default;
@@ -35,5 +41,9 @@ namespace Engine
         void SetWorldPosition(const Vec2 &position) { m_worldPosition = position; }
         void SetWorldSize(const Vec2 &size) { m_worldSize = size; }
         void SetColor(const Color &color) { m_color = color; }
+
+    private:
+        void SetScene(Scene *scene) { m_scene = scene; }
+        Scene *m_scene{nullptr};
     };
 }

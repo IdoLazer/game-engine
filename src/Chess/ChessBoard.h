@@ -6,6 +6,7 @@
 #include "ChessConstants.h"
 using namespace Engine;
 
+class ChessPiece; 
 class ChessBoard : public Grid
 {
 public:
@@ -14,7 +15,7 @@ public:
     {
     }
 
-    ~ChessBoard();
+    ~ChessBoard() = default;
 
     void Initialize() override;
     void Render() const override;
@@ -22,7 +23,7 @@ public:
 
     bool IsValidPosition(const Vec2 &gridPos) const;
     bool IsOccupied(const Vec2 &gridPos) const;
-    void AddPiece(class ChessPiece *piece);
+    void AddPiece(ChessPiece *piece);
     void OnMouseClick(const Vec2 &gridPos);
     ChessTile *GetTile(const Vec2 &gridPos) const;
     ChessPiece *GetPieceAt(const Vec2 &gridPos) const;
@@ -31,8 +32,8 @@ public:
 
 private:
     std::vector<ChessTile *> m_tiles;
-    std::vector<class ChessPiece *> m_whitePieces;
-    std::vector<class ChessPiece *> m_blackPieces;
+    std::vector<ChessPiece *> m_whitePieces;
+    std::vector<ChessPiece *> m_blackPieces;
     ChessPiece *m_selectedPiece{nullptr};
     ChessPieceColor m_currentPlayerColor{ChessPieceColor::White};
     bool m_gameOver{false};

@@ -83,6 +83,9 @@ namespace Engine
         // Shutdown game-specific code first
         Shutdown();
 
+        // Destroy all entities (after game shutdown, before engine subsystems)
+        m_scene.Clear();
+
         // Shutdown engine subsystems
         ShutdownSubsystems();
 
@@ -96,7 +99,7 @@ namespace Engine
         WindowConfig config = GetWindowConfig();
 
         // Create and initialize window with game-specific settings
-        m_Window = new Window(config.title, config.width, config.height);
+        m_Window = std::make_unique<Window>(config.title, config.width, config.height);
         if (!m_Window->Initialize())
         {
             std::cerr << "Failed to initialize window!" << std::endl;
@@ -163,11 +166,7 @@ namespace Engine
         Keyboard::Shutdown();
         Renderer2D::Shutdown();
 
-        if (m_Window)
-        {
-            delete m_Window;
-            m_Window = nullptr;
-        }
+        m_Window.reset();
         
         std::cout << "Engine subsystems shut down." << std::endl;
     }

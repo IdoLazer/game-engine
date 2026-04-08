@@ -2,20 +2,12 @@
 #include "Pieces/ChessPiece.h"
 #include "Pieces/ChessPieces.h"
 
-ChessBoard::~ChessBoard()
+void ChessBoard::AddPiece(ChessPiece *piece)
 {
-    for (auto tile : m_tiles)
-    {
-        delete tile;
-    }
-    for (auto piece : m_whitePieces)
-    {
-        delete piece;
-    }
-    for (auto piece : m_blackPieces)
-    {
-        delete piece;
-    }
+    if (piece->GetPieceColor() == ChessPieceColor::Black)
+        m_blackPieces.push_back(piece);
+    else
+        m_whitePieces.push_back(piece);
 }
 
 void ChessBoard::Initialize()
@@ -31,25 +23,24 @@ void ChessBoard::Initialize()
         for (int x = 0; x < 8; ++x)
         {
             Color tileColor = (x + y) % 2 == 0 ? white : black;
-            ChessTile *tile = new ChessTile(this, Vec2{x, y}, Vec2{1, 1}, tileColor);
-            m_tiles.emplace_back(tile);
+            m_tiles.push_back(GetScene()->Instantiate<ChessTile>(this, Vec2{x, y}, Vec2{1, 1}, tileColor));
         }
     }
 }
 
 void ChessBoard::Render() const
 {
-    for (const auto &tile : m_tiles)
+    for (const auto *tile : m_tiles)
     {
         tile->Render();
     }
 
-    for (const auto &piece : m_whitePieces)
+    for (const auto *piece : m_whitePieces)
     {
         piece->Render();
     }
 
-    for (const auto &piece : m_blackPieces)
+    for (const auto *piece : m_blackPieces)
     {
         piece->Render();
     }
@@ -75,14 +66,14 @@ bool ChessBoard::IsValidPosition(const Vec2 &gridPos) const
 
 bool ChessBoard::IsOccupied(const Vec2 &gridPos) const
 {
-    for (const auto &piece : m_whitePieces)
+    for (const auto *piece : m_whitePieces)
     {
         if (piece->GetGridCell() == gridPos)
         {
             return true;
         }
     }
-    for (const auto &piece : m_blackPieces)
+    for (const auto *piece : m_blackPieces)
     {
         if (piece->GetGridCell() == gridPos)
         {
@@ -92,18 +83,6 @@ bool ChessBoard::IsOccupied(const Vec2 &gridPos) const
     return false;
 }
 
-void ChessBoard::AddPiece(ChessPiece *piece)
-{
-    if (piece->GetPieceColor() == ChessPieceColor::Black)
-    {
-        m_blackPieces.push_back(piece);
-    }
-    else
-    {
-        m_whitePieces.push_back(piece);
-    }
-}
-
 void ChessBoard::OnMouseClick(const Vec2 &gridPos)
 {
     if (m_gameOver)
@@ -111,9 +90,9 @@ void ChessBoard::OnMouseClick(const Vec2 &gridPos)
 
     // Check if a piece exists at the clicked cell
     Vec2 cell = GetCellFromGridPosition(gridPos);
-    auto pieces = (m_currentPlayerColor == ChessPieceColor::White) ? m_whitePieces : m_blackPieces;
+    auto &pieces = (m_currentPlayerColor == ChessPieceColor::White) ? m_whitePieces : m_blackPieces;
     // Check for piece selection
-    for (const auto &piece : pieces)
+    for (auto *piece : pieces)
     {
         if (piece->GetGridCell() == cell)
         {
@@ -140,26 +119,19 @@ void ChessBoard::OnMouseClick(const Vec2 &gridPos)
 
             // If there's an opponent piece at the destination, capture it
             auto &opponentPieces = (m_currentPlayerColor == ChessPieceColor::White) ? m_blackPieces : m_whitePieces;
-            ChessPiece *capturedPiece = nullptr;
-            for (const auto &opponentPiece : opponentPieces)
-            {
-                if (opponentPiece->GetGridCell() == cell)
-                {
-                    capturedPiece = opponentPiece;
-                    break;
-                }
-            }
-            if (capturedPiece)
+            auto it = std::find_if(opponentPieces.begin(), opponentPieces.end(),
+                [&cell](ChessPiece *p) { return p->GetGridCell() == cell; });
+
+            if (it != opponentPieces.end())
             {
                 // If the captured piece is the king, end the game
-                // First, cast to ChessPiece to check if it's a King
-                if (dynamic_cast<King *>(capturedPiece))
+                if (dynamic_cast<King *>(*it))
                 {
                     m_gameOver = true;
                     return;
                 }
-                opponentPieces.erase(std::remove(opponentPieces.begin(), opponentPieces.end(), capturedPiece), opponentPieces.end());
-                delete capturedPiece;
+                // Remove from tracking — Application still owns the entity
+                opponentPieces.erase(it);
             }
 
             // Switch player turn
@@ -187,14 +159,14 @@ ChessTile *ChessBoard::GetTile(const Vec2 &cell) const
 ChessPiece *ChessBoard::GetPieceAt(const Vec2 &gridPos) const
 {
     Vec2 cell = GetCellFromGridPosition(gridPos);
-    for (const auto &piece : m_whitePieces)
+    for (auto *piece : m_whitePieces)
     {
         if (piece->GetGridCell() == cell)
         {
             return piece;
         }
     }
-    for (const auto &piece : m_blackPieces)
+    for (auto *piece : m_blackPieces)
     {
         if (piece->GetGridCell() == cell)
         {
