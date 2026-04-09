@@ -34,4 +34,9 @@ public:
     void Deselect();
 
     PieceColor GetPieceColor() const { return m_pieceColor; }
+
+protected:
+    // Movement helpers — subclasses call these with their direction arrays
+    std::vector<Vec2> GetSlidingMoves(const std::vector<Vec2> &directions) const;
+    std::vector<Vec2> GetSteppingMoves(const std::vector<Vec2> &directions) const;
 };

@@ -30,31 +30,10 @@ void King::Render() const
 
 std::vector<Vec2> King::GetPossibleMoves() const
 {
-    std::vector<Vec2> possibleMoves;
-    // King moves in all 8 directions (one square in any direction)
-    std::vector<Vec2> directions = {
+    return GetSteppingMoves({
         ChessConstants::DIRECTION_E, ChessConstants::DIRECTION_W,
         ChessConstants::DIRECTION_N, ChessConstants::DIRECTION_S,
         ChessConstants::DIRECTION_NE, ChessConstants::DIRECTION_SE,
         ChessConstants::DIRECTION_NW, ChessConstants::DIRECTION_SW
-    };
-
-    for (const Vec2 &dir : directions)
-    {
-        Vec2 currentPos = m_gridPosition + dir;
-        if (m_board->IsValidPosition(currentPos))
-        {
-            possibleMoves.push_back(currentPos);
-        }
-        else if (m_board->IsOccupied(currentPos))
-        {
-            ChessPiece *pieceAtPos = m_board->GetPieceAt(currentPos);
-            if (pieceAtPos->GetPieceColor() != m_pieceColor)
-            {
-                possibleMoves.push_back(currentPos); // Can capture opponent's piece
-            }
-        }
-    }
-
-    return possibleMoves;
+    });
 }

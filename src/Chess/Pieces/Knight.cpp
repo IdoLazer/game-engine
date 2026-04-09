@@ -11,29 +11,8 @@ void Knight::Render() const
 
 std::vector<Vec2> Knight::GetPossibleMoves() const
 {
-    std::vector<Vec2> moves;
-
-    // Knight moves in an L-shape: 2 squares in one direction and 1 square perpendicular
-    std::vector<Vec2> directions = {
+    return GetSteppingMoves({
         Vec2(2, 1), Vec2(2, -1), Vec2(-2, 1), Vec2(-2, -1),
-        Vec2(1, 2), Vec2(1, -2), Vec2(-1, 2), Vec2(-1, -2)};
-
-    for (const Vec2 &dir : directions)
-    {
-        Vec2 newPos = m_gridPosition + dir;
-        if (m_board->IsValidPosition(newPos))
-        {
-            moves.push_back(newPos);
-        }
-        else if (m_board->IsOccupied(newPos))
-        {
-            ChessPiece *targetPiece = m_board->GetPieceAt(newPos);
-            if (targetPiece && targetPiece->GetPieceColor() != m_pieceColor)
-            {
-                moves.push_back(newPos); // Can capture opponent's piece
-            }
-        }
-    }
-
-    return moves;
+        Vec2(1, 2), Vec2(1, -2), Vec2(-1, 2), Vec2(-1, -2)
+    });
 }

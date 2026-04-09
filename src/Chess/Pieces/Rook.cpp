@@ -27,30 +27,10 @@ void Rook::Render() const
 
 std::vector<Vec2> Rook::GetPossibleMoves() const
 {
-    std::vector<Vec2> possibleMoves;
-    Vec2 directions[] = {
+    return GetSlidingMoves({
         ChessConstants::DIRECTION_E, ChessConstants::DIRECTION_W,
         ChessConstants::DIRECTION_N, ChessConstants::DIRECTION_S
-    };
-    for (const Vec2 &dir : directions)
-    {
-        Vec2 currentPos = m_gridPosition + dir;
-        while (m_board->IsValidPosition(currentPos))
-        {
-            possibleMoves.push_back(currentPos);
-            currentPos += dir;
-        }
-        if (m_board->IsOccupied(currentPos))
-        {
-            ChessPiece *pieceAtPos = m_board->GetPieceAt(currentPos);
-            if (pieceAtPos->GetPieceColor() != m_pieceColor)
-            {
-                possibleMoves.push_back(currentPos); // Can capture opponent's piece
-            }
-        }
-    }
-
-    return possibleMoves;
+    });
 }
 
 void Rook::OnMove(const Vec2 &newPosition)

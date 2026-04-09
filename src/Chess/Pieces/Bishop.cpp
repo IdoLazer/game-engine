@@ -28,30 +28,8 @@ void Bishop::Render() const
 
 std::vector<Vec2> Bishop::GetPossibleMoves() const
 {
-    std::vector<Vec2> possibleMoves;
-    // Bishop moves diagonally in all four directions
-    std::vector<Vec2> directions = {
+    return GetSlidingMoves({
         ChessConstants::DIRECTION_NE, ChessConstants::DIRECTION_SE,
         ChessConstants::DIRECTION_NW, ChessConstants::DIRECTION_SW
-    };
-
-    for (const Vec2 &dir : directions)
-    {
-        Vec2 currentPos = m_gridPosition + dir;
-        while (m_board->IsValidPosition(currentPos))
-        {
-            possibleMoves.push_back(currentPos);
-            currentPos += dir;
-        }
-        if (m_board->IsOccupied(currentPos))
-        {
-            ChessPiece *pieceAtPos = m_board->GetPieceAt(currentPos);
-            if (pieceAtPos->GetPieceColor() != m_pieceColor)
-            {
-                possibleMoves.push_back(currentPos); // Can capture opponent's piece
-            }
-        }
-    }
-
-    return possibleMoves;
+    });
 }
