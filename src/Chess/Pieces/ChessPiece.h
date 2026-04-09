@@ -3,21 +3,22 @@
 #include <vector>
 #include <Engine.h>
 #include "../ChessConstants.h"
+#include "../ChessTypes.h"
 
 using namespace Engine;
 
 class ChessPiece : public GridTile
 {
 protected:
-    ChessPieceColor m_ChessPieceColor;
+    PieceColor m_pieceColor;
     const ChessBoard *m_board;
 
 public:
-    ChessPiece(const ChessBoard *board, const Vec2 &position, const Vec2 &size, ChessPieceColor color)
-        : GridTile(board, position, size), m_board(board), m_ChessPieceColor(color)
+    ChessPiece(const ChessBoard *board, const Vec2 &position, const Vec2 &size, PieceColor color)
+        : GridTile(board, position, size), m_board(board), m_pieceColor(color)
     {
         // Set the color of the chess piece
-        m_color = (color == ChessPieceColor::White) ? Color::White : Color::Black;
+        m_color = (color == PieceColor::White) ? ChessConstants::PIECE_COLOR_WHITE : ChessConstants::PIECE_COLOR_BLACK;
     }
 
     ChessPiece() = default;
@@ -32,5 +33,5 @@ public:
     void Select();
     void Deselect();
 
-    ChessPieceColor GetPieceColor() const { return m_ChessPieceColor; }
+    PieceColor GetPieceColor() const { return m_pieceColor; }
 };

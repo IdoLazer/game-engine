@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine.h>
+#include "ChessConstants.h"
 
 using namespace Engine;
 
@@ -13,14 +14,13 @@ public:
 
     void ToggleHighlight(bool highlighted)
     {
-        Color highlightColor{Color(0.1f, 0.1f, 0, 1)};
         if (highlighted && !m_isHighlighted)
         {
-            m_color = m_color + highlightColor;
+            m_color = m_color + ChessConstants::TILE_HIGHLIGHT_TINT;
         }
         else if (!highlighted && m_isHighlighted)
         {
-            m_color = m_color - highlightColor;
+            m_color = m_color - ChessConstants::TILE_HIGHLIGHT_TINT;
         }
         m_isHighlighted = highlighted;
     }

@@ -4,7 +4,7 @@
 
 void ChessBoard::AddPiece(ChessPiece *piece)
 {
-    if (piece->GetPieceColor() == ChessPieceColor::Black)
+    if (piece->GetPieceColor() == PieceColor::Black)
         m_blackPieces.push_back(piece);
     else
         m_whitePieces.push_back(piece);
@@ -14,15 +14,12 @@ void ChessBoard::Initialize()
 {
     Grid::Initialize();
 
-    Color black = Color(139.0f / 255.0f, 0, 0);                             // Dark Red
-    Color white = Color(198.0f / 255.0f, 218.0f / 255.0f, 167.0f / 255.0f); // Beige
-
-    m_tiles.reserve(8 * 8);
-    for (int y = 0; y < 8; ++y)
+    m_tiles.reserve(ChessConstants::BOARD_SIZE * ChessConstants::BOARD_SIZE);
+    for (int y = 0; y < ChessConstants::BOARD_SIZE; ++y)
     {
-        for (int x = 0; x < 8; ++x)
+        for (int x = 0; x < ChessConstants::BOARD_SIZE; ++x)
         {
-            Color tileColor = (x + y) % 2 == 0 ? white : black;
+            Color tileColor = (x + y) % 2 == 0 ? ChessConstants::TILE_COLOR_LIGHT : ChessConstants::TILE_COLOR_DARK;
             m_tiles.push_back(GetScene()->Instantiate<ChessTile>(this, Vec2{x, y}, Vec2{1, 1}, tileColor));
         }
     }
@@ -90,7 +87,7 @@ void ChessBoard::OnMouseClick(const Vec2 &gridPos)
 
     // Check if a piece exists at the clicked cell
     Vec2 cell = GetCellFromGridPosition(gridPos);
-    auto &pieces = (m_currentPlayerColor == ChessPieceColor::White) ? m_whitePieces : m_blackPieces;
+    auto &pieces = (m_currentPlayerColor == PieceColor::White) ? m_whitePieces : m_blackPieces;
     // Check for piece selection
     for (auto *piece : pieces)
     {
@@ -118,7 +115,7 @@ void ChessBoard::OnMouseClick(const Vec2 &gridPos)
             m_selectedPiece = nullptr;
 
             // If there's an opponent piece at the destination, capture it
-            auto &opponentPieces = (m_currentPlayerColor == ChessPieceColor::White) ? m_blackPieces : m_whitePieces;
+            auto &opponentPieces = (m_currentPlayerColor == PieceColor::White) ? m_blackPieces : m_whitePieces;
             auto it = std::find_if(opponentPieces.begin(), opponentPieces.end(),
                 [&cell](ChessPiece *p) { return p->GetGridCell() == cell; });
 
@@ -135,7 +132,7 @@ void ChessBoard::OnMouseClick(const Vec2 &gridPos)
             }
 
             // Switch player turn
-            m_currentPlayerColor = (m_currentPlayerColor == ChessPieceColor::White) ? ChessPieceColor::Black : ChessPieceColor::White;
+            m_currentPlayerColor = (m_currentPlayerColor == PieceColor::White) ? PieceColor::Black : PieceColor::White;
         }
         else
         {
@@ -150,7 +147,7 @@ ChessTile *ChessBoard::GetTile(const Vec2 &cell) const
 {
     if (!IsInBounds(cell))
         return nullptr;
-    int index = static_cast<int>(cell.y) * 8 + static_cast<int>(cell.x);
+    int index = static_cast<int>(cell.y) * ChessConstants::BOARD_SIZE + static_cast<int>(cell.x);
     if (index >= 0 && index < static_cast<int>(m_tiles.size()))
         return m_tiles[index];
     return nullptr;

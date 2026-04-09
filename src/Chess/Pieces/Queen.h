@@ -6,8 +6,8 @@ class Queen : public ChessPiece
 {
 
 public:
-    Queen(const ChessBoard *board, const Vec2 &position, ChessPieceColor color)
-        : ChessPiece(board, position, Vec2(1.0f, 1.0f), color) {}
+    Queen(const ChessBoard *board, const Vec2 &position, PieceColor color)
+        : ChessPiece(board, position, ChessConstants::QUEEN_SIZE, color) {}
 
     virtual void Render() const override;
 

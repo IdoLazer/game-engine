@@ -33,8 +33,10 @@ std::vector<Vec2> King::GetPossibleMoves() const
     std::vector<Vec2> possibleMoves;
     // King moves in all 8 directions (one square in any direction)
     std::vector<Vec2> directions = {
-        Vec2(1, 0), Vec2(-1, 0), Vec2(0, 1), Vec2(0, -1), // Rook-like moves
-        Vec2(1, 1), Vec2(1, -1), Vec2(-1, 1), Vec2(-1, -1) // Bishop-like moves
+        ChessConstants::DIRECTION_E, ChessConstants::DIRECTION_W,
+        ChessConstants::DIRECTION_N, ChessConstants::DIRECTION_S,
+        ChessConstants::DIRECTION_NE, ChessConstants::DIRECTION_SE,
+        ChessConstants::DIRECTION_NW, ChessConstants::DIRECTION_SW
     };
 
     for (const Vec2 &dir : directions)
@@ -47,7 +49,7 @@ std::vector<Vec2> King::GetPossibleMoves() const
         else if (m_board->IsOccupied(currentPos))
         {
             ChessPiece *pieceAtPos = m_board->GetPieceAt(currentPos);
-            if (pieceAtPos->GetPieceColor() != m_ChessPieceColor)
+            if (pieceAtPos->GetPieceColor() != m_pieceColor)
             {
                 possibleMoves.push_back(currentPos); // Can capture opponent's piece
             }

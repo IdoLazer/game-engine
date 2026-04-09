@@ -28,7 +28,7 @@ std::vector<Vec2> Knight::GetPossibleMoves() const
         else if (m_board->IsOccupied(newPos))
         {
             ChessPiece *targetPiece = m_board->GetPieceAt(newPos);
-            if (targetPiece && targetPiece->GetPieceColor() != m_ChessPieceColor)
+            if (targetPiece && targetPiece->GetPieceColor() != m_pieceColor)
             {
                 moves.push_back(newPos); // Can capture opponent's piece
             }

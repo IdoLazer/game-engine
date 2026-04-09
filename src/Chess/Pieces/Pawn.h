@@ -8,8 +8,8 @@ private:
     bool m_hasMoved{false};
 
 public:
-    Pawn(const ChessBoard *board, const Vec2 &position, ChessPieceColor color)
-        : ChessPiece(board, position, Vec2(1.0f, 1.0f), color) {}
+    Pawn(const ChessBoard *board, const Vec2 &position, PieceColor color)
+        : ChessPiece(board, position, ChessConstants::PAWN_SIZE, color) {}
 
     virtual void Initialize() override;
 

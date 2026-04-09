@@ -8,8 +8,8 @@ private:
     bool m_hasMoved;
 
 public:
-    Rook(const ChessBoard *board, const Vec2 &position, ChessPieceColor color)
-        : ChessPiece(board, position, Vec2(0.4f, 0.6f), color) {}
+    Rook(const ChessBoard *board, const Vec2 &position, PieceColor color)
+        : ChessPiece(board, position, ChessConstants::ROOK_SIZE, color) {}
 
     virtual void Initialize() override;
 

@@ -30,7 +30,10 @@ std::vector<Vec2> Bishop::GetPossibleMoves() const
 {
     std::vector<Vec2> possibleMoves;
     // Bishop moves diagonally in all four directions
-    std::vector<Vec2> directions = {Vec2(1, 1), Vec2(1, -1), Vec2(-1, 1), Vec2(-1, -1)};
+    std::vector<Vec2> directions = {
+        ChessConstants::DIRECTION_NE, ChessConstants::DIRECTION_SE,
+        ChessConstants::DIRECTION_NW, ChessConstants::DIRECTION_SW
+    };
 
     for (const Vec2 &dir : directions)
     {
@@ -43,7 +46,7 @@ std::vector<Vec2> Bishop::GetPossibleMoves() const
         if (m_board->IsOccupied(currentPos))
         {
             ChessPiece *pieceAtPos = m_board->GetPieceAt(currentPos);
-            if (pieceAtPos->GetPieceColor() != m_ChessPieceColor)
+            if (pieceAtPos->GetPieceColor() != m_pieceColor)
             {
                 possibleMoves.push_back(currentPos); // Can capture opponent's piece
             }
