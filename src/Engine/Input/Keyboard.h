@@ -2,6 +2,7 @@
 
 #include <GLFW/glfw3.h>
 #include <unordered_map>
+#include "KeyCodes.h"
 
 namespace Engine
 {
@@ -11,9 +12,9 @@ namespace Engine
         static void Initialize(GLFWwindow *window);
         static void Shutdown();
         static void Update();
-        static bool IsKeyDown(int glfwKey);
-        static bool IsKeyPressed(int glfwKey);
-        static bool IsKeyReleased(int glfwKey);
+        static bool IsKeyDown(Key key);
+        static bool IsKeyPressed(Key key);
+        static bool IsKeyReleased(Key key);
 
     private:
         static GLFWwindow *m_window;

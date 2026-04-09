@@ -13,6 +13,8 @@
 #include "Rendering/Camera2D.h"
 
 // Input System
+#include "Input/KeyCodes.h"
+#include "Input/MouseCodes.h"
 #include "Input/Keyboard.h"
 #include "Input/Mouse.h"
 

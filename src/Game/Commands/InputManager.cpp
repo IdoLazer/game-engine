@@ -5,12 +5,12 @@ using namespace Engine;
 
 void InputManager::ProcessInput()
 {
-    m_exitRequested = Keyboard::IsKeyPressed(GLFW_KEY_ESCAPE);
+    m_exitRequested = Keyboard::IsKeyPressed(Key::Escape);
 
-    bool isUpPressed = Keyboard::IsKeyPressed(GLFW_KEY_UP);
-    bool isDownPressed = Keyboard::IsKeyPressed(GLFW_KEY_DOWN);
-    bool isLeftPressed = Keyboard::IsKeyPressed(GLFW_KEY_LEFT);
-    bool isRightPressed = Keyboard::IsKeyPressed(GLFW_KEY_RIGHT);
+    bool isUpPressed = Keyboard::IsKeyPressed(Key::Up);
+    bool isDownPressed = Keyboard::IsKeyPressed(Key::Down);
+    bool isLeftPressed = Keyboard::IsKeyPressed(Key::Left);
+    bool isRightPressed = Keyboard::IsKeyPressed(Key::Right);
 
     if (isUpPressed)
     {

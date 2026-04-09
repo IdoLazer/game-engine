@@ -59,7 +59,7 @@ namespace Engine
         }
     }
 
-    bool Keyboard::IsKeyDown(int glfwKey)
+    bool Keyboard::IsKeyDown(Key key)
     {
         if (!m_initialized)
         {
@@ -67,11 +67,12 @@ namespace Engine
             return false;
         }
 
+        int glfwKey = static_cast<int>(key);
         auto it = m_currentKeyState.find(glfwKey);
         return it != m_currentKeyState.end() && it->second;
     }
 
-    bool Keyboard::IsKeyPressed(int glfwKey)
+    bool Keyboard::IsKeyPressed(Key key)
     {
         if (!m_initialized)
         {
@@ -79,6 +80,7 @@ namespace Engine
             return false;
         }
 
+        int glfwKey = static_cast<int>(key);
         bool currentPressed = false;
         bool previousPressed = false;
 
@@ -93,7 +95,7 @@ namespace Engine
         return currentPressed && !previousPressed;
     }
 
-    bool Keyboard::IsKeyReleased(int glfwKey)
+    bool Keyboard::IsKeyReleased(Key key)
     {
         if (!m_initialized)
         {
@@ -101,6 +103,7 @@ namespace Engine
             return false;
         }
 
+        int glfwKey = static_cast<int>(key);
         bool currentPressed = false;
         bool previousPressed = false;
 

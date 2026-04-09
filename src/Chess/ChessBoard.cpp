@@ -52,7 +52,7 @@ void ChessBoard::Update(float deltaTime)
 
     Vec2 mousePos = Mouse::GetWorldPosition();
     Vec2 gridPos = WorldToGrid(mousePos);
-    if (IsInBounds(gridPos) && Mouse::IsButtonPressed(GLFW_MOUSE_BUTTON_1))
+    if (IsInBounds(gridPos) && Mouse::IsButtonPressed(MouseButton::Left))
     {
         OnMouseClick(gridPos);
     }

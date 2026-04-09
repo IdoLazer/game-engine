@@ -87,7 +87,7 @@ namespace Engine
         m_scrollOffset = Vec2(static_cast<float>(xoffset), static_cast<float>(yoffset));
     }
 
-    bool Mouse::IsButtonDown(int glfwButton)
+    bool Mouse::IsButtonDown(MouseButton button)
     {
         if (!m_initialized)
         {
@@ -95,11 +95,12 @@ namespace Engine
             return false;
         }
 
+        int glfwButton = static_cast<int>(button);
         auto it = m_currentButtonState.find(glfwButton);
         return it != m_currentButtonState.end() && it->second;
     }
 
-    bool Mouse::IsButtonPressed(int glfwButton)
+    bool Mouse::IsButtonPressed(MouseButton button)
     {
         if (!m_initialized)
         {
@@ -107,6 +108,7 @@ namespace Engine
             return false;
         }
 
+        int glfwButton = static_cast<int>(button);
         bool currentPressed = false;
         bool previousPressed = false;
 
@@ -121,7 +123,7 @@ namespace Engine
         return currentPressed && !previousPressed;
     }
 
-    bool Mouse::IsButtonReleased(int glfwButton)
+    bool Mouse::IsButtonReleased(MouseButton button)
     {
         if (!m_initialized)
         {
@@ -129,6 +131,7 @@ namespace Engine
             return false;
         }
 
+        int glfwButton = static_cast<int>(button);
         bool currentPressed = false;
         bool previousPressed = false;
 

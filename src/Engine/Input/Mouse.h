@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <unordered_map>
 #include "../Math/Vec2.h"
+#include "MouseCodes.h"
 
 namespace Engine
 {
@@ -14,9 +15,9 @@ namespace Engine
         static void Update();
 
         // Mouse button queries
-        static bool IsButtonDown(int glfwButton);
-        static bool IsButtonPressed(int glfwButton);
-        static bool IsButtonReleased(int glfwButton);
+        static bool IsButtonDown(MouseButton button);
+        static bool IsButtonPressed(MouseButton button);
+        static bool IsButtonReleased(MouseButton button);
 
         // Mouse position queries
         static Vec2 GetPosition();
