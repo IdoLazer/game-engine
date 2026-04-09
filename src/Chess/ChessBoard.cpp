@@ -2,6 +2,8 @@
 #include "Pieces/ChessPiece.h"
 #include "Pieces/ChessPieces.h"
 
+using namespace Engine;
+
 void ChessBoard::AddPiece(ChessPiece *piece)
 {
     if (piece->GetPieceColor() == PieceColor::Black)

@@ -1,6 +1,8 @@
 #include "InputManager.h"
 #include "MovementCommands.h"
 
+using namespace Engine;
+
 void InputManager::ProcessInput()
 {
     m_exitRequested = Keyboard::IsKeyPressed(GLFW_KEY_ESCAPE);

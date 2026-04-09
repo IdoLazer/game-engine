@@ -6,9 +6,7 @@
 #include "InputManager.h"
 #include "ChessBoard.h"
 
-using namespace Engine;
-
-class Chess : public Application
+class Chess : public Engine::Application
 {
 private:
     ChessBoard *m_board{nullptr};
@@ -21,7 +19,7 @@ public:
     void Render() const override;
     void Shutdown() override {};
 
-    WindowConfig GetWindowConfig() const override;
+    Engine::WindowConfig GetWindowConfig() const override;
 };
 
 namespace Engine

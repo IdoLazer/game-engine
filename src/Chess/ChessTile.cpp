@@ -1,5 +1,7 @@
 #include "ChessTile.h"
 
+using namespace Engine;
+
 void ChessTile::Render() const
 {
     GridTile::Render();

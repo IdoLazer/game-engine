@@ -5,14 +5,13 @@
 #include "ChessTile.h"
 #include "ChessConstants.h"
 #include "ChessTypes.h"
-using namespace Engine;
 
 class ChessPiece; 
-class ChessBoard : public Grid
+class ChessBoard : public Engine::Grid
 {
 public:
-    ChessBoard(const Vec2 &position, float cellSize)
-        : Grid(position, Color::White, cellSize, Vec2{ChessConstants::BOARD_SIZE, ChessConstants::BOARD_SIZE})
+    ChessBoard(const Engine::Vec2 &position, float cellSize)
+        : Engine::Grid(position, Engine::Color::White, cellSize, Engine::Vec2{ChessConstants::BOARD_SIZE, ChessConstants::BOARD_SIZE})
     {
     }
 
@@ -22,12 +21,12 @@ public:
     void Render() const override;
     void Update(float deltaTime) override;
 
-    bool IsValidPosition(const Vec2 &gridPos) const;
-    bool IsOccupied(const Vec2 &gridPos) const;
+    bool IsValidPosition(const Engine::Vec2 &gridPos) const;
+    bool IsOccupied(const Engine::Vec2 &gridPos) const;
     void AddPiece(ChessPiece *piece);
-    void OnMouseClick(const Vec2 &gridPos);
-    ChessTile *GetTile(const Vec2 &gridPos) const;
-    ChessPiece *GetPieceAt(const Vec2 &gridPos) const;
+    void OnMouseClick(const Engine::Vec2 &gridPos);
+    ChessTile *GetTile(const Engine::Vec2 &gridPos) const;
+    ChessPiece *GetPieceAt(const Engine::Vec2 &gridPos) const;
     bool IsGameOver() const { return m_gameOver; }
     PieceColor GetCurrentPlayerColor() const { return m_currentPlayerColor; }
 

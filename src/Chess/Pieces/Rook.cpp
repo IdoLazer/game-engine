@@ -1,5 +1,7 @@
 #include "Rook.h"
 
+using namespace Engine;
+
 void Rook::Initialize()
 {
     Entity::Initialize();

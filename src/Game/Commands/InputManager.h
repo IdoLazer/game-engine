@@ -3,8 +3,6 @@
 #include "MovementCommands.h"
 #include <Engine.h>
 
-using namespace Engine;
-
 // InputManager handles converting raw keyboard input into Command objects
 // and manages the command queue for buffered input
 // This separates input detection from game logic execution
@@ -12,7 +10,7 @@ using namespace Engine;
 class InputManager
 {
 private:
-    CommandQueue m_movementCommandQueue;
+    Engine::CommandQueue m_movementCommandQueue;
 
     // Reference to the player to create commands for
     class IMovable *m_movable{nullptr};
@@ -32,7 +30,7 @@ public:
     void ProcessInput();
 
     // Get the next command for execution (used by Player)
-    std::unique_ptr<Command> GetNextMovementCommand();
+    std::unique_ptr<Engine::Command> GetNextMovementCommand();
 
     // Check if there are queued commands
     bool HasQueuedMovementCommands() const

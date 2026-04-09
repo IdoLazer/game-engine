@@ -3,12 +3,10 @@
 #include <Engine.h>
 #include "ChessConstants.h"
 
-using namespace Engine;
-
-class ChessTile : public GridTile
+class ChessTile : public Engine::GridTile
 {
 public:
-    using GridTile::GridTile;
+    using Engine::GridTile::GridTile;
 
     virtual void Render() const override;
 

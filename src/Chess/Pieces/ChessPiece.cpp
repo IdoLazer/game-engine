@@ -1,5 +1,7 @@
 #include "ChessPiece.h"
 
+using namespace Engine;
+
 void ChessPiece::Select()
 {
     ChessTile *tile = m_board->GetTile(m_gridPosition);

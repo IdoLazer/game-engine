@@ -1,5 +1,7 @@
 #include "Bishop.h"
 
+using namespace Engine;
+
 void Bishop::Render() const
 {
     // Draw the bishop as an elongated triangle, a rectangle on top, 

@@ -2,6 +2,8 @@
 #include "Pieces/ChessPieces.h"
 #include <iostream>
 
+using namespace Engine;
+
 void Chess::Initialize()
 {
     Vec2 position{0, 0};

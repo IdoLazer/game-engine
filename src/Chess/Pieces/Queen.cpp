@@ -1,5 +1,7 @@
 #include "Queen.h"
 
+using namespace Engine;
+
 void Queen::Render() const
 {
     // Render the queen as an elongated triangle, a narrow rectangle on top,

@@ -2,8 +2,6 @@
 
 #include <Engine.h>
 
-using namespace Engine;
-
 // InputManager handles converting raw keyboard input into Command objects
 // and manages the command queue for buffered input
 // This separates input detection from game logic execution

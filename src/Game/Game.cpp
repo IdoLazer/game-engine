@@ -3,6 +3,8 @@
 #include <iostream>
 #include "GameConstants.h"
 
+using namespace Engine;
+
 WindowConfig Game::GetWindowConfig() const
 {
     WindowConfig config;

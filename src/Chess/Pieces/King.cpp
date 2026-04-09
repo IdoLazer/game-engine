@@ -1,5 +1,7 @@
 #include "King.h"
 
+using namespace Engine;
+
 void King::Render() const
 {
     // Render the king as an elongated triangle, a narrow rectangle on top,

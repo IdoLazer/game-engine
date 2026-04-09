@@ -3,15 +3,13 @@
 #include <Engine.h>
 #include "Commands/MovementCommands.h"
 
-using namespace Engine;
-
-class Player : public GridEntity, public IMovable
+class Player : public Engine::GridEntity, public IMovable
 {
 private:
-    Vec2 m_direction;
-    std::vector<GridTile> m_tailSegments;
+    Engine::Vec2 m_direction;
+    std::vector<Engine::GridTile> m_tailSegments;
     float m_moveSpeed;
-    Timer m_moveTimer;
+    Engine::Timer m_moveTimer;
     bool m_updateMoveThisFrame{false};
     bool m_growTailOnNextMove{false};
 
@@ -19,14 +17,14 @@ private:
     class InputManager *m_inputManager{nullptr};
 
 public:
-    Player(const Grid *grid,
-           const Vec2 &startPos,
-           const Vec2 &size,
-           const Color &color,
-           const Vec2 &startDir,
+    Player(const Engine::Grid *grid,
+           const Engine::Vec2 &startPos,
+           const Engine::Vec2 &size,
+           const Engine::Color &color,
+           const Engine::Vec2 &startDir,
            int initialTailLength,
            float moveSpeed)
-        : GridEntity(grid, startPos, size, color),
+        : Engine::GridEntity(grid, startPos, size, color),
           m_direction(startDir), m_moveSpeed(moveSpeed)
     {
         m_tailSegments.reserve(initialTailLength);
@@ -43,11 +41,11 @@ public:
     void Grow();
     bool CheckSelfCollision() const;
 
-    const std::vector<GridTile> &GetTailSegments() const { return m_tailSegments; }
-    Vec2 GetDirection() const { return m_direction; }
+    const std::vector<Engine::GridTile> &GetTailSegments() const { return m_tailSegments; }
+    Engine::Vec2 GetDirection() const { return m_direction; }
 
     // Setters
-    void SetDirection(const Vec2 &dir) override;
+    void SetDirection(const Engine::Vec2 &dir) override;
     void SetInputManager(class InputManager *inputManager) { m_inputManager = inputManager; }
 
 private:

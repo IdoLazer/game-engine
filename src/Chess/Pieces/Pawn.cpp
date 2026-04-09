@@ -1,5 +1,7 @@
 #include "Pawn.h"
 
+using namespace Engine;
+
 std::vector<Vec2> Pawn::GetPossibleMoves() const
 {
     std::vector<Vec2> possibleMoves;

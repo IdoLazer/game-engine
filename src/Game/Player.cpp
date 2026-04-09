@@ -1,6 +1,8 @@
 #include "Player.h"
 #include "Commands/InputManager.h"
 
+using namespace Engine;
+
 void Player::Initialize()
 {
     // Set up movement timer

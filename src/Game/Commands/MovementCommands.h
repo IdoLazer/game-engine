@@ -8,7 +8,7 @@ class IMovable
 public:
     virtual ~IMovable() = default;
 
-    virtual void SetDirection(const Vec2 &direction) = 0;
+    virtual void SetDirection(const Engine::Vec2 &direction) = 0;
 };
 
 // Concrete movement commands implementing the Command interface
@@ -17,11 +17,11 @@ public:
 class MoveCommand : public Engine::Command
 {
     IMovable *m_movable;
-    Vec2 m_direction;
+    Engine::Vec2 m_direction;
     const char *m_name;
 
 public:
-    MoveCommand(IMovable *movable, const Vec2 &direction, const char *name)
+    MoveCommand(IMovable *movable, const Engine::Vec2 &direction, const char *name)
         : m_movable(movable), m_direction(direction), m_name(name) {}
 
     void Execute() override
@@ -63,7 +63,7 @@ public:
 class MovementCommandConflictResolver : public Engine::ICommandConflictResolver
 {
 public:
-    bool IsConflict(Command *newCmd, Command *queuedCmd) override
+    bool IsConflict(Engine::Command *newCmd, Engine::Command *queuedCmd) override
     {
         // Check all combinations of opposite directions
         // This uses dynamic_cast to check the actual command types

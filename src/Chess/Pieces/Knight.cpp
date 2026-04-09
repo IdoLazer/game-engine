@@ -1,5 +1,7 @@
 #include "Knight.h"
 
+using namespace Engine;
+
 void Knight::Render() const
 {
     // Render the knight as a rectangle with an elongated "face" represented by another rectangle
