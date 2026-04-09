@@ -14,12 +14,12 @@ namespace Engine
         void SetWindowSize(int pixelWidth, int pixelHeight);
 
         // Get world dimensions
-        float GetWorldWidth() const { return m_WorldWidth; }
-        float GetWorldHeight() const { return m_WorldHeight; }
+        float GetWorldWidth() const { return m_worldWidth; }
+        float GetWorldHeight() const { return m_worldHeight; }
 
         // Get pixel dimensions
-        int GetPixelWidth() const { return m_PixelWidth; }
-        int GetPixelHeight() const { return m_PixelHeight; }
+        int GetPixelWidth() const { return m_pixelWidth; }
+        int GetPixelHeight() const { return m_pixelHeight; }
 
         // Convert world coordinates to OpenGL coordinates (-1 to +1)
         float WorldToOpenGLX(float worldX) const;
@@ -33,9 +33,9 @@ namespace Engine
         Vec2 WorldToScreen(const Vec2 &worldPos) const;
 
     private:
-        float m_WorldHeight; // World units visible vertically
-        float m_WorldWidth;  // Calculated from aspect ratio
-        int m_PixelWidth;
-        int m_PixelHeight;
+        float m_worldHeight; // World units visible vertically
+        float m_worldWidth;  // Calculated from aspect ratio
+        int m_pixelWidth;
+        int m_pixelHeight;
     };
 }

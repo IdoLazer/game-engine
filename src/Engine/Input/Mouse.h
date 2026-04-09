@@ -29,13 +29,13 @@ namespace Engine
         static void SetCursorVisibility(bool visible);
 
     private:
-        static GLFWwindow *m_Window;
-        static std::unordered_map<int, bool> m_CurrentButtonState;
-        static std::unordered_map<int, bool> m_PreviousButtonState;
-        static Vec2 m_CurrentPosition;
-        static Vec2 m_PreviousPosition;
-        static Vec2 m_ScrollOffset;
-        static bool m_Initialized;
+        static GLFWwindow *m_window;
+        static std::unordered_map<int, bool> m_currentButtonState;
+        static std::unordered_map<int, bool> m_previousButtonState;
+        static Vec2 m_currentPosition;
+        static Vec2 m_previousPosition;
+        static Vec2 m_scrollOffset;
+        static bool m_initialized;
 
         static void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
         static void CursorPositionCallback(GLFWwindow *window, double xpos, double ypos);

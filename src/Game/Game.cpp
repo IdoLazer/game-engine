@@ -31,7 +31,7 @@ void Game::Update(float deltaTime)
     // Process input and convert to commands
     m_inputManager->ProcessInput();
 
-    m_Player->Update(deltaTime);
+    m_player->Update(deltaTime);
     ReadInput();
     if (CheckGameOver())
     {
@@ -41,17 +41,17 @@ void Game::Update(float deltaTime)
     else if (CheckFoodCollision())
     {
         PlaceFood();
-        m_Player->Grow();
+        m_player->Grow();
     }
 }
 
 void Game::Render() const
 {
     // Draw grid
-    m_Grid->Render();
+    m_grid->Render();
 
     // Draw Player - use Grid to convert grid coordinates to world positions
-    m_Player->Render();
+    m_player->Render();
 
     // Draw Food
     m_food->Render();
@@ -65,7 +65,7 @@ void Game::PlaceFood()
     Vec2 foodPosition;
     do
     {
-        Vec2 cellCount = m_Grid->GetCellCount();
+        Vec2 cellCount = m_grid->GetCellCount();
         int gridWidth = static_cast<int>(cellCount.x);
         int gridHeight = static_cast<int>(cellCount.y);
         float foodX = static_cast<float>(rand() % gridWidth);
@@ -91,24 +91,24 @@ void Game::ReadInput()
 
 bool Game::CheckGameOver() const
 {
-    return CheckWallCollision() || m_Player->CheckSelfCollision();
+    return CheckWallCollision() || m_player->CheckSelfCollision();
 }
 
 bool Game::CheckFoodCollision() const
 {
-    return m_Player->GetGridPosition() == m_food->GetGridPosition();
+    return m_player->GetGridPosition() == m_food->GetGridPosition();
 }
 
 bool Game::CheckWallCollision() const
 {
     // Check if the player has collided with the walls using Grid's boundary checking
-    return !m_Grid->IsInBounds(m_Player->GetGridPosition());
+    return !m_grid->IsInBounds(m_player->GetGridPosition());
 }
 
 void Game::Shutdown()
 {
     std::cout << "Game shutting down." << std::endl;
-    m_Player->Destroy();
+    m_player->Destroy();
 }
 
 void Game::InitializeWorld()
@@ -125,13 +125,13 @@ void Game::InitializeWorld()
     float cellSize = std::min(cellSizeX, cellSizeY); // Fit both dimensions
 
     Vec2 gridPosition = Vec2(0.0f, 0.0f);
-    m_Grid = GetScene()->Instantiate<Grid>(gridPosition, GameConstants::BACKGROUND_COLOR, cellSize, GameConstants::GRID_CELL_COUNT);
+    m_grid = GetScene()->Instantiate<Grid>(gridPosition, GameConstants::BACKGROUND_COLOR, cellSize, GameConstants::GRID_CELL_COUNT);
 }
 
 void Game::InitializePlayer()
 {
-    m_Player = GetScene()->Instantiate<Player>(
-        m_Grid,
+    m_player = GetScene()->Instantiate<Player>(
+        m_grid,
         Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0),
         GameConstants::PLAYER_SIZE,
         GameConstants::PLAYER_COLOR,
@@ -140,29 +140,29 @@ void Game::InitializePlayer()
         GameConstants::MOVE_SPEED);
 
     // Initialize Input Manager
-    m_inputManager = std::make_unique<InputManager>(m_Player);
+    m_inputManager = std::make_unique<InputManager>(m_player);
 
     // Connect the input manager to the player for command processing
-    m_Player->SetInputManager(m_inputManager.get());
+    m_player->SetInputManager(m_inputManager.get());
 }
 
 void Game::InitializeFood()
 {
     // Place initial food at center of grid
-    Vec2 cellCount = m_Grid->GetCellCount();
+    Vec2 cellCount = m_grid->GetCellCount();
     int foodX = static_cast<int>(cellCount.x / 2);
     int foodY = static_cast<int>(cellCount.y / 2);
     Vec2 foodPosition = Vec2{foodX, foodY};
-    m_food = GetScene()->Instantiate<GridTile>(m_Grid, foodPosition, GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
+    m_food = GetScene()->Instantiate<GridTile>(m_grid, foodPosition, GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
 }
 
 bool Game::IsValidFoodPosition(const Vec2 &position) const
 {
     // Check if position doesn't overlap with player or tail segments
-    if (position == m_Player->GetGridPosition())
+    if (position == m_player->GetGridPosition())
         return false;
 
-    for (const GridTile &segment : m_Player->GetTailSegments())
+    for (const GridTile &segment : m_player->GetTailSegments())
     {
         if (position == segment.GetGridPosition())
             return false;

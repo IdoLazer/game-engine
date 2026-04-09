@@ -38,10 +38,10 @@ namespace Engine
         // Window configuration - override this in your game class
         virtual WindowConfig GetWindowConfig() const;
 
-        void Close() { m_Running = false; }
+        void Close() { m_running = false; }
 
     protected:
-        Window *GetWindow() { return m_Window.get(); }
+        Window *GetWindow() { return m_window.get(); }
         Scene *GetScene() { return &m_scene; }
 
     private:
@@ -51,13 +51,13 @@ namespace Engine
         void RenderFrame();
         void ShutdownSubsystems();
 
-        bool m_Running = true;
-        bool m_Initialized = false;
-        std::unique_ptr<Window> m_Window;
+        bool m_running = true;
+        bool m_initialized = false;
+        std::unique_ptr<Window> m_window;
         Scene m_scene;
 
         // Delta time tracking
-        double m_LastFrameTime = 0.0;
+        double m_lastFrameTime = 0.0;
     };
 
     // Factory function that must be implemented by the game

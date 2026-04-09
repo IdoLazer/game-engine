@@ -16,10 +16,10 @@ namespace Engine
         static bool IsKeyReleased(int glfwKey);
 
     private:
-        static GLFWwindow *m_Window;
-        static std::unordered_map<int, bool> m_CurrentKeyState;
-        static std::unordered_map<int, bool> m_PreviousKeyState;
-        static bool m_Initialized;
+        static GLFWwindow *m_window;
+        static std::unordered_map<int, bool> m_currentKeyState;
+        static std::unordered_map<int, bool> m_previousKeyState;
+        static bool m_initialized;
 
         static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
     };

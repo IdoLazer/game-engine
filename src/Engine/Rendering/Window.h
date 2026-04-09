@@ -17,12 +17,12 @@ namespace Engine
         void Shutdown();
 
         bool ShouldClose() const;
-        GLFWwindow *GetNativeWindow() const { return m_Window; }
+        GLFWwindow *GetNativeWindow() const { return m_window; }
 
     private:
-        GLFWwindow *m_Window;
-        std::string m_Title;
-        int m_Width;
-        int m_Height;
+        GLFWwindow *m_window;
+        std::string m_title;
+        int m_width;
+        int m_height;
     };
 }

@@ -16,7 +16,7 @@ namespace Engine
 
     bool Application::InitializeEngine()
     {
-        if (m_Initialized)
+        if (m_initialized)
         {
             std::cout << "Engine already initialized." << std::endl;
             return true;
@@ -34,14 +34,14 @@ namespace Engine
         // Initialize game-specific code
         Initialize();
 
-        m_Initialized = true;
+        m_initialized = true;
         std::cout << "Engine initialization complete." << std::endl;
         return true;
     }
 
     void Application::Run()
     {
-        if (!m_Initialized)
+        if (!m_initialized)
         {
             if (!InitializeEngine())
             {
@@ -53,15 +53,15 @@ namespace Engine
         std::cout << "Starting main application loop..." << std::endl;
 
         // Initialize delta time tracking
-        m_LastFrameTime = glfwGetTime();
+        m_lastFrameTime = glfwGetTime();
 
         // Main application loop
-        while (m_Running && !m_Window->ShouldClose())
+        while (m_running && !m_window->ShouldClose())
         {
             // Calculate delta time
             double currentTime = glfwGetTime();
-            float deltaTime = static_cast<float>(currentTime - m_LastFrameTime);
-            m_LastFrameTime = currentTime;
+            float deltaTime = static_cast<float>(currentTime - m_lastFrameTime);
+            m_lastFrameTime = currentTime;
 
             UpdateEngine();    // Update engine systems
             Update(deltaTime); // Update game logic with delta time
@@ -75,7 +75,7 @@ namespace Engine
 
     void Application::ShutdownEngine()
     {
-        if (!m_Initialized)
+        if (!m_initialized)
             return;
 
         std::cout << "Shutting down engine..." << std::endl;
@@ -89,7 +89,7 @@ namespace Engine
         // Shutdown engine subsystems
         ShutdownSubsystems();
 
-        m_Initialized = false;
+        m_initialized = false;
         std::cout << "Engine shutdown complete." << std::endl;
     }
 
@@ -99,19 +99,19 @@ namespace Engine
         WindowConfig config = GetWindowConfig();
 
         // Create and initialize window with game-specific settings
-        m_Window = std::make_unique<Window>(config.title, config.width, config.height);
-        if (!m_Window->Initialize())
+        m_window = std::make_unique<Window>(config.title, config.width, config.height);
+        if (!m_window->Initialize())
         {
             std::cerr << "Failed to initialize window!" << std::endl;
             return false;
         }
 
         // Initialize 2D renderer
-        Renderer2D::Initialize(m_Window->GetNativeWindow(), config.width, config.height);
+        Renderer2D::Initialize(m_window->GetNativeWindow(), config.width, config.height);
 
         // Initialize input systems
-        Keyboard::Initialize(m_Window->GetNativeWindow());
-        Mouse::Initialize(m_Window->GetNativeWindow());
+        Keyboard::Initialize(m_window->GetNativeWindow());
+        Mouse::Initialize(m_window->GetNativeWindow());
 
         std::cout << "Engine subsystems initialized successfully." << std::endl;
         std::cout << "Window: \"" << config.title << "\" (" << config.width << "x" << config.height << ")" << std::endl;
@@ -138,7 +138,7 @@ namespace Engine
         Mouse::Update();
 
         // Poll window events
-        m_Window->PollEvents();
+        m_window->PollEvents();
     }
 
     void Application::RenderFrame()
@@ -156,7 +156,7 @@ namespace Engine
         Renderer2D::EndFrame();
 
         // Present the frame
-        m_Window->SwapBuffers();
+        m_window->SwapBuffers();
     }
 
     void Application::ShutdownSubsystems()
@@ -166,7 +166,7 @@ namespace Engine
         Keyboard::Shutdown();
         Renderer2D::Shutdown();
 
-        m_Window.reset();
+        m_window.reset();
         
         std::cout << "Engine subsystems shut down." << std::endl;
     }

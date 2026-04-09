@@ -5,20 +5,20 @@
 namespace Engine
 {
     // Static member definitions
-    GLFWwindow *Mouse::m_Window = nullptr;
-    std::unordered_map<int, bool> Mouse::m_CurrentButtonState;
-    std::unordered_map<int, bool> Mouse::m_PreviousButtonState;
-    Vec2 Mouse::m_CurrentPosition(0.0f, 0.0f);
-    Vec2 Mouse::m_PreviousPosition(0.0f, 0.0f);
-    Vec2 Mouse::m_ScrollOffset(0.0f, 0.0f);
-    bool Mouse::m_Initialized = false;
+    GLFWwindow *Mouse::m_window = nullptr;
+    std::unordered_map<int, bool> Mouse::m_currentButtonState;
+    std::unordered_map<int, bool> Mouse::m_previousButtonState;
+    Vec2 Mouse::m_currentPosition(0.0f, 0.0f);
+    Vec2 Mouse::m_previousPosition(0.0f, 0.0f);
+    Vec2 Mouse::m_scrollOffset(0.0f, 0.0f);
+    bool Mouse::m_initialized = false;
 
     void Mouse::Initialize(GLFWwindow *window)
     {
-        if (m_Initialized)
+        if (m_initialized)
             return;
 
-        m_Window = window;
+        m_window = window;
 
         // Set up GLFW mouse callbacks
         glfwSetMouseButtonCallback(window, MouseButtonCallback);
@@ -28,80 +28,80 @@ namespace Engine
         // Initialize cursor position
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
-        m_CurrentPosition = Vec2(static_cast<float>(xpos), static_cast<float>(ypos));
-        m_PreviousPosition = m_CurrentPosition;
+        m_currentPosition = Vec2(static_cast<float>(xpos), static_cast<float>(ypos));
+        m_previousPosition = m_currentPosition;
 
-        m_Initialized = true;
+        m_initialized = true;
         std::cout << "Mouse initialized with GLFW" << std::endl;
     }
 
     void Mouse::Shutdown()
     {
-        if (!m_Initialized)
+        if (!m_initialized)
             return;
 
-        glfwSetMouseButtonCallback(m_Window, nullptr);
-        glfwSetCursorPosCallback(m_Window, nullptr);
-        glfwSetScrollCallback(m_Window, nullptr);
-        m_CurrentButtonState.clear();
-        m_PreviousButtonState.clear();
-        m_Window = nullptr;
-        m_Initialized = false;
+        glfwSetMouseButtonCallback(m_window, nullptr);
+        glfwSetCursorPosCallback(m_window, nullptr);
+        glfwSetScrollCallback(m_window, nullptr);
+        m_currentButtonState.clear();
+        m_previousButtonState.clear();
+        m_window = nullptr;
+        m_initialized = false;
         std::cout << "Mouse shut down" << std::endl;
     }
 
     void Mouse::Update()
     {
-        if (!m_Initialized)
+        if (!m_initialized)
         {
             std::cerr << "Mouse not initialized! Call Initialize() first." << std::endl;
             return;
         }
 
-        m_PreviousButtonState = m_CurrentButtonState;
-        m_PreviousPosition = m_CurrentPosition;
+        m_previousButtonState = m_currentButtonState;
+        m_previousPosition = m_currentPosition;
 
         // Reset scroll offset (scroll is per-frame)
-        m_ScrollOffset = Vec2(0.0f, 0.0f);
+        m_scrollOffset = Vec2(0.0f, 0.0f);
     }
 
     void Mouse::MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
     {
         if (action == GLFW_PRESS)
         {
-            m_CurrentButtonState[button] = true;
+            m_currentButtonState[button] = true;
         }
         else if (action == GLFW_RELEASE)
         {
-            m_CurrentButtonState[button] = false;
+            m_currentButtonState[button] = false;
         }
     }
 
     void Mouse::CursorPositionCallback(GLFWwindow *window, double xpos, double ypos)
     {
-        m_CurrentPosition = Vec2(static_cast<float>(xpos), static_cast<float>(ypos));
+        m_currentPosition = Vec2(static_cast<float>(xpos), static_cast<float>(ypos));
     }
 
     void Mouse::ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
     {
-        m_ScrollOffset = Vec2(static_cast<float>(xoffset), static_cast<float>(yoffset));
+        m_scrollOffset = Vec2(static_cast<float>(xoffset), static_cast<float>(yoffset));
     }
 
     bool Mouse::IsButtonDown(int glfwButton)
     {
-        if (!m_Initialized)
+        if (!m_initialized)
         {
             std::cerr << "Mouse not initialized! Call Initialize() first." << std::endl;
             return false;
         }
 
-        auto it = m_CurrentButtonState.find(glfwButton);
-        return it != m_CurrentButtonState.end() && it->second;
+        auto it = m_currentButtonState.find(glfwButton);
+        return it != m_currentButtonState.end() && it->second;
     }
 
     bool Mouse::IsButtonPressed(int glfwButton)
     {
-        if (!m_Initialized)
+        if (!m_initialized)
         {
             std::cerr << "Mouse not initialized! Call Initialize() first." << std::endl;
             return false;
@@ -110,12 +110,12 @@ namespace Engine
         bool currentPressed = false;
         bool previousPressed = false;
 
-        auto currentIt = m_CurrentButtonState.find(glfwButton);
-        if (currentIt != m_CurrentButtonState.end())
+        auto currentIt = m_currentButtonState.find(glfwButton);
+        if (currentIt != m_currentButtonState.end())
             currentPressed = currentIt->second;
 
-        auto previousIt = m_PreviousButtonState.find(glfwButton);
-        if (previousIt != m_PreviousButtonState.end())
+        auto previousIt = m_previousButtonState.find(glfwButton);
+        if (previousIt != m_previousButtonState.end())
             previousPressed = previousIt->second;
 
         return currentPressed && !previousPressed;
@@ -123,7 +123,7 @@ namespace Engine
 
     bool Mouse::IsButtonReleased(int glfwButton)
     {
-        if (!m_Initialized)
+        if (!m_initialized)
         {
             std::cerr << "Mouse not initialized! Call Initialize() first." << std::endl;
             return false;
@@ -132,12 +132,12 @@ namespace Engine
         bool currentPressed = false;
         bool previousPressed = false;
 
-        auto currentIt = m_CurrentButtonState.find(glfwButton);
-        if (currentIt != m_CurrentButtonState.end())
+        auto currentIt = m_currentButtonState.find(glfwButton);
+        if (currentIt != m_currentButtonState.end())
             currentPressed = currentIt->second;
 
-        auto previousIt = m_PreviousButtonState.find(glfwButton);
-        if (previousIt != m_PreviousButtonState.end())
+        auto previousIt = m_previousButtonState.find(glfwButton);
+        if (previousIt != m_previousButtonState.end())
             previousPressed = previousIt->second;
 
         return !currentPressed && previousPressed;
@@ -145,56 +145,56 @@ namespace Engine
 
     Vec2 Mouse::GetPosition()
     {
-        if (!m_Initialized)
+        if (!m_initialized)
         {
             std::cerr << "Mouse not initialized! Call Initialize() first." << std::endl;
             return Vec2(0.0f, 0.0f);
         }
 
-        return m_CurrentPosition;
+        return m_currentPosition;
     }
 
     Vec2 Mouse::GetWorldPosition()
     {
-        if (!m_Initialized)
+        if (!m_initialized)
         {
             std::cerr << "Mouse not initialized! Call Initialize() first." << std::endl;
             return Vec2(0.0f, 0.0f);
         }
 
-        return Renderer2D::GetCamera().ScreenToWorld(m_CurrentPosition);
+        return Renderer2D::GetCamera().ScreenToWorld(m_currentPosition);
     }
 
     Vec2 Mouse::GetDelta()
     {
-        if (!m_Initialized)
+        if (!m_initialized)
         {
             std::cerr << "Mouse not initialized! Call Initialize() first." << std::endl;
             return Vec2(0.0f, 0.0f);
         }
 
-        return m_CurrentPosition - m_PreviousPosition;
+        return m_currentPosition - m_previousPosition;
     }
 
     Vec2 Mouse::GetScrollOffset()
     {
-        if (!m_Initialized)
+        if (!m_initialized)
         {
             std::cerr << "Mouse not initialized! Call Initialize() first." << std::endl;
             return Vec2(0.0f, 0.0f);
         }
 
-        return m_ScrollOffset;
+        return m_scrollOffset;
     }
 
     void Mouse::SetCursorVisibility(bool visible)
     {
-        if (!m_Initialized)
+        if (!m_initialized)
         {
             std::cerr << "Mouse not initialized! Call Initialize() first." << std::endl;
             return;
         }
 
-        glfwSetInputMode(m_Window, GLFW_CURSOR, visible ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
+        glfwSetInputMode(m_window, GLFW_CURSOR, visible ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_HIDDEN);
     }
 }

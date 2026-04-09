@@ -37,10 +37,10 @@ private:
     std::unique_ptr<InputManager> m_inputManager;
 
     // World
-    Engine::Grid *m_Grid{nullptr};
+    Engine::Grid *m_grid{nullptr};
 
     // Player
-    Player *m_Player{nullptr};
+    Player *m_player{nullptr};
 
     // Food
     Engine::GridTile *m_food{nullptr};

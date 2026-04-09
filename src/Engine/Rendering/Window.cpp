@@ -4,7 +4,7 @@
 namespace Engine
 {
     Window::Window(const std::string &title, int width, int height)
-        : m_Window(nullptr), m_Title(title), m_Width(width), m_Height(height)
+        : m_window(nullptr), m_title(title), m_width(width), m_height(height)
     {
     }
 
@@ -23,8 +23,8 @@ namespace Engine
         }
 
         // Create window
-        m_Window = glfwCreateWindow(m_Width, m_Height, m_Title.c_str(), nullptr, nullptr);
-        if (!m_Window)
+        m_window = glfwCreateWindow(m_width, m_height, m_title.c_str(), nullptr, nullptr);
+        if (!m_window)
         {
             std::cerr << "Failed to create window" << std::endl;
             glfwTerminate();
@@ -32,7 +32,7 @@ namespace Engine
         }
 
         // Make the OpenGL context current
-        glfwMakeContextCurrent(m_Window);
+        glfwMakeContextCurrent(m_window);
 
         // Disable V-Sync for unlimited framerate
         glfwSwapInterval(0);
@@ -48,20 +48,20 @@ namespace Engine
 
     void Window::SwapBuffers()
     {
-        glfwSwapBuffers(m_Window);
+        glfwSwapBuffers(m_window);
     }
 
     bool Window::ShouldClose() const
     {
-        return glfwWindowShouldClose(m_Window);
+        return glfwWindowShouldClose(m_window);
     }
 
     void Window::Shutdown()
     {
-        if (m_Window)
+        if (m_window)
         {
-            glfwDestroyWindow(m_Window);
-            m_Window = nullptr;
+            glfwDestroyWindow(m_window);
+            m_window = nullptr;
         }
         glfwTerminate();
         std::cout << "Window shut down" << std::endl;
