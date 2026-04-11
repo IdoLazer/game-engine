@@ -1,40 +1,26 @@
 #include "ChessPiece.h"
+#include "../ChessBoard.h"
 
 using namespace Engine;
 
-void ChessPiece::Select()
+// --- Spatial query helpers ---
+
+bool ChessPiece::IsCellEmpty(const Vec2 &pos) const
 {
-    ChessTile *tile = m_board->GetTile(m_gridPosition);
-    if (tile)
-    {
-        tile->ToggleHighlight(true);
-    }
-    for (auto &cell : GetPossibleMoves())
-    {
-        ChessTile *moveTile = m_board->GetTile(cell);
-        if (moveTile)
-        {
-            moveTile->ToggleHighlight(true);
-        }
-    }
+    return m_grid->GetFirstEntityAt<ChessPiece>(pos) == nullptr;
 }
 
-void ChessPiece::Deselect()
+bool ChessPiece::IsCellValidAndEmpty(const Vec2 &pos) const
 {
-    ChessTile *tile = m_board->GetTile(m_gridPosition);
-    if (tile)
-    {
-        tile->ToggleHighlight(false);
-    }
-    for (auto &cell : GetPossibleMoves())
-    {
-        ChessTile *moveTile = m_board->GetTile(cell);
-        if (moveTile)
-        {
-            moveTile->ToggleHighlight(false);
-        }
-    }
+    return m_grid->IsInBounds(pos) && IsCellEmpty(pos);
 }
+
+ChessPiece *ChessPiece::GetPieceAt(const Vec2 &pos) const
+{
+    return m_grid->GetFirstEntityAt<ChessPiece>(pos);
+}
+
+// --- Movement helpers ---
 
 std::vector<Vec2> ChessPiece::GetSlidingMoves(const std::vector<Vec2> &directions) const
 {
@@ -42,15 +28,16 @@ std::vector<Vec2> ChessPiece::GetSlidingMoves(const std::vector<Vec2> &direction
     for (const Vec2 &dir : directions)
     {
         Vec2 pos = m_gridPosition + dir;
-        while (m_board->IsValidPosition(pos))
+        while (IsCellValidAndEmpty(pos))
         {
             moves.push_back(pos);
             pos += dir;
         }
         // Check if the blocking piece is capturable
-        if (m_board->IsOccupied(pos))
+        if (m_grid->IsInBounds(pos))
         {
-            if (m_board->GetPieceAt(pos)->GetPieceColor() != m_pieceColor)
+            ChessPiece *blocker = GetPieceAt(pos);
+            if (blocker && blocker->GetPieceColor() != m_pieceColor)
                 moves.push_back(pos);
         }
     }
@@ -63,13 +50,14 @@ std::vector<Vec2> ChessPiece::GetSteppingMoves(const std::vector<Vec2> &directio
     for (const Vec2 &dir : directions)
     {
         Vec2 pos = m_gridPosition + dir;
-        if (m_board->IsValidPosition(pos))
+        if (IsCellValidAndEmpty(pos))
         {
             moves.push_back(pos);
         }
-        else if (m_board->IsOccupied(pos))
+        else if (m_grid->IsInBounds(pos))
         {
-            if (m_board->GetPieceAt(pos)->GetPieceColor() != m_pieceColor)
+            ChessPiece *target = GetPieceAt(pos);
+            if (target && target->GetPieceColor() != m_pieceColor)
                 moves.push_back(pos);
         }
     }

@@ -6,8 +6,8 @@ class King : public ChessPiece
 {
 
 public:
-    King(const ChessBoard *board, const Engine::Vec2 &position, PieceColor color)
-        : ChessPiece(board, position, ChessConstants::KING_SIZE, color) {}
+    King(Engine::Grid *grid, const Engine::Vec2 &position, PieceColor color)
+        : ChessPiece(grid, position, ChessConstants::KING_SIZE, color) {}
 
     virtual void Render() const override;
 

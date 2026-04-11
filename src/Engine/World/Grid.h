@@ -1,39 +1,92 @@
 #pragma once
 
 #include "../Math/Vec2.h"
-#include "../Graphics/Color.h"
-#include "../Entity/Entity.h"
-#include <cmath>
+#include "GridCoordinateSystem.h"
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
+#include <type_traits>
 
 namespace Engine
 {
-    // Grid coordinate system - simple grid entity with configurable dimensions
-    class Grid : public Entity
+    class GridEntity;
+
+    // Grid spatial index
+    // Owns a GridCoordinateSystem for coordinate math and tracks GridEntities by cell.
+    class Grid
     {
     private:
-        Vec2 m_cellCount; // Number of cells (width x height)
-        float m_cellSize; // Size of each cell in world units (assuming square cells)
-        Vec2 m_topLeft;   // Cached top-left position for conversions
+        GridCoordinateSystem m_coordSystem;
+
+        // Spatial index: maps cell key to list of entities at that cell
+        std::unordered_map<int, std::vector<GridEntity *>> m_entityMap;
+
+        int CellKey(const Vec2 &cell) const
+        {
+            return static_cast<int>(cell.y) * static_cast<int>(m_coordSystem.GetCellCount().x) + static_cast<int>(cell.x);
+        }
 
     public:
-        Grid(const Vec2 &position, const Color &color, float cellSize, const Vec2 &cellCount)
-            : Entity(position, Vec2(1, 1), color), m_cellSize(cellSize), m_cellCount(cellCount) {}
+        Grid() = default;
+        Grid(float cellSize, const Vec2 &cellCount, const Vec2 &worldPosition = Vec2{0, 0})
+            : m_coordSystem(cellSize, cellCount, worldPosition) {}
 
-        virtual void Initialize() override;
+        // --- Registration (called by GridEntity lifecycle) ---
+        void Register(GridEntity *entity, const Vec2 &cell);
+        void Unregister(GridEntity *entity, const Vec2 &cell);
+        void UpdateRegistration(GridEntity *entity, const Vec2 &oldCell, const Vec2 &newCell);
 
-        virtual void Render() const override;
+        // --- Spatial queries ---
+        bool IsOccupied(const Vec2 &cell) const;
 
-        Vec2 GridToWorld(Vec2 gridPos) const;
+        // Returns all entities at a cell that match type T
+        template <typename T>
+        std::vector<T *> GetEntitiesAt(const Vec2 &cell) const
+        {
+            static_assert(std::is_base_of_v<GridEntity, T>, "T must derive from GridEntity");
+            std::vector<T *> result;
+            int key = CellKey(cell);
+            auto it = m_entityMap.find(key);
+            if (it != m_entityMap.end())
+            {
+                for (GridEntity *e : it->second)
+                {
+                    T *cast = dynamic_cast<T *>(e);
+                    if (cast)
+                        result.push_back(cast);
+                }
+            }
+            return result;
+        }
 
-        // Convert world position to grid coordinates
-        Vec2 WorldToGrid(Vec2 worldPos) const;
+        // Returns the first entity at a cell that matches type T, or nullptr
+        template <typename T>
+        T *GetFirstEntityAt(const Vec2 &cell) const
+        {
+            static_assert(std::is_base_of_v<GridEntity, T>, "T must derive from GridEntity");
+            int key = CellKey(cell);
+            auto it = m_entityMap.find(key);
+            if (it != m_entityMap.end())
+            {
+                for (GridEntity *e : it->second)
+                {
+                    T *cast = dynamic_cast<T *>(e);
+                    if (cast)
+                        return cast;
+                }
+            }
+            return nullptr;
+        }
 
-        // Check if grid position is within bounds
-        bool IsInBounds(Vec2 gridPos) const;
+        // --- Coordinate math (delegated) ---
+        Vec2 GridToWorld(Vec2 gridPos) const { return m_coordSystem.GridToWorld(gridPos); }
+        Vec2 WorldToGrid(Vec2 worldPos) const { return m_coordSystem.WorldToGrid(worldPos); }
+        bool IsInBounds(Vec2 gridPos) const { return m_coordSystem.IsInBounds(gridPos); }
 
-        // Getters
-        Vec2 GetCellCount() const { return m_cellCount; }
-        float GetCellSize() const { return m_cellSize; }
-        Vec2 GetCellFromGridPosition(const Vec2 &gridPos) const { return Vec2{std::floor(gridPos.x), std::floor(gridPos.y)}; }
+        Vec2 GetCellCount() const { return m_coordSystem.GetCellCount(); }
+        float GetCellSize() const { return m_coordSystem.GetCellSize(); }
+        Vec2 GetCellFromGridPosition(const Vec2 &gridPos) const { return m_coordSystem.GetCellFromGridPosition(gridPos); }
+
+        const GridCoordinateSystem &GetCoordinateSystem() const { return m_coordSystem; }
     };
 }

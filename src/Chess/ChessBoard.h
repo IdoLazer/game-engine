@@ -2,39 +2,25 @@
 
 #include <Engine.h>
 #include <vector>
-#include "ChessTile.h"
 #include "ChessConstants.h"
-#include "ChessTypes.h"
 
-class ChessPiece; 
-class ChessBoard : public Engine::Grid
+class ChessBoard : public Engine::TileMap
 {
 public:
-    ChessBoard(const Engine::Vec2 &position, float cellSize)
-        : Engine::Grid(position, Engine::Color::White, cellSize, Engine::Vec2{ChessConstants::BOARD_SIZE, ChessConstants::BOARD_SIZE})
+    ChessBoard(const Engine::GridCoordinateSystem *coordSystem)
+        : Engine::TileMap(coordSystem)
     {
+        int total = ChessConstants::BOARD_SIZE * ChessConstants::BOARD_SIZE;
+        m_highlighted.resize(total, false);
     }
 
-    ~ChessBoard() = default;
+    void ToggleHighlight(const Engine::Vec2 &cell, bool highlighted);
 
-    void Initialize() override;
-    void Render() const override;
-    void Update(float deltaTime) override;
-
-    bool IsValidPosition(const Engine::Vec2 &gridPos) const;
-    bool IsOccupied(const Engine::Vec2 &gridPos) const;
-    void AddPiece(ChessPiece *piece);
-    void OnMouseClick(const Engine::Vec2 &gridPos);
-    ChessTile *GetTile(const Engine::Vec2 &gridPos) const;
-    ChessPiece *GetPieceAt(const Engine::Vec2 &gridPos) const;
-    bool IsGameOver() const { return m_gameOver; }
-    PieceColor GetCurrentPlayerColor() const { return m_currentPlayerColor; }
+protected:
+    void RenderTile(int x, int y, const Engine::Vec2 &worldPos, const Engine::Vec2 &worldSize) const override;
 
 private:
-    std::vector<ChessTile *> m_tiles;
-    std::vector<ChessPiece *> m_whitePieces;
-    std::vector<ChessPiece *> m_blackPieces;
-    ChessPiece *m_selectedPiece{nullptr};
-    PieceColor m_currentPlayerColor{PieceColor::White};
-    bool m_gameOver{false};
+    std::vector<bool> m_highlighted;
+
+    int CellIndex(int x, int y) const { return y * ChessConstants::BOARD_SIZE + x; }
 };

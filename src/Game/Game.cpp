@@ -10,8 +10,8 @@ WindowConfig Game::GetWindowConfig() const
     WindowConfig config;
 
     config.title = "Game";
-    config.width = 800;
-    config.height = 600;
+    config.width = GameConstants::WINDOW_WIDTH;
+    config.height = GameConstants::WINDOW_HEIGHT;
     config.fullscreen = false;
     config.resizable = true;
     return config;
@@ -47,10 +47,10 @@ void Game::Update(float deltaTime)
 
 void Game::Render() const
 {
-    // Draw grid
-    m_grid->Render();
+    // Draw background
+    Renderer2D::DrawTile(Vec2{0, 0}, m_gridWorldSize, m_backgroundColor);
 
-    // Draw Player - use Grid to convert grid coordinates to world positions
+    // Draw Player
     m_player->Render();
 
     // Draw Food
@@ -65,7 +65,7 @@ void Game::PlaceFood()
     Vec2 foodPosition;
     do
     {
-        Vec2 cellCount = m_grid->GetCellCount();
+        Vec2 cellCount = m_grid.GetCellCount();
         int gridWidth = static_cast<int>(cellCount.x);
         int gridHeight = static_cast<int>(cellCount.y);
         float foodX = static_cast<float>(rand() % gridWidth);
@@ -102,7 +102,7 @@ bool Game::CheckFoodCollision() const
 bool Game::CheckWallCollision() const
 {
     // Check if the player has collided with the walls using Grid's boundary checking
-    return !m_grid->IsInBounds(m_player->GetGridPosition());
+    return !m_grid.IsInBounds(m_player->GetGridPosition());
 }
 
 void Game::Shutdown()
@@ -124,14 +124,16 @@ void Game::InitializeWorld()
     float cellSizeY = availableHeight / GameConstants::GRID_CELL_COUNT.y;
     float cellSize = std::min(cellSizeX, cellSizeY); // Fit both dimensions
 
-    Vec2 gridPosition = Vec2(0.0f, 0.0f);
-    m_grid = GetScene()->Instantiate<Grid>(gridPosition, GameConstants::BACKGROUND_COLOR, cellSize, GameConstants::GRID_CELL_COUNT);
+    m_grid = Grid(cellSize, GameConstants::GRID_CELL_COUNT);
+    m_gridWorldSize = Vec2(cellSize * GameConstants::GRID_CELL_COUNT.x,
+                           cellSize * GameConstants::GRID_CELL_COUNT.y);
+    m_backgroundColor = GameConstants::BACKGROUND_COLOR;
 }
 
 void Game::InitializePlayer()
 {
     m_player = GetScene()->Instantiate<Player>(
-        m_grid,
+        &m_grid,
         Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0),
         GameConstants::PLAYER_SIZE,
         GameConstants::PLAYER_COLOR,
@@ -149,11 +151,11 @@ void Game::InitializePlayer()
 void Game::InitializeFood()
 {
     // Place initial food at center of grid
-    Vec2 cellCount = m_grid->GetCellCount();
+    Vec2 cellCount = m_grid.GetCellCount();
     int foodX = static_cast<int>(cellCount.x / 2);
     int foodY = static_cast<int>(cellCount.y / 2);
     Vec2 foodPosition = Vec2{foodX, foodY};
-    m_food = GetScene()->Instantiate<GridTile>(m_grid, foodPosition, GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
+    m_food = GetScene()->Instantiate<GridTile>(&m_grid, foodPosition, GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
 }
 
 bool Game::IsValidFoodPosition(const Vec2 &position) const

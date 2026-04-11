@@ -1,176 +1,28 @@
 #include "ChessBoard.h"
-#include "Pieces/ChessPiece.h"
-#include "Pieces/ChessPieces.h"
 
 using namespace Engine;
 
-void ChessBoard::AddPiece(ChessPiece *piece)
+void ChessBoard::ToggleHighlight(const Vec2 &cell, bool highlighted)
 {
-    if (piece->GetPieceColor() == PieceColor::Black)
-        m_blackPieces.push_back(piece);
-    else
-        m_whitePieces.push_back(piece);
+    int x = static_cast<int>(cell.x);
+    int y = static_cast<int>(cell.y);
+    int idx = CellIndex(x, y);
+    if (idx >= 0 && idx < static_cast<int>(m_highlighted.size()))
+        m_highlighted[idx] = highlighted;
 }
 
-void ChessBoard::Initialize()
+void ChessBoard::RenderTile(int x, int y, const Vec2 &worldPos, const Vec2 &worldSize) const
 {
-    Grid::Initialize();
+    // Alternate light/dark colors
+    Color tileColor = (x + y) % 2 == 0 ? ChessConstants::TILE_COLOR_LIGHT : ChessConstants::TILE_COLOR_DARK;
 
-    m_tiles.reserve(ChessConstants::BOARD_SIZE * ChessConstants::BOARD_SIZE);
-    for (int y = 0; y < ChessConstants::BOARD_SIZE; ++y)
-    {
-        for (int x = 0; x < ChessConstants::BOARD_SIZE; ++x)
-        {
-            Color tileColor = (x + y) % 2 == 0 ? ChessConstants::TILE_COLOR_LIGHT : ChessConstants::TILE_COLOR_DARK;
-            m_tiles.push_back(GetScene()->Instantiate<ChessTile>(this, Vec2{x, y}, Vec2{1, 1}, tileColor));
-        }
-    }
-}
+    // If this tile is highlighted, apply the highlight tint and draw an outline
+    int idx = CellIndex(x, y);
+    if (m_highlighted[idx])
+        tileColor = tileColor + ChessConstants::TILE_HIGHLIGHT_TINT;
 
-void ChessBoard::Render() const
-{
-    for (const auto *tile : m_tiles)
-    {
-        tile->Render();
-    }
+    Renderer2D::DrawTile(worldPos, worldSize, tileColor);
 
-    for (const auto *piece : m_whitePieces)
-    {
-        piece->Render();
-    }
-
-    for (const auto *piece : m_blackPieces)
-    {
-        piece->Render();
-    }
-}
-
-void ChessBoard::Update(float deltaTime)
-{
-    if (m_gameOver)
-        return;
-
-    Vec2 mousePos = Mouse::GetWorldPosition();
-    Vec2 gridPos = WorldToGrid(mousePos);
-    if (IsInBounds(gridPos) && Mouse::IsButtonPressed(MouseButton::Left))
-    {
-        OnMouseClick(gridPos);
-    }
-}
-
-bool ChessBoard::IsValidPosition(const Vec2 &gridPos) const
-{
-    return IsInBounds(gridPos) && !IsOccupied(gridPos);
-}
-
-bool ChessBoard::IsOccupied(const Vec2 &gridPos) const
-{
-    for (const auto *piece : m_whitePieces)
-    {
-        if (piece->GetGridCell() == gridPos)
-        {
-            return true;
-        }
-    }
-    for (const auto *piece : m_blackPieces)
-    {
-        if (piece->GetGridCell() == gridPos)
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
-void ChessBoard::OnMouseClick(const Vec2 &gridPos)
-{
-    if (m_gameOver)
-        return;
-
-    // Check if a piece exists at the clicked cell
-    Vec2 cell = GetCellFromGridPosition(gridPos);
-    auto &pieces = (m_currentPlayerColor == PieceColor::White) ? m_whitePieces : m_blackPieces;
-    // Check for piece selection
-    for (auto *piece : pieces)
-    {
-        if (piece->GetGridCell() == cell)
-        {
-            if (m_selectedPiece && piece != m_selectedPiece)
-            {
-                // Deselect previous piece
-                m_selectedPiece->Deselect();
-            }
-            m_selectedPiece = piece;
-            piece->Select();
-            return;
-        }
-    }
-    // If a piece is already selected, attempt to move it
-    if (m_selectedPiece)
-    {
-        auto possibleMoves = m_selectedPiece->GetPossibleMoves();
-        if (std::find(possibleMoves.begin(), possibleMoves.end(), cell) != possibleMoves.end())
-        {
-            // Move is valid
-            m_selectedPiece->Deselect();
-            m_selectedPiece->OnMove(cell);
-            m_selectedPiece = nullptr;
-
-            // If there's an opponent piece at the destination, capture it
-            auto &opponentPieces = (m_currentPlayerColor == PieceColor::White) ? m_blackPieces : m_whitePieces;
-            auto it = std::find_if(opponentPieces.begin(), opponentPieces.end(),
-                [&cell](ChessPiece *p) { return p->GetGridCell() == cell; });
-
-            if (it != opponentPieces.end())
-            {
-                // If the captured piece is the king, end the game
-                if (dynamic_cast<King *>(*it))
-                {
-                    m_gameOver = true;
-                    return;
-                }
-                // Remove from tracking — Application still owns the entity
-                opponentPieces.erase(it);
-            }
-
-            // Switch player turn
-            m_currentPlayerColor = (m_currentPlayerColor == PieceColor::White) ? PieceColor::Black : PieceColor::White;
-        }
-        else
-        {
-            // Invalid move, just deselect
-            m_selectedPiece->Deselect();
-            m_selectedPiece = nullptr;
-        }
-    }
-}
-
-ChessTile *ChessBoard::GetTile(const Vec2 &cell) const
-{
-    if (!IsInBounds(cell))
-        return nullptr;
-    int index = static_cast<int>(cell.y) * ChessConstants::BOARD_SIZE + static_cast<int>(cell.x);
-    if (index >= 0 && index < static_cast<int>(m_tiles.size()))
-        return m_tiles[index];
-    return nullptr;
-}
-
-ChessPiece *ChessBoard::GetPieceAt(const Vec2 &gridPos) const
-{
-    Vec2 cell = GetCellFromGridPosition(gridPos);
-    for (auto *piece : m_whitePieces)
-    {
-        if (piece->GetGridCell() == cell)
-        {
-            return piece;
-        }
-    }
-    for (auto *piece : m_blackPieces)
-    {
-        if (piece->GetGridCell() == cell)
-        {
-            return piece;
-        }
-    }
-    return nullptr;
+    if (m_highlighted[idx])
+        Renderer2D::DrawRectOutline(worldPos, worldSize, ChessConstants::TILE_HIGHLIGHT_OUTLINE);
 }

@@ -8,6 +8,7 @@ namespace ChessConstants
     static constexpr int BOARD_SIZE = 8;
 
     // Window
+    const std::string WINDOW_TITLE = "Chess";
     static constexpr int WINDOW_SIZE = 600;
 
     // Tile colors

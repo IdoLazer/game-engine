@@ -4,15 +4,15 @@ using namespace Engine;
 
 void Rook::Initialize()
 {
-    Entity::Initialize();
+    GridEntity::Initialize();
     m_hasMoved = false;
 }
 
 void Rook::Render() const
 {
-    // Render the knight as a rectangle with merlons
+    // Render the rook as a rectangle with merlons
     // First, render the base rectangle
-    ChessPiece::Render();
+    Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
 
     // Then, render the merlons on top
     float merlonWidth = m_worldSize.x / 5.0f;
@@ -35,8 +35,8 @@ std::vector<Vec2> Rook::GetPossibleMoves() const
     });
 }
 
-void Rook::OnMove(const Vec2 &newPosition)
+void Rook::SetGridPosition(const Vec2 &newPosition)
 {
-    ChessPiece::OnMove(newPosition);
+    ChessPiece::SetGridPosition(newPosition);
     m_hasMoved = true;
 }

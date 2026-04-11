@@ -1,39 +1,37 @@
 #include "Grid.h"
-#include "../Rendering/Renderer2D.h"
+#include "../Entity/GridEntity.h"
 
 namespace Engine
 {
-    void Grid::Initialize()
+    void Grid::Register(GridEntity *entity, const Vec2 &cell)
     {
-        // Calculate total world size from cell size and count
-        m_worldSize = Vec2(m_cellSize * m_cellCount.x, m_cellSize * m_cellCount.y);
-        m_topLeft = Vec2(m_worldPosition.x - m_worldSize.x * 0.5f, m_worldPosition.y + m_worldSize.y * 0.5f);
+        int key = CellKey(cell);
+        m_entityMap[key].push_back(entity);
     }
 
-    void Grid::Render() const
+    void Grid::Unregister(GridEntity *entity, const Vec2 &cell)
     {
-        Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
+        int key = CellKey(cell);
+        auto it = m_entityMap.find(key);
+        if (it != m_entityMap.end())
+        {
+            auto &vec = it->second;
+            vec.erase(std::remove(vec.begin(), vec.end(), entity), vec.end());
+            if (vec.empty())
+                m_entityMap.erase(it);
+        }
     }
 
-    Vec2 Grid::GridToWorld(Vec2 gridPos) const
+    void Grid::UpdateRegistration(GridEntity *entity, const Vec2 &oldCell, const Vec2 &newCell)
     {
-        // Grid (0,0) is top-left for game convenience
-        // World Y increases upward, but grid Y increases downward
-        float worldX = m_topLeft.x + (gridPos.x + 0.5f) * m_cellSize;
-        float worldY = m_topLeft.y - (gridPos.y + 0.5f) * m_cellSize;
-        return Vec2(worldX, worldY);
+        Unregister(entity, oldCell);
+        Register(entity, newCell);
     }
 
-    Vec2 Grid::WorldToGrid(Vec2 worldPos) const
+    bool Grid::IsOccupied(const Vec2 &cell) const
     {
-        float gridX = (worldPos.x - m_topLeft.x) / m_cellSize;
-        float gridY = (m_topLeft.y - worldPos.y) / m_cellSize;
-        return Vec2(gridX, gridY);
-    }
-
-    bool Grid::IsInBounds(Vec2 gridPos) const
-    {
-        return gridPos.x >= 0 && gridPos.x < m_cellCount.x &&
-               gridPos.y >= 0 && gridPos.y < m_cellCount.y;
+        int key = CellKey(cell);
+        auto it = m_entityMap.find(key);
+        return it != m_entityMap.end() && !it->second.empty();
     }
 }

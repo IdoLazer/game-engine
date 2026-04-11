@@ -37,7 +37,9 @@ private:
     std::unique_ptr<InputManager> m_inputManager;
 
     // World
-    Engine::Grid *m_grid{nullptr};
+    Engine::Grid m_grid;
+    Engine::Vec2 m_gridWorldSize;
+    Engine::Color m_backgroundColor;
 
     // Player
     Player *m_player{nullptr};

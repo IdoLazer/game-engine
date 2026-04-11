@@ -8,8 +8,8 @@ private:
     bool m_hasMoved{false};
 
 public:
-    Pawn(const ChessBoard *board, const Engine::Vec2 &position, PieceColor color)
-        : ChessPiece(board, position, ChessConstants::PAWN_SIZE, color) {}
+    Pawn(Engine::Grid *grid, const Engine::Vec2 &position, PieceColor color)
+        : ChessPiece(grid, position, ChessConstants::PAWN_SIZE, color) {}
 
     virtual void Initialize() override;
 
@@ -17,5 +17,5 @@ public:
 
     virtual std::vector<Engine::Vec2> GetPossibleMoves() const override;
 
-    virtual void OnMove(const Engine::Vec2 &newPosition) override;
+    void SetGridPosition(const Engine::Vec2 &newPosition) override;
 };

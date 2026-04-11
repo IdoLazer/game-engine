@@ -17,7 +17,7 @@ private:
     class InputManager *m_inputManager{nullptr};
 
 public:
-    Player(const Engine::Grid *grid,
+    Player(Engine::Grid *grid,
            const Engine::Vec2 &startPos,
            const Engine::Vec2 &size,
            const Engine::Color &color,

@@ -5,6 +5,10 @@
 // Game Constants
 namespace GameConstants
 {
+    // Window Settings
+    static constexpr int WINDOW_WIDTH = 800;
+    static constexpr int WINDOW_HEIGHT = 600;
+    
     // Player Settings
     const Engine::Vec2 PLAYER_SIZE{1.0f, 1.0f};
     const Engine::Color PLAYER_COLOR{1.0f, 0.0f, 0.0f, 1.0f}; // Red

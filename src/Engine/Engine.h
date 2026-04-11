@@ -34,7 +34,9 @@
 #include "Entity/GridTile.h"
 
 // World Systems
+#include "World/GridCoordinateSystem.h"
 #include "World/Grid.h"
+#include "World/TileMap.h"
 
 // Utilities
 #include "Utilities/Timer.h"

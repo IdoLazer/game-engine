@@ -10,7 +10,7 @@ std::vector<Vec2> Pawn::GetPossibleMoves() const
 
     // Pawns can move forward one square
     Vec2 forwardMove = m_gridPosition + forward;
-    if (m_board->IsValidPosition(forwardMove))
+    if (IsCellValidAndEmpty(forwardMove))
     {
         possibleMoves.push_back(forwardMove);
     }
@@ -19,7 +19,7 @@ std::vector<Vec2> Pawn::GetPossibleMoves() const
     if (!m_hasMoved)
     {
         Vec2 doubleForwardMove = m_gridPosition + forward + forward;
-        if (m_board->IsValidPosition(forwardMove) && m_board->IsValidPosition(doubleForwardMove))
+        if (IsCellValidAndEmpty(forwardMove) && IsCellValidAndEmpty(doubleForwardMove))
         {
             possibleMoves.push_back(doubleForwardMove);
         }
@@ -28,19 +28,17 @@ std::vector<Vec2> Pawn::GetPossibleMoves() const
     // Pawns can capture diagonally
     Vec2 captureLeft = m_gridPosition + forward + ChessConstants::DIRECTION_W;
     Vec2 captureRight = m_gridPosition + forward + ChessConstants::DIRECTION_E;
-    if (
-        m_board->IsInBounds(captureLeft) &&
-        m_board->IsOccupied(captureLeft) &&
-        m_board->GetPieceAt(captureLeft)->GetPieceColor() != m_pieceColor)
+    if (m_grid->IsInBounds(captureLeft))
     {
-        possibleMoves.push_back(captureLeft);
+        ChessPiece *target = GetPieceAt(captureLeft);
+        if (target && target->GetPieceColor() != m_pieceColor)
+            possibleMoves.push_back(captureLeft);
     }
-    if (
-        m_board->IsInBounds(captureRight) &&
-        m_board->IsOccupied(captureRight) &&
-        m_board->GetPieceAt(captureRight)->GetPieceColor() != m_pieceColor)
+    if (m_grid->IsInBounds(captureRight))
     {
-        possibleMoves.push_back(captureRight);
+        ChessPiece *target = GetPieceAt(captureRight);
+        if (target && target->GetPieceColor() != m_pieceColor)
+            possibleMoves.push_back(captureRight);
     }
 
     return possibleMoves;
@@ -48,7 +46,7 @@ std::vector<Vec2> Pawn::GetPossibleMoves() const
 
 void Pawn::Initialize()
 {
-    Entity::Initialize();
+    GridEntity::Initialize();
 
     m_hasMoved = false;
 }
@@ -64,9 +62,9 @@ void Pawn::Render() const
     Renderer2D::DrawCircle(topCenter, m_worldSize.x / 7.0f, m_color);
 }
 
-void Pawn::OnMove(const Vec2 &newPosition)
+void Pawn::SetGridPosition(const Vec2 &newPosition)
 {
-    ChessPiece::OnMove(newPosition);
+    ChessPiece::SetGridPosition(newPosition);
 
     m_hasMoved = true;
 }
