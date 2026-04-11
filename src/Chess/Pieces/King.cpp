@@ -39,3 +39,15 @@ std::vector<Vec2> King::GetPossibleMoves() const
         ChessConstants::DIRECTION_NW, ChessConstants::DIRECTION_SW
     });
 }
+
+void King::Initialize()
+{
+    GridEntity::Initialize();
+    m_hasMoved = false;
+}
+
+void King::SetGridPosition(const Vec2 &newPosition)
+{
+    ChessPiece::SetGridPosition(newPosition);
+    m_hasMoved = true;
+}

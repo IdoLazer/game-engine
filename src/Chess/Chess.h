@@ -10,6 +10,7 @@
 
 class ChessPiece;
 class King;
+class Rook;
 
 class Chess : public Engine::Application
 {
@@ -35,6 +36,11 @@ private:
     void AddPiece(ChessPiece *piece);
     void OnMouseClick(const Engine::Vec2 &cell);
     void ToggleHighlight(ChessPiece *piece, bool highlight);
+
+    // Castling
+    std::vector<Engine::Vec2> GetCastlingMoves(King *king) const;
+    bool IsCastlingMove(const Engine::Vec2 &cell) const;
+    void PerformCastle(King *king, const Engine::Vec2 &kingDest);
 
 public:
     Chess();

@@ -134,31 +134,42 @@ void Chess::OnMouseClick(const Vec2 &cell)
     if (m_selectedPiece)
     {
         auto possibleMoves = m_selectedPiece->GetPossibleMoves();
-        if (std::find(possibleMoves.begin(), possibleMoves.end(), cell) != possibleMoves.end())
+        bool isNormalMove = std::find(possibleMoves.begin(), possibleMoves.end(), cell) != possibleMoves.end();
+        bool isCastle = !isNormalMove && IsCastlingMove(cell);
+
+        if (isNormalMove || isCastle)
         {
             // Clear highlights from the selected piece
             ToggleHighlight(m_selectedPiece, false);
 
-            // If there's an opponent piece at the target cell, capture it
-            ChessPiece *captured = m_grid.GetFirstEntityAt<ChessPiece>(cell);
-            if (captured)
+            if (isCastle)
             {
-                if (dynamic_cast<King *>(captured))
+                // Castling — move both king and rook
+                PerformCastle(dynamic_cast<King *>(m_selectedPiece), cell);
+            }
+            else
+            {
+                // Normal move — capture first, then move
+                ChessPiece *captured = m_grid.GetFirstEntityAt<ChessPiece>(cell);
+                if (captured)
                 {
-                    m_gameOver = true;
-                    std::cout << "Game Over! "
-                              << ((m_currentPlayerColor == PieceColor::White) ? "White" : "Black")
-                              << " wins!" << std::endl;
-                    Close();
-                    return;
+                    if (dynamic_cast<King *>(captured))
+                    {
+                        m_gameOver = true;
+                        std::cout << "Game Over! "
+                                  << ((m_currentPlayerColor == PieceColor::White) ? "White" : "Black")
+                                  << " wins!" << std::endl;
+                        Close();
+                        return;
+                    }
+                    auto &opponentPieces = (m_currentPlayerColor == PieceColor::White) ? m_blackPieces : m_whitePieces;
+                    opponentPieces.erase(std::remove(opponentPieces.begin(), opponentPieces.end(), captured), opponentPieces.end());
+                    GetScene()->Destroy(captured);
                 }
-                auto &opponentPieces = (m_currentPlayerColor == PieceColor::White) ? m_blackPieces : m_whitePieces;
-                opponentPieces.erase(std::remove(opponentPieces.begin(), opponentPieces.end(), captured), opponentPieces.end());
-                GetScene()->Destroy(captured);
+
+                m_selectedPiece->SetGridPosition(cell);
             }
 
-            // Move into the (now-empty) cell
-            m_selectedPiece->SetGridPosition(cell);
             m_selectedPiece = nullptr;
 
             // Switch player turn
@@ -180,4 +191,91 @@ void Chess::ToggleHighlight(ChessPiece *piece, bool highlight)
     {
         m_board->ToggleHighlight(cell, highlight);
     }
+
+    // Also highlight castling moves if this is a king
+    King *king = dynamic_cast<King *>(piece);
+    if (king)
+    {
+        for (auto &cell : GetCastlingMoves(king))
+        {
+            m_board->ToggleHighlight(cell, highlight);
+        }
+    }
+}
+
+std::vector<Vec2> Chess::GetCastlingMoves(King *king) const
+{
+    std::vector<Vec2> moves;
+    if (king->HasMoved())
+        return moves;
+
+    float row = king->GetGridCell().y;
+
+    // Check kingside castle (rook at column 7)
+    Vec2 kingsideRookCell{static_cast<float>(ChessConstants::KINGSIDE_ROOK_COLUMN), row};
+    Rook *kingsideRook = m_grid.GetFirstEntityAt<Rook>(kingsideRookCell);
+    if (kingsideRook && !kingsideRook->HasMoved() && kingsideRook->GetPieceColor() == king->GetPieceColor())
+    {
+        // Check that cells between king and rook are empty (columns 5 and 6)
+        bool pathClear = true;
+        for (int col = ChessConstants::KING_COLUMN + 1; col < ChessConstants::KINGSIDE_ROOK_COLUMN; ++col)
+        {
+            if (m_grid.GetFirstEntityAt<ChessPiece>(Vec2{static_cast<float>(col), row}))
+            {
+                pathClear = false;
+                break;
+            }
+        }
+        if (pathClear)
+            moves.push_back(Vec2{static_cast<float>(ChessConstants::KING_CASTLE_KINGSIDE_COLUMN), row});
+    }
+
+    // Check queenside castle (rook at column 0)
+    Vec2 queensideRookCell{static_cast<float>(ChessConstants::QUEENSIDE_ROOK_COLUMN), row};
+    Rook *queensideRook = m_grid.GetFirstEntityAt<Rook>(queensideRookCell);
+    if (queensideRook && !queensideRook->HasMoved() && queensideRook->GetPieceColor() == king->GetPieceColor())
+    {
+        // Check that cells between rook and king are empty (columns 1, 2, 3)
+        bool pathClear = true;
+        for (int col = ChessConstants::QUEENSIDE_ROOK_COLUMN + 1; col < ChessConstants::KING_COLUMN; ++col)
+        {
+            if (m_grid.GetFirstEntityAt<ChessPiece>(Vec2{static_cast<float>(col), row}))
+            {
+                pathClear = false;
+                break;
+            }
+        }
+        if (pathClear)
+            moves.push_back(Vec2{static_cast<float>(ChessConstants::KING_CASTLE_QUEENSIDE_COLUMN), row});
+    }
+
+    return moves;
+}
+
+bool Chess::IsCastlingMove(const Vec2 &cell) const
+{
+    King *king = dynamic_cast<King *>(m_selectedPiece);
+    if (!king)
+        return false;
+
+    auto castlingMoves = GetCastlingMoves(king);
+    return std::find(castlingMoves.begin(), castlingMoves.end(), cell) != castlingMoves.end();
+}
+
+void Chess::PerformCastle(King *king, const Vec2 &kingDest)
+{
+    float row = king->GetGridCell().y;
+
+    // Determine which side we're castling
+    bool isKingside = (kingDest.x == ChessConstants::KING_CASTLE_KINGSIDE_COLUMN);
+
+    // Find the rook
+    float rookCol = isKingside ? ChessConstants::KINGSIDE_ROOK_COLUMN : ChessConstants::QUEENSIDE_ROOK_COLUMN;
+    float rookDest = isKingside ? ChessConstants::ROOK_CASTLE_KINGSIDE_COLUMN : ChessConstants::ROOK_CASTLE_QUEENSIDE_COLUMN;
+
+    Rook *rook = m_grid.GetFirstEntityAt<Rook>(Vec2{rookCol, row});
+
+    // Move both pieces
+    king->SetGridPosition(kingDest);
+    rook->SetGridPosition(Vec2{rookDest, row});
 }

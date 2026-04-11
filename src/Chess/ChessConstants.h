@@ -58,4 +58,12 @@ namespace ChessConstants
 
     // Cursor
     static constexpr float CURSOR_RADIUS = 0.1f;
+
+    // Castling
+    static constexpr int KINGSIDE_ROOK_COLUMN = 7;
+    static constexpr int QUEENSIDE_ROOK_COLUMN = 0;
+    static constexpr int KING_CASTLE_KINGSIDE_COLUMN = 6;
+    static constexpr int KING_CASTLE_QUEENSIDE_COLUMN = 2;
+    static constexpr int ROOK_CASTLE_KINGSIDE_COLUMN = 5;
+    static constexpr int ROOK_CASTLE_QUEENSIDE_COLUMN = 3;
 }

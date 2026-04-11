@@ -18,4 +18,6 @@ public:
     virtual std::vector<Engine::Vec2> GetPossibleMoves() const override;
 
     virtual void SetGridPosition(const Engine::Vec2 &newPosition) override;
+
+    bool HasMoved() const { return m_hasMoved; }
 };
