@@ -3,20 +3,7 @@
 
 namespace Engine
 {
-    static const Vec2 Zero(0.0f, 0.0f);
-    static const Vec2 One(1.0f, 1.0f);
-
-    Vec2::Vec2(float x, float y)
-    {
-        this->x = x;
-        this->y = y;
-    }
-
-    Vec2::Vec2(int x, int y)
-    {
-        this->x = static_cast<float>(x);
-        this->y = static_cast<float>(y);
-    }
+    // --- Operators ---
 
     Vec2 Vec2::operator-() const
     {
@@ -81,6 +68,20 @@ namespace Engine
         return !(*this == other);
     }
 
+    // --- Friend operators ---
+
+    Vec2 operator*(float scalar, const Vec2 &vec)
+    {
+        return vec * scalar;
+    }
+
+    Vec2 operator/(float scalar, const Vec2 &vec)
+    {
+        return vec / scalar;
+    }
+
+    // --- Mathematical functions ---
+
     float Vec2::Length() const
     {
         return std::sqrt(this->x * this->x + this->y * this->y);
@@ -97,15 +98,5 @@ namespace Engine
     float Vec2::Dot(const Vec2 &other) const
     {
         return this->x * other.x + this->y * other.y;
-    }
-
-    Vec2 operator*(float scalar, const Vec2 &vec)
-    {
-        return vec * scalar;
-    }
-
-    Vec2 operator/(float scalar, const Vec2 &vec)
-    {
-        return vec / scalar;
     }
 }

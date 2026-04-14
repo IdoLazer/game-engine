@@ -2,19 +2,7 @@
 
 namespace Engine
 {
-    const Color Color::Red(1.0f, 0.0f, 0.0f, 1.0f);
-    const Color Color::Green(0.0f, 1.0f, 0.0f, 1.0f);
-    const Color Color::Blue(0.0f, 0.0f, 1.0f, 1.0f);
-    const Color Color::White(1.0f, 1.0f, 1.0f, 1.0f);
-    const Color Color::Black(0.0f, 0.0f, 0.0f, 1.0f);
-
-    Color::Color(float r, float g, float b, float a)
-    {
-        this->r = r;
-        this->g = g;
-        this->b = b;
-        this->a = a;
-    }
+    // --- Operators ---
 
     Color Color::operator-() const
     {
@@ -40,6 +28,8 @@ namespace Engine
     {
         return Color(r / scalar, g / scalar, b / scalar, a / scalar);
     }
+
+    // --- Mathematical functions ---
 
     Color Color::Lerp(const Color &other, float t) const
     {
