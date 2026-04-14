@@ -29,11 +29,16 @@ endif()
 find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 
-# ---------- Engine (static library) ----------
+# ---------- Engine (object library) ----------
+# OBJECT instead of STATIC ensures all translation units are linked into game
+# executables. This is required for our self-registration pattern (static
+# initializers in Entity.cpp, GridEntity.cpp, etc.) — a STATIC library would
+# let the linker strip TUs that don't resolve any symbols, silently dropping
+# the type registrations.
 file(GLOB_RECURSE ENGINE_SOURCES "src/Engine/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADERS "src/Engine/*.h")
 
-add_library(Engine STATIC ${ENGINE_SOURCES} ${ENGINE_HEADERS})
+add_library(Engine OBJECT ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
 target_include_directories(Engine PUBLIC src/Engine)
 target_include_directories(Engine PUBLIC src)
