@@ -10,26 +10,29 @@ namespace Engine
     class Mouse
     {
     public:
+        // --- Lifecycle ---
         static void Initialize(GLFWwindow *window);
         static void Shutdown();
         static void Update();
 
-        // Mouse button queries
+        // --- Button Queries ---
         static bool IsButtonDown(MouseButton button);
         static bool IsButtonPressed(MouseButton button);
         static bool IsButtonReleased(MouseButton button);
 
-        // Mouse position queries
+        // --- Position Queries ---
         static Vec2 GetPosition();
         static Vec2 GetWorldPosition();
         static Vec2 GetDelta();
 
-        // Mouse scroll queries
+        // --- Scroll Queries ---
         static Vec2 GetScrollOffset();
 
+        // --- Cursor ---
         static void SetCursorVisibility(bool visible);
 
     private:
+        // --- Fields ---
         static GLFWwindow *m_window;
         static std::unordered_map<int, bool> m_currentButtonState;
         static std::unordered_map<int, bool> m_previousButtonState;
@@ -38,6 +41,7 @@ namespace Engine
         static Vec2 m_scrollOffset;
         static bool m_initialized;
 
+        // --- Internal ---
         static void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
         static void CursorPositionCallback(GLFWwindow *window, double xpos, double ypos);
         static void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);

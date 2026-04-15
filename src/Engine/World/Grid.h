@@ -15,28 +15,17 @@ namespace Engine
     // Owns a GridCoordinateSystem for coordinate math and tracks GridEntities by cell.
     class Grid
     {
-    private:
-        GridCoordinateSystem m_coordSystem;
-
-        // Spatial index: maps cell key to list of entities at that cell
-        std::unordered_map<int, std::vector<GridEntity *>> m_entityMap;
-
-        int CellKey(const Vec2 &cell) const
-        {
-            return static_cast<int>(cell.y) * static_cast<int>(m_coordSystem.GetCellCount().x) + static_cast<int>(cell.x);
-        }
-
     public:
+        // --- Constructors & Destructors ---
         Grid() = default;
-        Grid(float cellSize, const Vec2 &cellCount, const Vec2 &worldPosition = Vec2{0, 0})
-            : m_coordSystem(cellSize, cellCount, worldPosition) {}
+        Grid(float cellSize, const Vec2 &cellCount, const Vec2 &worldPosition = Vec2{0, 0});
 
         // --- Registration (called by GridEntity lifecycle) ---
         void Register(GridEntity *entity, const Vec2 &cell);
         void Unregister(GridEntity *entity, const Vec2 &cell);
         void UpdateRegistration(GridEntity *entity, const Vec2 &oldCell, const Vec2 &newCell);
 
-        // --- Spatial queries ---
+        // --- Spatial Queries ---
         bool IsOccupied(const Vec2 &cell) const;
 
         // Returns all entities at a cell that match type T
@@ -78,15 +67,26 @@ namespace Engine
             return nullptr;
         }
 
-        // --- Coordinate math (delegated) ---
-        Vec2 GridToWorld(Vec2 gridPos) const { return m_coordSystem.GridToWorld(gridPos); }
-        Vec2 WorldToGrid(Vec2 worldPos) const { return m_coordSystem.WorldToGrid(worldPos); }
-        bool IsInBounds(Vec2 gridPos) const { return m_coordSystem.IsInBounds(gridPos); }
+        // --- Coordinate Math (delegated) ---
+        Vec2 GridToWorld(Vec2 gridPos) const;
+        Vec2 WorldToGrid(Vec2 worldPos) const;
+        bool IsInBounds(Vec2 gridPos) const;
 
-        Vec2 GetCellCount() const { return m_coordSystem.GetCellCount(); }
-        float GetCellSize() const { return m_coordSystem.GetCellSize(); }
-        Vec2 GetCellFromGridPosition(const Vec2 &gridPos) const { return m_coordSystem.GetCellFromGridPosition(gridPos); }
+        // --- Accessors ---
+        Vec2 GetCellCount() const;
+        float GetCellSize() const;
+        Vec2 GetCellFromGridPosition(const Vec2 &gridPos) const;
+        const GridCoordinateSystem &GetCoordinateSystem() const;
 
-        const GridCoordinateSystem &GetCoordinateSystem() const { return m_coordSystem; }
+    private:
+        // --- Fields ---
+        GridCoordinateSystem m_coordSystem;
+        std::unordered_map<int, std::vector<GridEntity *>> m_entityMap;
+
+        // --- Internal ---
+        int CellKey(const Vec2 &cell) const
+        {
+            return static_cast<int>(cell.y) * static_cast<int>(m_coordSystem.GetCellCount().x) + static_cast<int>(cell.x);
+        }
     };
 }

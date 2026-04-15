@@ -8,16 +8,18 @@
 
 class InputManager
 {
-private:
-    bool m_exitRequested{false};
-
 public:
+    // --- Constructors & Destructors ---
     InputManager() = default;
-
     ~InputManager() = default;
 
-    // Process keyboard input and convert to commands
+    // --- Input Processing ---
     void ProcessInput();
 
-    bool IsExitRequested() const { return m_exitRequested; }
+    // --- Accessors ---
+    bool IsExitRequested() const;
+
+private:
+    // --- Fields ---
+    bool m_exitRequested{false};
 };

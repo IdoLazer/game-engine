@@ -3,6 +3,15 @@
 
 using namespace Engine;
 
+// --- Constructors & Destructors ---
+
+InputManager::InputManager(IMovable *movable) : m_movable(movable)
+{
+    m_movementCommandQueue.SetConflictResolver(std::make_unique<MovementCommandConflictResolver>());
+}
+
+// --- Input Processing ---
+
 void InputManager::ProcessInput()
 {
     m_exitRequested = Keyboard::IsKeyPressed(Key::Escape);
@@ -34,3 +43,13 @@ std::unique_ptr<Command> InputManager::GetNextMovementCommand()
 {
     return m_movementCommandQueue.DequeueCommand();
 }
+
+// --- Accessors ---
+
+bool InputManager::HasQueuedMovementCommands() const { return m_movementCommandQueue.HasCommands(); }
+size_t InputManager::GetMovementQueueSize() const { return m_movementCommandQueue.GetSize(); }
+bool InputManager::IsExitRequested() const { return m_exitRequested; }
+
+// --- Control ---
+
+void InputManager::ClearMovementCommands() { m_movementCommandQueue.Clear(); }

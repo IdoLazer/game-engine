@@ -4,6 +4,9 @@
 
 namespace Engine
 {
+
+// --- Constructors & Destructors ---
+
     Application::Application()
     {
         std::cout << "Application created." << std::endl;
@@ -13,6 +16,8 @@ namespace Engine
     {
         std::cout << "Application destroyed." << std::endl;
     }
+
+// --- Engine Lifecycle ---
 
     bool Application::InitializeEngine()
     {
@@ -93,36 +98,11 @@ namespace Engine
         std::cout << "Engine shutdown complete." << std::endl;
     }
 
-    bool Application::InitializeSubsystems()
-    {
-        // Get window configuration from the game
-        WindowConfig config = GetWindowConfig();
-
-        // Create and initialize window with game-specific settings
-        m_window = std::make_unique<Window>(config.title, config.width, config.height);
-        if (!m_window->Initialize())
-        {
-            std::cerr << "Failed to initialize window!" << std::endl;
-            return false;
-        }
-
-        // Initialize 2D renderer
-        Renderer2D::Initialize(m_window->GetNativeWindow(), config.width, config.height);
-
-        // Initialize input systems
-        Keyboard::Initialize(m_window->GetNativeWindow());
-        Mouse::Initialize(m_window->GetNativeWindow());
-
-        std::cout << "Engine subsystems initialized successfully." << std::endl;
-        std::cout << "Window: \"" << config.title << "\" (" << config.width << "x" << config.height << ")" << std::endl;
-        return true;
-    }
+// --- Game Interface ---
 
     WindowConfig Application::GetWindowConfig() const
     {
-        // Default window configuration - games can override this
         WindowConfig config;
-
         config.title = "Default Game Engine Window";
         config.width = 800;
         config.height = 600;
@@ -131,43 +111,56 @@ namespace Engine
         return config;
     }
 
+// --- Accessors ---
+
+    Window *Application::GetWindow() { return m_window.get(); }
+    Scene *Application::GetScene() { return &m_scene; }
+    void Application::Close() { m_running = false; }
+
+// --- Internal ---
+
+    bool Application::InitializeSubsystems()
+    {
+        WindowConfig config = GetWindowConfig();
+
+        m_window = std::make_unique<Window>(config.title, config.width, config.height);
+        if (!m_window->Initialize())
+        {
+            std::cerr << "Failed to initialize window!" << std::endl;
+            return false;
+        }
+
+        Renderer2D::Initialize(m_window->GetNativeWindow(), config.width, config.height);
+        Keyboard::Initialize(m_window->GetNativeWindow());
+        Mouse::Initialize(m_window->GetNativeWindow());
+
+        std::cout << "Engine subsystems initialized successfully." << std::endl;
+        std::cout << "Window: \"" << config.title << "\" (" << config.width << "x" << config.height << ")" << std::endl;
+        return true;
+    }
+
     void Application::UpdateEngine()
     {
-        // Update input systems
         Keyboard::Update();
         Mouse::Update();
-
-        // Poll window events
         m_window->PollEvents();
     }
 
     void Application::RenderFrame()
     {
-        // Begin 2D rendering
         Renderer2D::BeginFrame();
-
-        // Clear the screen with a dark background
         Renderer2D::Clear(Color(0.1f, 0.1f, 0.1f, 1.0f));
-
-        // Render game content
         Render();
-
-        // End 2D rendering
         Renderer2D::EndFrame();
-
-        // Present the frame
         m_window->SwapBuffers();
     }
 
     void Application::ShutdownSubsystems()
     {
-        // Shutdown in reverse order of initialization
         Mouse::Shutdown();
         Keyboard::Shutdown();
         Renderer2D::Shutdown();
-
         m_window.reset();
-        
         std::cout << "Engine subsystems shut down." << std::endl;
     }
 }

@@ -4,7 +4,7 @@
 
 namespace Engine
 {
-    // Static member definitions
+    // --- Fields ---
     GLFWwindow *Mouse::m_window = nullptr;
     std::unordered_map<int, bool> Mouse::m_currentButtonState;
     std::unordered_map<int, bool> Mouse::m_previousButtonState;
@@ -12,6 +12,8 @@ namespace Engine
     Vec2 Mouse::m_previousPosition(0.0f, 0.0f);
     Vec2 Mouse::m_scrollOffset(0.0f, 0.0f);
     bool Mouse::m_initialized = false;
+
+    // --- Lifecycle ---
 
     void Mouse::Initialize(GLFWwindow *window)
     {
@@ -65,6 +67,8 @@ namespace Engine
         m_scrollOffset = Vec2(0.0f, 0.0f);
     }
 
+    // --- Internal ---
+
     void Mouse::MouseButtonCallback(GLFWwindow *window, int button, int action, int mods)
     {
         if (action == GLFW_PRESS)
@@ -86,6 +90,8 @@ namespace Engine
     {
         m_scrollOffset = Vec2(static_cast<float>(xoffset), static_cast<float>(yoffset));
     }
+
+    // --- Button Queries ---
 
     bool Mouse::IsButtonDown(MouseButton button)
     {
@@ -146,6 +152,8 @@ namespace Engine
         return !currentPressed && previousPressed;
     }
 
+    // --- Position Queries ---
+
     Vec2 Mouse::GetPosition()
     {
         if (!m_initialized)
@@ -179,6 +187,8 @@ namespace Engine
         return m_currentPosition - m_previousPosition;
     }
 
+    // --- Scroll Queries ---
+
     Vec2 Mouse::GetScrollOffset()
     {
         if (!m_initialized)
@@ -189,6 +199,8 @@ namespace Engine
 
         return m_scrollOffset;
     }
+
+    // --- Cursor ---
 
     void Mouse::SetCursorVisibility(bool visible)
     {

@@ -4,10 +4,14 @@
 
 namespace Engine
 {
+    // --- Constructors & Destructors ---
+
     Camera2D::Camera2D(float worldHeight)
         : m_worldHeight(worldHeight), m_worldWidth(0.0f), m_pixelWidth(0), m_pixelHeight(0)
     {
     }
+
+    // --- Configuration ---
 
     void Camera2D::SetWindowSize(int pixelWidth, int pixelHeight)
     {
@@ -21,6 +25,8 @@ namespace Engine
         std::cout << "Camera2D: Window " << pixelWidth << "x" << pixelHeight
                   << " -> World " << m_worldWidth << "x" << m_worldHeight << " units (centered at 0,0)" << std::endl;
     }
+
+    // --- Coordinate Conversion ---
 
     float Camera2D::WorldToOpenGLX(float worldX) const
     {
@@ -54,4 +60,11 @@ namespace Engine
         float screenY = m_pixelHeight - (((worldPos.y + (m_worldHeight * 0.5f)) / m_worldHeight) * m_pixelHeight);
         return Vec2(screenX, screenY);
     }
+
+    // --- Accessors ---
+
+    float Camera2D::GetWorldWidth() const { return m_worldWidth; }
+    float Camera2D::GetWorldHeight() const { return m_worldHeight; }
+    int Camera2D::GetPixelWidth() const { return m_pixelWidth; }
+    int Camera2D::GetPixelHeight() const { return m_pixelHeight; }
 }

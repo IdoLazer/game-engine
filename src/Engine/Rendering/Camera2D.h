@@ -8,33 +8,29 @@ namespace Engine
     class Camera2D
     {
     public:
+        // --- Constructors & Destructors ---
         Camera2D(float worldHeight = 10.0f);
 
-        // Set the window dimensions to calculate world width
+        // --- Configuration ---
         void SetWindowSize(int pixelWidth, int pixelHeight);
 
-        // Get world dimensions
-        float GetWorldWidth() const { return m_worldWidth; }
-        float GetWorldHeight() const { return m_worldHeight; }
-
-        // Get pixel dimensions
-        int GetPixelWidth() const { return m_pixelWidth; }
-        int GetPixelHeight() const { return m_pixelHeight; }
-
-        // Convert world coordinates to OpenGL coordinates (-1 to +1)
+        // --- Coordinate Conversion ---
         float WorldToOpenGLX(float worldX) const;
         float WorldToOpenGLY(float worldY) const;
-
-        // Convert Vec2 world coordinates to OpenGL coordinates
         Vec2 WorldToOpenGL(const Vec2 &worldPos) const;
-        // Convert screen coordinates (pixels) to world coordinates
         Vec2 ScreenToWorld(const Vec2 &screenPos) const;
-        // Convert world coordinates to screen coordinates (pixels)
         Vec2 WorldToScreen(const Vec2 &worldPos) const;
 
+        // --- Accessors ---
+        float GetWorldWidth() const;
+        float GetWorldHeight() const;
+        int GetPixelWidth() const;
+        int GetPixelHeight() const;
+
     private:
-        float m_worldHeight; // World units visible vertically
-        float m_worldWidth;  // Calculated from aspect ratio
+        // --- Fields ---
+        float m_worldHeight;
+        float m_worldWidth;
         int m_pixelWidth;
         int m_pixelHeight;
     };

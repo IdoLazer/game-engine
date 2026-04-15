@@ -4,7 +4,11 @@
 
 namespace Engine
 {
+    // --- Fields ---
+
     Camera2D Renderer2D::s_Camera(10.0f);
+
+    // --- Lifecycle ---
 
     void Renderer2D::Initialize(GLFWwindow *window, int width, int height)
     {
@@ -28,6 +32,8 @@ namespace Engine
         std::cout << "Renderer2D shutdown" << std::endl;
     }
 
+    // --- Frame ---
+
     void Renderer2D::BeginFrame()
     {
         // Nothing needed here for now
@@ -43,6 +49,8 @@ namespace Engine
         glClearColor(color.r, color.g, color.b, color.a);
         glClear(GL_COLOR_BUFFER_BIT);
     }
+
+    // --- Drawing ---
 
     void Renderer2D::DrawTile(const Vec2 &position, const Vec2 &size, const Color &color)
     {
@@ -163,6 +171,12 @@ namespace Engine
 
         glEnd();
     }
+
+    // --- Accessors ---
+
+    Camera2D &Renderer2D::GetCamera() { return s_Camera; }
+
+    // --- Internal ---
 
     void Renderer2D::InitializeViewPort(GLFWwindow *window, int width, int height)
     {

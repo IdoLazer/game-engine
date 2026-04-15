@@ -3,11 +3,13 @@
 
 namespace Engine
 {
-    // Static member definitions
+    // --- Fields ---
     GLFWwindow *Keyboard::m_window = nullptr;
     std::unordered_map<int, bool> Keyboard::m_currentKeyState;
     std::unordered_map<int, bool> Keyboard::m_previousKeyState;
     bool Keyboard::m_initialized = false;
+
+    // --- Lifecycle ---
 
     void Keyboard::Initialize(GLFWwindow *window)
     {
@@ -47,6 +49,8 @@ namespace Engine
         m_previousKeyState = m_currentKeyState;
     }
 
+    // --- Internal ---
+
     void Keyboard::KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods)
     {
         if (action == GLFW_PRESS)
@@ -58,6 +62,8 @@ namespace Engine
             m_currentKeyState[key] = false;
         }
     }
+
+    // --- Queries ---
 
     bool Keyboard::IsKeyDown(Key key)
     {

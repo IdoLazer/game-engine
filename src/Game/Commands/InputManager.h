@@ -9,40 +9,27 @@
 
 class InputManager
 {
-private:
-    Engine::CommandQueue m_movementCommandQueue;
-
-    // Reference to the player to create commands for
-    class IMovable *m_movable{nullptr};
-
-    bool m_exitRequested{false};
-
 public:
+    // --- Constructors & Destructors ---
     InputManager() = delete;
-
-    InputManager(IMovable *movable) : m_movable(movable)
-    {
-        m_movementCommandQueue.SetConflictResolver(std::make_unique<MovementCommandConflictResolver>());
-    }
+    InputManager(IMovable *movable);
     ~InputManager() = default;
 
-    // Process keyboard input and convert to commands
+    // --- Input Processing ---
     void ProcessInput();
-
-    // Get the next command for execution (used by Player)
     std::unique_ptr<Engine::Command> GetNextMovementCommand();
 
-    // Check if there are queued commands
-    bool HasQueuedMovementCommands() const
-    {
-        return m_movementCommandQueue.HasCommands();
-    }
+    // --- Accessors ---
+    bool HasQueuedMovementCommands() const;
+    size_t GetMovementQueueSize() const;
+    bool IsExitRequested() const;
 
-    // Clear all queued commands (useful for game resets)
-    void ClearMovementCommands() { m_movementCommandQueue.Clear(); }
+    // --- Control ---
+    void ClearMovementCommands();
 
-    // Get queue size for debugging
-    size_t GetMovementQueueSize() const { return m_movementCommandQueue.GetSize(); }
-
-    bool IsExitRequested() const { return m_exitRequested; }
+private:
+    // --- Fields ---
+    Engine::CommandQueue m_movementCommandQueue;
+    class IMovable *m_movable{nullptr};
+    bool m_exitRequested{false};
 };

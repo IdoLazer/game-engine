@@ -3,6 +3,8 @@
 
 namespace Engine
 {
+    // --- Constructors & Destructors ---
+
     Window::Window(const std::string &title, int width, int height)
         : m_window(nullptr), m_title(title), m_width(width), m_height(height)
     {
@@ -12,6 +14,8 @@ namespace Engine
     {
         Shutdown();
     }
+
+    // --- Lifecycle ---
 
     bool Window::Initialize()
     {
@@ -51,9 +55,16 @@ namespace Engine
         glfwSwapBuffers(m_window);
     }
 
+    // --- Accessors ---
+
     bool Window::ShouldClose() const
     {
         return glfwWindowShouldClose(m_window);
+    }
+
+    GLFWwindow *Window::GetNativeWindow() const
+    {
+        return m_window;
     }
 
     void Window::Shutdown()

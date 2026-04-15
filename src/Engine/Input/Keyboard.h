@@ -9,19 +9,24 @@ namespace Engine
     class Keyboard
     {
     public:
+        // --- Lifecycle ---
         static void Initialize(GLFWwindow *window);
         static void Shutdown();
         static void Update();
+
+        // --- Queries ---
         static bool IsKeyDown(Key key);
         static bool IsKeyPressed(Key key);
         static bool IsKeyReleased(Key key);
 
     private:
+        // --- Fields ---
         static GLFWwindow *m_window;
         static std::unordered_map<int, bool> m_currentKeyState;
         static std::unordered_map<int, bool> m_previousKeyState;
         static bool m_initialized;
 
+        // --- Internal ---
         static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
     };
 }

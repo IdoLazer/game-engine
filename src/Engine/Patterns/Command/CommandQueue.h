@@ -24,13 +24,8 @@ namespace Engine
 
     class CommandQueue
     {
-    private:
-        static constexpr size_t MAX_QUEUE_SIZE = 2;
-        std::queue<std::unique_ptr<Command>> m_commands;
-
-        std::unique_ptr<ICommandConflictResolver> m_conflictResolver;
-
     public:
+        // --- Constructors & Destructors ---
         CommandQueue() = default;
         ~CommandQueue() = default;
 
@@ -38,24 +33,25 @@ namespace Engine
         CommandQueue(const CommandQueue &) = delete;
         CommandQueue &operator=(const CommandQueue &) = delete;
 
-        // Add a command to the queue with conflict resolution
+        // --- Queue Operations ---
         void EnqueueCommand(std::unique_ptr<Command> command);
-
-        bool HandleConflict(std::unique_ptr<Command> &command);
-
-        // Get the next command to execute (returns nullptr if queue is empty)
         std::unique_ptr<Command> DequeueCommand();
-
-        // Check if the queue has commands
-        bool HasCommands() const { return !m_commands.empty(); }
-
-        // Get current queue size
-        size_t GetSize() const { return m_commands.size(); }
-
-        // Set the conflict resolver
-        void SetConflictResolver(std::unique_ptr<ICommandConflictResolver> resolver) { m_conflictResolver = std::move(resolver); }
-
-        // Clear all commands (useful for game state resets)
         void Clear();
+
+        // --- Configuration ---
+        void SetConflictResolver(std::unique_ptr<ICommandConflictResolver> resolver);
+
+        // --- Accessors ---
+        bool HasCommands() const;
+        size_t GetSize() const;
+
+    private:
+        // --- Fields ---
+        static constexpr size_t MAX_QUEUE_SIZE = 2;
+        std::queue<std::unique_ptr<Command>> m_commands;
+        std::unique_ptr<ICommandConflictResolver> m_conflictResolver;
+
+        // --- Internal ---
+        bool HandleConflict(std::unique_ptr<Command> &command);
     };
 }

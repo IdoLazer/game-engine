@@ -2,6 +2,17 @@
 
 namespace Engine
 {
+    // --- Constructors & Destructors ---
+
+    Timer::Timer()
+        : m_interval(0.0f), m_accumulator(0.0f), m_isLooping(true), m_isActive(false) {}
+
+    Timer::Timer(float interval, Callback callback, bool isLooping)
+        : m_interval(interval), m_accumulator(0.0f), m_callback(callback),
+          m_isLooping(isLooping), m_isActive(true) {}
+
+    // --- Lifecycle ---
+
     void Timer::Update(float deltaTime)
     {
         if (!m_isActive)
@@ -26,9 +37,20 @@ namespace Engine
         }
     }
 
+    // --- Control ---
+
     void Timer::Reset()
     {
         m_accumulator = 0.0f;
         m_isActive = true;
     }
+
+    void Timer::Stop() { m_isActive = false; }
+    void Timer::Start() { m_isActive = true; }
+    void Timer::SetInterval(float interval) { m_interval = interval; }
+    void Timer::SetCallback(Callback callback) { m_callback = callback; }
+
+    // --- Accessors ---
+
+    bool Timer::IsActive() const { return m_isActive; }
 }

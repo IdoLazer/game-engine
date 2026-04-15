@@ -2,6 +2,8 @@
 
 namespace Engine
 {
+    // --- Queue Operations ---
+
     void CommandQueue::EnqueueCommand(std::unique_ptr<Command> command)
     {
         if (!command)
@@ -21,6 +23,8 @@ namespace Engine
         }
         m_commands.push(std::move(command));
     }
+
+    // --- Internal ---
 
     bool CommandQueue::HandleConflict(std::unique_ptr<Command> &command)
     {
@@ -72,4 +76,16 @@ namespace Engine
             m_commands.pop();
         }
     }
+
+    // --- Configuration ---
+
+    void CommandQueue::SetConflictResolver(std::unique_ptr<ICommandConflictResolver> resolver)
+    {
+        m_conflictResolver = std::move(resolver);
+    }
+
+    // --- Accessors ---
+
+    bool CommandQueue::HasCommands() const { return !m_commands.empty(); }
+    size_t CommandQueue::GetSize() const { return m_commands.size(); }
 }
