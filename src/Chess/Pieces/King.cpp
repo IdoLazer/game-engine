@@ -1,6 +1,19 @@
 #include "King.h"
 
+// --- Type Registration ---
+
+BEGIN_TYPE_REGISTER(King)
+END_TYPE_REGISTER()
+
 using namespace Engine;
+
+// --- Lifecycle ---
+
+void King::Initialize()
+{
+    m_hasMoved = false;
+    ChessPiece::Initialize();
+}
 
 void King::Render() const
 {
@@ -30,6 +43,8 @@ void King::Render() const
     Renderer2D::DrawTile(crossCenter, Vec2(crossSize, crossSize / 4.0f), m_color); // Horizontal part of the cross
 }
 
+// --- Accessors ---
+
 std::vector<Vec2> King::GetPossibleMoves() const
 {
     return GetSteppingMoves({
@@ -40,14 +55,10 @@ std::vector<Vec2> King::GetPossibleMoves() const
     });
 }
 
-void King::Initialize()
-{
-    GridEntity::Initialize();
-    m_hasMoved = false;
-}
-
 void King::SetGridPosition(const Vec2 &newPosition)
 {
     ChessPiece::SetGridPosition(newPosition);
     m_hasMoved = true;
 }
+
+bool King::HasMoved() const { return m_hasMoved; }

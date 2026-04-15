@@ -1,15 +1,19 @@
 #pragma once
-
 #include "ChessPiece.h"
 
 class Bishop : public ChessPiece
 {
+    DECLARE_TYPE(Bishop, ChessPiece)
 
+// --- Constructors & Destructors ---
 public:
-    Bishop(Engine::Grid *grid, const Engine::Vec2 &position, PieceColor color)
-        : ChessPiece(grid, position, ChessConstants::BISHOP_SIZE, color) {}
+    Bishop() = default;
 
-    virtual void Render() const override;
+// --- Lifecycle ---
+public:
+    void Render() const override;
 
-    virtual std::vector<Engine::Vec2> GetPossibleMoves() const override;
+// --- Accessors ---
+public:
+    std::vector<Engine::Vec2> GetPossibleMoves() const override;
 };

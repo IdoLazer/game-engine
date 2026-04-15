@@ -1,23 +1,26 @@
 #pragma once
-
 #include "ChessPiece.h"
 
 class Rook : public ChessPiece
 {
+    DECLARE_TYPE(Rook, ChessPiece)
+
+// --- Fields ---
 private:
-    bool m_hasMoved;
+    bool m_hasMoved{false};
 
+// --- Constructors & Destructors ---
 public:
-    Rook(Engine::Grid *grid, const Engine::Vec2 &position, PieceColor color)
-        : ChessPiece(grid, position, ChessConstants::ROOK_SIZE, color) {}
+    Rook() = default;
 
-    virtual void Initialize() override;
+// --- Lifecycle ---
+public:
+    void Initialize() override;
+    void Render() const override;
 
-    virtual void Render() const override;
-
-    virtual std::vector<Engine::Vec2> GetPossibleMoves() const override;
-
-    virtual void SetGridPosition(const Engine::Vec2 &newPosition) override;
-
-    bool HasMoved() const { return m_hasMoved; }
+// --- Accessors ---
+public:
+    std::vector<Engine::Vec2> GetPossibleMoves() const override;
+    void SetGridPosition(const Engine::Vec2 &newPosition) override;
+    bool HasMoved() const;
 };

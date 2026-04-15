@@ -1,6 +1,19 @@
 #include "ChessBoard.h"
+// --- Type Registration ---
 
+BEGIN_TYPE_REGISTER(ChessBoard)
+END_TYPE_REGISTER()
+                                                           
 using namespace Engine;
+
+// --- Lifecycle ---
+void ChessBoard::Initialize()
+{
+    int total = ChessConstants::BOARD_SIZE * ChessConstants::BOARD_SIZE;
+    m_highlighted.resize(total, false);
+}
+
+// --- Accessors ---
 
 void ChessBoard::ToggleHighlight(const Vec2 &cell, bool highlighted)
 {
@@ -10,6 +23,8 @@ void ChessBoard::ToggleHighlight(const Vec2 &cell, bool highlighted)
     if (idx >= 0 && idx < static_cast<int>(m_highlighted.size()))
         m_highlighted[idx] = highlighted;
 }
+
+// --- Subclass Interface ---
 
 void ChessBoard::RenderTile(int x, int y, const Vec2 &worldPos, const Vec2 &worldSize) const
 {
@@ -26,3 +41,7 @@ void ChessBoard::RenderTile(int x, int y, const Vec2 &worldPos, const Vec2 &worl
     if (m_highlighted[idx])
         Renderer2D::DrawRectOutline(worldPos, worldSize, ChessConstants::TILE_HIGHLIGHT_OUTLINE);
 }
+
+// --- Internal ---
+
+int ChessBoard::CellIndex(int x, int y) const { return y * ChessConstants::BOARD_SIZE + x; }

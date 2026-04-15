@@ -2,45 +2,57 @@
 
 #include <memory>
 #include <vector>
-#include <algorithm>
 #include <type_traits>
+#include <string>
+#include <unordered_map>
+#include <any>
 #include "../Entity/Entity.h"
+#include "../Types/TypeRegistry.h"
 
 namespace Engine
 {
     class Scene
     {
+    // --- Types ---
+    public:
+        struct EntityInfo
+        {
+            std::string typeName;
+            PropertyMap properties;
+        };
+
+    // --- Fields ---
+    private:
+        std::vector<std::unique_ptr<Entity>> m_entities;
+
+    // --- Constructors & Destructors ---
     public:
         Scene() = default;
         ~Scene() = default;
 
-        // Creates an entity, assigns its scene, initializes it, and stores it.
-        // Returns a non-owning raw pointer for the caller to use.
-        template <typename T, typename... Args>
-        T *Instantiate(Args &&...args)
+    // --- Instantiation ---
+    public:
+        // Template-based — creates a default-constructed entity.
+        template <typename T>
+        T *Instantiate()
         {
             static_assert(std::is_base_of_v<Entity, T>, "Instantiate requires a type derived from Entity");
-            auto entity = std::make_unique<T>(std::forward<Args>(args)...);
+            auto entity = std::make_unique<T>();
             entity->SetScene(this);
-            entity->Initialize();
             T *raw = entity.get();
             m_entities.push_back(std::move(entity));
             return raw;
         }
 
-        // Removes and destroys an entity.
-        void Destroy(Entity *entity)
-        {
-            auto it = std::find_if(m_entities.begin(), m_entities.end(),
-                [entity](const std::unique_ptr<Entity> &e) { return e.get() == entity; });
-            if (it != m_entities.end())
-                m_entities.erase(it);
-        }
+        // String-based — creates an entity by registered type name.
+        Entity *Instantiate(const std::string &typeName);
 
-        // Destroys all entities.
-        void Clear() { m_entities.clear(); }
+        // Data-driven — creates by type name and sets properties from a map (e.g. from a scene file).
+        Entity *Instantiate(const EntityInfo &info);
 
-    private:
-        std::vector<std::unique_ptr<Entity>> m_entities;
+    // --- Lifecycle ---
+    public:
+        void Destroy(Entity *entity);
+        void Clear();
     };
 }

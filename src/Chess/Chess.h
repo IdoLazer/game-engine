@@ -14,48 +14,36 @@ class Rook;
 
 class Chess : public Engine::Application
 {
+public:
+    // --- Constructors & Destructors ---
+    Chess() = default;
+
+    // --- Game Interface ---
+    void Initialize() override;
+    void Update(float deltaTime) override;
+    void Render() const override;
+    void Shutdown() override;
+
+    Engine::WindowConfig GetWindowConfig() const override;
+
 private:
-    // World
-    Engine::Grid m_grid;
-
-    // Rendering
-    ChessBoard *m_board{nullptr};
-
-    // Pieces
-    std::vector<ChessPiece *> m_whitePieces;
-    std::vector<ChessPiece *> m_blackPieces;
-
-    // Game state
-    ChessPiece *m_selectedPiece{nullptr};
-    PieceColor m_currentPlayerColor{PieceColor::White};
-    bool m_gameOver{false};
-
-    // Input
-    InputManager m_inputManager;
-
-    void AddPiece(ChessPiece *piece);
+    // --- Game Logic ---
     void OnMouseClick(const Engine::Vec2 &cell);
+    void AddPiece(ChessPiece *piece);
     void ToggleHighlight(ChessPiece *piece, bool highlight);
 
-    // Castling
+    // --- Castling ---
     std::vector<Engine::Vec2> GetCastlingMoves(King *king) const;
     bool IsCastlingMove(const Engine::Vec2 &cell) const;
     void PerformCastle(King *king, const Engine::Vec2 &kingDest);
 
-public:
-    Chess();
-    void Initialize() override;
-    void Update(float deltaTime) override;
-    void Render() const override;
-    void Shutdown() override {};
-
-    Engine::WindowConfig GetWindowConfig() const override;
+    // --- Fields ---
+    Engine::Grid m_grid;
+    ChessBoard *m_board{nullptr};
+    std::vector<ChessPiece *> m_whitePieces;
+    std::vector<ChessPiece *> m_blackPieces;
+    ChessPiece *m_selectedPiece{nullptr};
+    PieceColor m_currentPlayerColor{PieceColor::White};
+    bool m_gameOver{false};
+    InputManager m_inputManager;
 };
-
-namespace Engine
-{
-    Application *CreateApplication()
-    {
-        return new Chess();
-    }
-}

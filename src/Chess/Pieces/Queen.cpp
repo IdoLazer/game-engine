@@ -1,6 +1,13 @@
 #include "Queen.h"
 
+// --- Type Registration ---
+
+BEGIN_TYPE_REGISTER(Queen)
+END_TYPE_REGISTER()
+
 using namespace Engine;
+
+// --- Lifecycle ---
 
 void Queen::Render() const
 {
@@ -29,6 +36,8 @@ void Queen::Render() const
     Vec2 circleCenter = invertedTopCenter + Vec2(0.0f, m_worldSize.y / 3.0f + circleRadius);
     Renderer2D::DrawCircle(circleCenter, circleRadius, m_color);
 }
+
+// --- Accessors ---
 
 std::vector<Vec2> Queen::GetPossibleMoves() const
 {

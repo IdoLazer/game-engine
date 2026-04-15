@@ -1,9 +1,30 @@
 #include "ChessPiece.h"
 #include "../ChessBoard.h"
 
+// --- Type Registration ---
+
+BEGIN_TYPE_REGISTER(ChessPiece)
+    REGISTER_PROPERTY(PieceColor, PieceColor, &ChessPiece::m_pieceColor)
+END_TYPE_REGISTER()
+
 using namespace Engine;
 
-// --- Spatial query helpers ---
+// --- Lifecycle ---
+
+void ChessPiece::Initialize()
+{
+    // Derive visual color from piece color
+    m_color = (m_pieceColor == PieceColor::White) ? ChessConstants::PIECE_COLOR_WHITE : ChessConstants::PIECE_COLOR_BLACK;
+
+    // Register with grid (GridEntity::Initialize handles sync + registration)
+    GridEntity::Initialize();
+}
+
+// --- Accessors ---
+
+PieceColor ChessPiece::GetPieceColor() const { return m_pieceColor; }
+
+// --- Internal ---
 
 bool ChessPiece::IsCellEmpty(const Vec2 &pos) const
 {

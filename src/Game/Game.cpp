@@ -5,6 +5,8 @@
 
 using namespace Engine;
 
+// --- Game Interface ---
+
 WindowConfig Game::GetWindowConfig() const
 {
     WindowConfig config;
@@ -56,6 +58,8 @@ void Game::Render() const
     // Draw Food
     m_food->Render();
 }
+
+// --- Game Logic ---
 
 void Game::PlaceFood()
 {
@@ -111,6 +115,8 @@ void Game::Shutdown()
     m_player->Destroy();
 }
 
+// --- Initialization ---
+
 void Game::InitializeWorld()
 {
     float worldWidth = Renderer2D::GetCamera().GetWorldWidth();
@@ -132,14 +138,15 @@ void Game::InitializeWorld()
 
 void Game::InitializePlayer()
 {
-    m_player = GetScene()->Instantiate<Player>(
-        &m_grid,
-        Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0),
-        GameConstants::PLAYER_SIZE,
-        GameConstants::PLAYER_COLOR,
-        GameConstants::DIRECTION_RIGHT,
-        GameConstants::INITIAL_TAIL_LENGTH,
-        GameConstants::MOVE_SPEED);
+    m_player = GetScene()->Instantiate<Player>();
+    m_player->SetGrid(&m_grid);
+    m_player->SetGridPosition(Vec2(GameConstants::INITIAL_TAIL_LENGTH, 0));
+    m_player->SetGridSize(GameConstants::PLAYER_SIZE);
+    m_player->SetColor(GameConstants::PLAYER_COLOR);
+    m_player->SetDirection(GameConstants::DIRECTION_RIGHT);
+    m_player->SetInitialTailLength(GameConstants::INITIAL_TAIL_LENGTH);
+    m_player->SetMoveSpeed(GameConstants::MOVE_SPEED);
+    m_player->Initialize();
 
     // Initialize Input Manager
     m_inputManager = std::make_unique<InputManager>(m_player);
@@ -155,7 +162,13 @@ void Game::InitializeFood()
     int foodX = static_cast<int>(cellCount.x / 2);
     int foodY = static_cast<int>(cellCount.y / 2);
     Vec2 foodPosition = Vec2{foodX, foodY};
-    m_food = GetScene()->Instantiate<GridTile>(&m_grid, foodPosition, GameConstants::FOOD_SIZE, GameConstants::FOOD_COLOR);
+
+    m_food = GetScene()->Instantiate<GridTile>();
+    m_food->SetGrid(&m_grid);
+    m_food->SetGridPosition(foodPosition);
+    m_food->SetGridSize(GameConstants::FOOD_SIZE);
+    m_food->SetColor(GameConstants::FOOD_COLOR);
+    m_food->Initialize();
 }
 
 bool Game::IsValidFoodPosition(const Vec2 &position) const

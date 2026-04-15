@@ -1,6 +1,13 @@
 #include "Knight.h"
 
+// --- Type Registration ---
+
+BEGIN_TYPE_REGISTER(Knight)
+END_TYPE_REGISTER()
+
 using namespace Engine;
+
+// --- Lifecycle ---
 
 void Knight::Render() const
 {
@@ -10,6 +17,8 @@ void Knight::Render() const
     Vec2 facePosition = m_worldPosition + Vec2((m_worldSize.x + faceSize.x) / 2, (m_worldSize.y - faceSize.y) / 2);
     Renderer2D::DrawTile(facePosition, faceSize, m_color);
 }
+
+// --- Accessors ---
 
 std::vector<Vec2> Knight::GetPossibleMoves() const
 {

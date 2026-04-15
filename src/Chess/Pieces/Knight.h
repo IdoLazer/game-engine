@@ -1,15 +1,19 @@
 #pragma once
-
 #include "ChessPiece.h"
 
 class Knight : public ChessPiece
 {
+    DECLARE_TYPE(Knight, ChessPiece)
 
+// --- Constructors & Destructors ---
 public:
-    Knight(Engine::Grid *grid, const Engine::Vec2 &position, PieceColor color)
-        : ChessPiece(grid, position, ChessConstants::KNIGHT_SIZE, color) {}
+    Knight() = default;
 
-    virtual void Render() const override;
+// --- Lifecycle ---
+public:
+    void Render() const override;
 
-    virtual std::vector<Engine::Vec2> GetPossibleMoves() const override;
+// --- Accessors ---
+public:
+    std::vector<Engine::Vec2> GetPossibleMoves() const override;
 };

@@ -1,6 +1,13 @@
 #include "Bishop.h"
 
+// --- Type Registration ---
+
+BEGIN_TYPE_REGISTER(Bishop)
+END_TYPE_REGISTER()
+
 using namespace Engine;
+
+// --- Lifecycle ---
 
 void Bishop::Render() const
 {
@@ -27,6 +34,8 @@ void Bishop::Render() const
     Vec2 smallCircleCenter = circleCenter + Vec2(0.0f, largeRadius + smallRadius / 2.0f);
     Renderer2D::DrawCircle(smallCircleCenter, smallRadius, m_color);
 }
+
+// --- Accessors ---
 
 std::vector<Vec2> Bishop::GetPossibleMoves() const
 {

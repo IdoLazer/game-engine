@@ -1,18 +1,20 @@
 #pragma once
 
 #include "GridEntity.h"
-#include "../Rendering/Renderer2D.h"
 
 namespace Engine
 {
+    // A simple renderable grid tile — renders as a filled rect at its grid position.
     class GridTile : public GridEntity
     {
-    public:
-        using GridEntity::GridEntity; // Inherit constructors
+        DECLARE_TYPE(GridTile, GridEntity)
 
-        virtual void Render() const override
-        {
-            Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
-        }
+    // --- Constructors & Destructors ---
+    public:
+        GridTile() = default;
+
+    // --- Lifecycle ---
+    public:
+        void Render() const override;
     };
 }

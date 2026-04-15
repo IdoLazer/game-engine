@@ -4,10 +4,7 @@
 
 using namespace Engine;
 
-Chess::Chess()
-    : m_grid()
-{
-}
+// --- Game Interface ---
 
 void Chess::Initialize()
 {
@@ -20,38 +17,19 @@ void Chess::Initialize()
     auto *scene = GetScene();
 
     // Create the tile map for rendering
-    m_board = scene->Instantiate<ChessBoard>(&m_grid.GetCoordinateSystem());
+    m_board = scene->Instantiate<ChessBoard>();
+    m_board->SetCoordSystem(&m_grid.GetCoordinateSystem());
+    m_board->Initialize();
 
-    // Initialize pawns
-    for (int x = 0; x < ChessConstants::BOARD_SIZE; ++x)
+    // Initialize all pieces from data table — properties flow through the
+    // property system, then we wire up the runtime Grid* pointer manually.
+    for (const auto &pieceData : ChessConstants::CHESS_PIECES_DATA)
     {
-        AddPiece(scene->Instantiate<Pawn>(&m_grid, Vec2{x, ChessConstants::WHITE_PAWN_ROW}, PieceColor::White));
-        AddPiece(scene->Instantiate<Pawn>(&m_grid, Vec2{x, ChessConstants::BLACK_PAWN_ROW}, PieceColor::Black));
+        auto *piece = static_cast<ChessPiece *>(scene->Instantiate(pieceData));
+        piece->SetGrid(&m_grid);
+        piece->Initialize();
+        AddPiece(piece);
     }
-
-    // Initialize symmetric back-row pieces
-    for (int col : ChessConstants::ROOK_COLUMNS)
-    {
-        AddPiece(scene->Instantiate<Rook>(&m_grid, Vec2{col, ChessConstants::WHITE_BACK_ROW}, PieceColor::White));
-        AddPiece(scene->Instantiate<Rook>(&m_grid, Vec2{col, ChessConstants::BLACK_BACK_ROW}, PieceColor::Black));
-    }
-    for (int col : ChessConstants::KNIGHT_COLUMNS)
-    {
-        AddPiece(scene->Instantiate<Knight>(&m_grid, Vec2{col, ChessConstants::WHITE_BACK_ROW}, PieceColor::White));
-        AddPiece(scene->Instantiate<Knight>(&m_grid, Vec2{col, ChessConstants::BLACK_BACK_ROW}, PieceColor::Black));
-    }
-    for (int col : ChessConstants::BISHOP_COLUMNS)
-    {
-        AddPiece(scene->Instantiate<Bishop>(&m_grid, Vec2{col, ChessConstants::WHITE_BACK_ROW}, PieceColor::White));
-        AddPiece(scene->Instantiate<Bishop>(&m_grid, Vec2{col, ChessConstants::BLACK_BACK_ROW}, PieceColor::Black));
-    }
-
-    // Initialize unique back-row pieces
-    AddPiece(scene->Instantiate<Queen>(&m_grid, Vec2{ChessConstants::QUEEN_COLUMN, ChessConstants::WHITE_BACK_ROW}, PieceColor::White));
-    AddPiece(scene->Instantiate<Queen>(&m_grid, Vec2{ChessConstants::QUEEN_COLUMN, ChessConstants::BLACK_BACK_ROW}, PieceColor::Black));
-
-    AddPiece(scene->Instantiate<King>(&m_grid, Vec2{ChessConstants::KING_COLUMN, ChessConstants::WHITE_BACK_ROW}, PieceColor::White));
-    AddPiece(scene->Instantiate<King>(&m_grid, Vec2{ChessConstants::KING_COLUMN, ChessConstants::BLACK_BACK_ROW}, PieceColor::Black));
 
     Mouse::SetCursorVisibility(false);
 }
@@ -102,6 +80,10 @@ WindowConfig Chess::GetWindowConfig() const
     config.height = ChessConstants::WINDOW_SIZE;
     return config;
 }
+
+void Chess::Shutdown() {}
+
+// --- Game Logic ---
 
 void Chess::AddPiece(ChessPiece *piece)
 {
@@ -203,6 +185,8 @@ void Chess::ToggleHighlight(ChessPiece *piece, bool highlight)
     }
 }
 
+// --- Castling ---
+
 std::vector<Vec2> Chess::GetCastlingMoves(King *king) const
 {
     std::vector<Vec2> moves;
@@ -278,4 +262,13 @@ void Chess::PerformCastle(King *king, const Vec2 &kingDest)
     // Move both pieces
     king->SetGridPosition(kingDest);
     rook->SetGridPosition(Vec2{rookDest, row});
+}
+
+// Engine Entry Point Factory Function
+namespace Engine
+{
+    Application *CreateApplication()
+    {
+        return new Chess();
+    }
 }

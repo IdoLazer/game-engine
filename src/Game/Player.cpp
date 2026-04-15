@@ -1,19 +1,37 @@
 #include "Player.h"
 #include "Commands/InputManager.h"
 
+// --- Type Registration ---
+
+BEGIN_TYPE_REGISTER(Player)
+    REGISTER_PROPERTY(Engine::Vec2, Direction, &Player::m_direction)
+    REGISTER_PROPERTY(int, InitialTailLength, &Player::m_initialTailLength)
+    REGISTER_PROPERTY(float, MoveSpeed, &Player::m_moveSpeed)
+END_TYPE_REGISTER()
+
 using namespace Engine;
+
+// --- Lifecycle ---
 
 void Player::Initialize()
 {
+    // Call parent to sync grid→world and register with grid
+    GridEntity::Initialize();
+
     // Set up movement timer
     m_moveTimer = Timer{1.0f / m_moveSpeed, [this]()
                         { Move(); }, true};
 
     // Create initial tail segments
-    for (int i = 0; i < m_tailSegments.capacity(); ++i)
+    m_tailSegments.reserve(m_initialTailLength);
+    for (int i = 0; i < m_initialTailLength; ++i)
     {
         Vec2 tailPosition = Vec2(m_gridPosition.x - (i + 1) * m_direction.x, m_gridPosition.y - (i + 1) * m_direction.y);
-        GridTile gridTile(m_grid, tailPosition, m_gridSize, m_color);
+        GridTile gridTile;
+        gridTile.SetGrid(m_grid);
+        gridTile.SetGridSize(m_gridSize);
+        gridTile.SetColor(m_color);
+        gridTile.SetGridPosition(tailPosition);
         m_tailSegments.emplace_back(gridTile);
     }
 }
@@ -40,6 +58,8 @@ void Player::Render() const
     }
 }
 
+// --- Game Logic ---
+
 void Player::Move()
 {
     // Process any queued commands before moving
@@ -47,7 +67,12 @@ void Player::Move()
 
     if (m_growTailOnNextMove)
     {
-        m_tailSegments.push_back(GridTile(m_grid, m_gridPosition, m_gridSize, m_color));
+        GridTile newSegment;
+        newSegment.SetGrid(m_grid);
+        newSegment.SetGridSize(m_gridSize);
+        newSegment.SetColor(m_color);
+        newSegment.SetGridPosition(m_gridPosition);
+        m_tailSegments.push_back(newSegment);
         m_growTailOnNextMove = false;
     }
     // Move the tail segments by shifting them forward and placing the previous head position at the front
@@ -70,17 +95,32 @@ void Player::Grow()
 bool Player::CheckSelfCollision() const
 {
     // Check if the player has collided with its own tail
-    bool isColliding = false;
     for (const GridTile &segment : m_tailSegments)
     {
         if (m_gridPosition == segment.GetGridPosition())
-        {
-            isColliding = true;
-            break;
-        }
+            return true;
     }
-    return isColliding;
+    return false;
 }
+
+// --- Accessors ---
+
+const std::vector<GridTile> &Player::GetTailSegments() const { return m_tailSegments; }
+Vec2 Player::GetDirection() const { return m_direction; }
+void Player::SetInputManager(InputManager *inputManager) { m_inputManager = inputManager; }
+void Player::SetInitialTailLength(int length) { m_initialTailLength = length; }
+void Player::SetMoveSpeed(float speed) { m_moveSpeed = speed; }
+
+void Player::SetDirection(const Vec2 &dir)
+{
+    // Only set direction if it won't cause immediate reversal
+    if (m_direction == -dir)
+        return;
+    m_updateMoveThisFrame = true;
+    m_direction = dir;
+}
+
+// --- Internal ---
 
 void Player::ProcessQueuedCommand()
 {
@@ -92,13 +132,4 @@ void Player::ProcessQueuedCommand()
             command->Execute();
         }
     }
-}
-
-void Player::SetDirection(const Vec2 &dir)
-{
-    // Only set direction if it won't cause immediate reversal
-    if (m_direction == -dir)
-        return;
-    m_updateMoveThisFrame = true;
-    m_direction = dir;
 }

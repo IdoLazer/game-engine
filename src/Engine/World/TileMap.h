@@ -9,33 +9,27 @@ namespace Engine
     // RenderTile() for each one. Subclass and override RenderTile to customize appearance.
     class TileMap : public Entity
     {
+        DECLARE_TYPE(TileMap, Entity)
+
+    // --- Fields ---
     protected:
-        const GridCoordinateSystem *m_coordSystem;
+        const GridCoordinateSystem *m_coordSystem{nullptr};
 
+    // --- Constructors & Destructors ---
     public:
-        TileMap(const GridCoordinateSystem *coordSystem)
-            : m_coordSystem(coordSystem) {}
-
+        TileMap() = default;
         virtual ~TileMap() = default;
 
-        void Render() const override
-        {
-            Vec2 cellCount = m_coordSystem->GetCellCount();
-            float cellSize = m_coordSystem->GetCellSize();
-            Vec2 worldSize{cellSize, cellSize};
+    // --- Lifecycle ---
+    public:
+        void Render() const override;
 
-            for (int y = 0; y < static_cast<int>(cellCount.y); ++y)
-            {
-                for (int x = 0; x < static_cast<int>(cellCount.x); ++x)
-                {
-                    Vec2 worldPos = m_coordSystem->GridToWorld(Vec2{static_cast<float>(x), static_cast<float>(y)});
-                    RenderTile(x, y, worldPos, worldSize);
-                }
-            }
-        }
+    // --- Accessors ---
+    public:
+        void SetCoordSystem(const GridCoordinateSystem *cs);
 
+    // --- Subclass Interface ---
     protected:
-        // Override in subclasses to control how each tile is drawn
         virtual void RenderTile(int x, int y, const Vec2 &worldPos, const Vec2 &worldSize) const = 0;
     };
 }

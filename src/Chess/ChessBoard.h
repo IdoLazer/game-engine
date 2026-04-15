@@ -6,21 +6,29 @@
 
 class ChessBoard : public Engine::TileMap
 {
-public:
-    ChessBoard(const Engine::GridCoordinateSystem *coordSystem)
-        : Engine::TileMap(coordSystem)
-    {
-        int total = ChessConstants::BOARD_SIZE * ChessConstants::BOARD_SIZE;
-        m_highlighted.resize(total, false);
-    }
+    DECLARE_TYPE(ChessBoard, TileMap)
 
-    void ToggleHighlight(const Engine::Vec2 &cell, bool highlighted);
-
-protected:
-    void RenderTile(int x, int y, const Engine::Vec2 &worldPos, const Engine::Vec2 &worldSize) const override;
-
+// --- Fields ---
 private:
     std::vector<bool> m_highlighted;
 
-    int CellIndex(int x, int y) const { return y * ChessConstants::BOARD_SIZE + x; }
+// --- Constructors & Destructors ---
+public:
+    ChessBoard() = default;
+
+// --- Lifecycle ---
+public:
+    void Initialize() override;
+
+// --- Accessors ---
+public:
+    void ToggleHighlight(const Engine::Vec2 &cell, bool highlighted);
+
+// --- Subclass Interface ---
+protected:
+    void RenderTile(int x, int y, const Engine::Vec2 &worldPos, const Engine::Vec2 &worldSize) const override;
+
+// --- Internal ---
+private:
+    int CellIndex(int x, int y) const;
 };
