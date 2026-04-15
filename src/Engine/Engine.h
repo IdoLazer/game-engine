@@ -41,6 +41,10 @@
 // Utilities
 #include "Utilities/Timer.h"
 
+// Types
+#include "Types/TypeRegistry.h"
+#include "Types/TypeRegistrationMacros.h"
+
 // This header provides everything a game needs:
 // 1. Application base class to inherit from
 // 2. All engine subsystems (Renderer2D, Keyboard, etc.)
