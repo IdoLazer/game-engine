@@ -21,8 +21,9 @@ namespace Engine
         Vec2 &operator-=(const Vec2 &other);
         Vec2 &operator*=(float scalar);
         Vec2 &operator/=(float scalar);
-        bool operator==(const Vec2 &other) const;
-        bool operator!=(const Vec2 &other) const;
+
+        // --- Comparison ---
+        bool operator==(const Vec2 &other) const = default;
 
         // --- Friend operators ---
         friend Vec2 operator*(float scalar, const Vec2 &vec);

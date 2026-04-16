@@ -145,7 +145,7 @@ void Chess::OnMouseClick(const Vec2 &cell)
                         return;
                     }
                     auto &opponentPieces = (m_currentPlayerColor == PieceColor::White) ? m_blackPieces : m_whitePieces;
-                    opponentPieces.erase(std::remove(opponentPieces.begin(), opponentPieces.end(), captured), opponentPieces.end());
+                    std::erase(opponentPieces, captured);
                     GetScene()->Destroy(captured);
                 }
 

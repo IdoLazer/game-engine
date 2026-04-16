@@ -23,7 +23,7 @@ namespace Engine
         if (it != m_entityMap.end())
         {
             auto &vec = it->second;
-            vec.erase(std::remove(vec.begin(), vec.end(), entity), vec.end());
+            std::erase(vec, entity);
             if (vec.empty())
                 m_entityMap.erase(it);
         }

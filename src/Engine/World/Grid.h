@@ -4,8 +4,7 @@
 #include "GridCoordinateSystem.h"
 #include <vector>
 #include <unordered_map>
-#include <algorithm>
-#include <type_traits>
+#include <concepts>
 
 namespace Engine
 {
@@ -30,9 +29,9 @@ namespace Engine
 
         // Returns all entities at a cell that match type T
         template <typename T>
+            requires std::derived_from<T, GridEntity>
         std::vector<T *> GetEntitiesAt(const Vec2 &cell) const
         {
-            static_assert(std::is_base_of_v<GridEntity, T>, "T must derive from GridEntity");
             std::vector<T *> result;
             int key = CellKey(cell);
             auto it = m_entityMap.find(key);
@@ -50,9 +49,9 @@ namespace Engine
 
         // Returns the first entity at a cell that matches type T, or nullptr
         template <typename T>
+            requires std::derived_from<T, GridEntity>
         T *GetFirstEntityAt(const Vec2 &cell) const
         {
-            static_assert(std::is_base_of_v<GridEntity, T>, "T must derive from GridEntity");
             int key = CellKey(cell);
             auto it = m_entityMap.find(key);
             if (it != m_entityMap.end())

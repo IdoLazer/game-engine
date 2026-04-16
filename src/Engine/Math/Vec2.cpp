@@ -58,16 +58,6 @@ namespace Engine
         return *this;
     }
 
-    bool Vec2::operator==(const Vec2 &other) const
-    {
-        return this->x == other.x && this->y == other.y;
-    }
-
-    bool Vec2::operator!=(const Vec2 &other) const
-    {
-        return !(*this == other);
-    }
-
     // --- Friend operators ---
 
     Vec2 operator*(float scalar, const Vec2 &vec)

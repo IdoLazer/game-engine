@@ -33,6 +33,7 @@
 // ============================================================================
 
 #include "TypeRegistry.h"
+#include <concepts>
 #include <type_traits>
 
 // Factory helper: returns nullptr for abstract types, real factory otherwise
@@ -53,14 +54,14 @@ std::function<Engine::Entity *()> _EngineEntityFactory()
 public:                                                                             \
     static constexpr const char *GetStaticTypeName()                                \
     {                                                                               \
-        static_assert(std::is_base_of_v<Engine::Entity, ClassName>,                 \
+        static_assert(std::derived_from<ClassName, Engine::Entity>,                 \
             #ClassName " must derive from Engine::Entity");                         \
         return #ClassName;                                                          \
     }                                                                               \
     static constexpr const char *GetParentTypeName()                                \
     {                                                                               \
-        static_assert(std::is_base_of_v<ParentClass, ClassName>,                    \
-            #ParentClass " must be a base of " #ClassName);                         \
+        static_assert(std::derived_from<ClassName, ParentClass>,                    \
+            #ClassName " must derive from " #ParentClass);                          \
         return #ParentClass;                                                        \
     }                                                                               \
 private:
@@ -70,7 +71,7 @@ private:
 public:                                                                             \
     static constexpr const char *GetStaticTypeName()                                \
     {                                                                               \
-        static_assert(std::is_base_of_v<Engine::Entity, ClassName>,                 \
+        static_assert(std::derived_from<ClassName, Engine::Entity>,                 \
             #ClassName " must derive from Engine::Entity");                         \
         return #ClassName;                                                          \
     }                                                                               \

@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <vector>
-#include <type_traits>
+#include <concepts>
 #include <string>
 #include <unordered_map>
 #include <any>
@@ -34,9 +34,9 @@ namespace Engine
     public:
         // Template-based — creates a default-constructed entity.
         template <typename T>
+            requires std::derived_from<T, Entity>
         T *Instantiate()
         {
-            static_assert(std::is_base_of_v<Entity, T>, "Instantiate requires a type derived from Entity");
             auto entity = std::make_unique<T>();
             entity->SetScene(this);
             T *raw = entity.get();
