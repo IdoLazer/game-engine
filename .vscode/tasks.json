@@ -5,8 +5,8 @@
       "id": "targetName",
       "description": "Select the target to build/run",
       "type": "pickString",
-      "options": ["Game", "Chess"],
-      "default": "Game"
+      "options": ["Snake", "Chess"],
+      "default": "Snake"
     }
   ],
   "tasks": [

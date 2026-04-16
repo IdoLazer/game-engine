@@ -47,12 +47,12 @@ target_link_libraries(Engine PUBLIC glfw OpenGL::GL)
 # ---------- Game projects ----------
 # To add a new game project, just add another entry below.
 
-# Game (Snake)
-file(GLOB_RECURSE GAME_SOURCES "src/Game/*.cpp")
-add_executable(Game ${GAME_SOURCES})
-target_include_directories(Game PRIVATE src/Game)
-target_link_libraries(Game PRIVATE Engine)
-set_target_properties(Game PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Game)
+# Snake
+file(GLOB_RECURSE SNAKE_SOURCES "src/Snake/*.cpp")
+add_executable(Snake ${SNAKE_SOURCES})
+target_include_directories(Snake PRIVATE src/Snake)
+target_link_libraries(Snake PRIVATE Engine)
+set_target_properties(Snake PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Snake)
 
 # Chess
 file(GLOB_RECURSE CHESS_SOURCES "src/Chess/*.cpp")

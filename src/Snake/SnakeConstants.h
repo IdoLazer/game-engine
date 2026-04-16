@@ -2,8 +2,8 @@
 
 #include <Engine.h>
 
-// Game Constants
-namespace GameConstants
+// Snake Constants
+namespace SnakeConstants
 {
     // Window Settings
     static constexpr int WINDOW_WIDTH = 800;

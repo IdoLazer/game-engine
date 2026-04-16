@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Engine.h>
-#include "../GameConstants.h"
+#include "../SnakeConstants.h"
 
 class IMovable
 {
@@ -36,28 +36,28 @@ class MoveUpCommand : public MoveCommand
 {
 public:
     MoveUpCommand() = delete;
-    MoveUpCommand(IMovable *movable) : MoveCommand(movable, GameConstants::DIRECTION_UP, "MoveUp") {}
+    MoveUpCommand(IMovable *movable) : MoveCommand(movable, SnakeConstants::DIRECTION_UP, "MoveUp") {}
 };
 
 class MoveDownCommand : public MoveCommand
 {
 public:
     MoveDownCommand() = delete;
-    MoveDownCommand(IMovable *movable) : MoveCommand(movable, GameConstants::DIRECTION_DOWN, "MoveDown") {}
+    MoveDownCommand(IMovable *movable) : MoveCommand(movable, SnakeConstants::DIRECTION_DOWN, "MoveDown") {}
 };
 
 class MoveLeftCommand : public MoveCommand
 {
 public:
     MoveLeftCommand() = delete;
-    MoveLeftCommand(IMovable *movable) : MoveCommand(movable, GameConstants::DIRECTION_LEFT, "MoveLeft") {}
+    MoveLeftCommand(IMovable *movable) : MoveCommand(movable, SnakeConstants::DIRECTION_LEFT, "MoveLeft") {}
 };
 
 class MoveRightCommand : public MoveCommand
 {
 public:
     MoveRightCommand() = delete;
-    MoveRightCommand(IMovable *movable) : MoveCommand(movable, GameConstants::DIRECTION_RIGHT, "MoveRight") {}
+    MoveRightCommand(IMovable *movable) : MoveCommand(movable, SnakeConstants::DIRECTION_RIGHT, "MoveRight") {}
 };
 
 class MovementCommandConflictResolver : public Engine::ICommandConflictResolver

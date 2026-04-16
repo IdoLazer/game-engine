@@ -22,10 +22,10 @@
       ]
     },
     {
-      "name": "Debug Game (Run)",
+      "name": "Debug Snake (Run)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/windows-x64-debug/bin/Game/Game.exe",
+      "program": "${workspaceFolder}/build/windows-x64-debug/bin/Snake/Snake.exe",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",

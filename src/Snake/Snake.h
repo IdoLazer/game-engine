@@ -6,11 +6,11 @@
 #include "Player.h"
 #include "Commands/InputManager.h"
 
-class Game : public Engine::Application
+class Snake : public Engine::Application
 {
 public:
     // --- Constructors & Destructors ---
-    Game() = default;
+    Snake() = default;
 
     // --- Game Interface ---
     void Initialize() override;

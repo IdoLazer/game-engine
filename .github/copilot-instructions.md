@@ -28,9 +28,9 @@ src/
 │   ├── Math/                  # Mathematical utilities (Vec2, etc.)
 │   ├── Graphics/              # Graphics primitives (Color, etc.)
 │   └── Rendering/             # Window management, rendering
-├── Game/                      # Snake game implementation
-│   ├── Game.h                 # Game class inheriting from Engine::Application
-│   ├── Game.cpp               # Game implementation + CreateApplication() factory
+├── Snake/                     # Snake game implementation
+│   ├── Snake.h                # Snake class inheriting from Engine::Application
+│   ├── Snake.cpp              # Snake implementation + CreateApplication() factory
 │   └── Player.h               # Snake player class
 └── Chess/                     # Chess game implementation
     ├── Chess.h                # Chess class inheriting from Engine::Application
@@ -43,16 +43,16 @@ src/
 - **Engine-Owned Entry Point:** Engine provides `main()` via `EntryPoint.h`, games implement factory function
 - **Single Header API:** Games only need `#include <Engine.h>` for complete engine access
 - **Factory Pattern:** Games implement `Engine::CreateApplication()` to provide their application instance
-- **Professional Include Style:** System headers (`<Engine.h>`) vs local headers (`"Game.h"`)
+- **Professional Include Style:** System headers (`<Engine.h>`) vs local headers (`"Snake.h"`)
 - **Clear Separation:** Engine infrastructure separate from game logic
 - **Component-based design:** Small, focused classes with clear responsibilities
 - **CMake build system:** vcpkg for dependency management, system includes for engine headers
 - **Modular Engine Organization:** Entity system, World systems, Utilities clearly separated
-- **Generic vs Game-Specific:** Reusable classes in Engine, specific implementations in Game
+- **Generic vs Game-Specific:** Reusable classes in Engine, specific implementations in Snake
 
 ### Current Technology Stack
 
-- **Language:** C++17
+- **Language:** C++20
 - **Build System:** CMake with vcpkg
 - **Graphics:** OpenGL + GLFW
 - **Platform:** Windows (primary), designed for cross-platform compatibility
@@ -101,9 +101,9 @@ src/
 - **Engine-Owned Entry Point:** Engine provides `main()`, games implement `Engine::CreateApplication()`
 - **Single Header Include:** Games use `#include <Engine.h>` for all engine functionality
 - **Factory Pattern:** Games return their application instance via the CreateApplication() function
-- **Inheritance for Core Systems:** Game inherits from Engine::Application
+- **Inheritance for Core Systems:** Snake inherits from Engine::Application
 - **Abstract Interfaces:** Engine provides pure virtual methods for game implementation
-- **Professional Include Style:** `<Engine.h>` for engine, `"Game.h"` for local files
+- **Professional Include Style:** `<Engine.h>` for engine, `"Snake.h"` for local files
 - **Resource Management:** Use RAII, smart pointers where appropriate
 - **Error Handling:** Clear error messages and graceful degradation
 - **Configuration:** Use config structs for system setup (like WindowConfig)
@@ -127,7 +127,7 @@ The engine currently has:
 - ✅ Scene-based entity ownership (Scene class with Instantiate/Destroy/Clear)
 - ✅ Window management with GLFW
 - ✅ Input handling (Keyboard, Mouse)
-- ✅ Clean Game/Engine separation
+- ✅ Clean Snake/Engine separation
 - ✅ CMake build system with vcpkg
 - ✅ Professional include style (system vs local headers)
 - ✅ Entity system (Entity, GridEntity, GridTile)
