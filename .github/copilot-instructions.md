@@ -4,60 +4,13 @@
 
 This is a **learning-focused C++ game engine project** designed as an educational journey into game engine architecture and development. The primary goal is understanding and learning, not commercial viability.
 
-### Architecture
-
-The project follows a layered architecture with clear separation of concerns and professional entry point management:
-
-```text
-src/
-├── Engine/                     # Core engine systems
-│   ├── Engine.h               # Single header API - everything a game needs
-│   ├── Core/                  # Application lifecycle, entry point, scene management
-│   │   ├── Application.h      # Base application class + CreateApplication() declaration
-│   │   ├── EntryPoint.h       # Engine-owned main() function
-│   │   └── Scene.h            # Entity ownership and lifecycle management
-│   ├── Entity/                # Entity system
-│   │   ├── Entity.h           # Base entity class (with Scene access for spawning)
-│   │   ├── GridEntity.h       # Grid-based entity with coordinate management
-│   │   └── GridTile.h         # Simple renderable grid tile
-│   ├── World/                 # World and spatial systems
-│   │   └── Grid.h             # Grid coordinate system for spatial organization
-│   ├── Utilities/             # General-purpose utilities
-│   │   └── Timer.h            # Game timing and callback utility
-│   ├── Input/                 # Input handling (Keyboard, Mouse)
-│   ├── Math/                  # Mathematical utilities (Vec2, etc.)
-│   ├── Graphics/              # Graphics primitives (Color, etc.)
-│   └── Rendering/             # Window management, rendering
-├── Snake/                     # Snake game implementation
-│   ├── Snake.h                # Snake class inheriting from Engine::Application
-│   ├── Snake.cpp              # Snake implementation + CreateApplication() factory
-│   └── Player.h               # Snake player class
-└── Chess/                     # Chess game implementation
-    ├── Chess.h                # Chess class inheriting from Engine::Application
-    ├── ChessBoard.h           # Board with tile and piece management
-    └── Pieces/                # Chess piece hierarchy (Pawn, Rook, etc.)
-```
-
-**Key Architectural Principles:**
-
-- **Engine-Owned Entry Point:** Engine provides `main()` via `EntryPoint.h`, games implement factory function
-- **Single Header API:** Games only need `#include <Engine.h>` for complete engine access
-- **Factory Pattern:** Games implement `Engine::CreateApplication()` to provide their application instance
-- **Professional Include Style:** System headers (`<Engine.h>`) vs local headers (`"Snake.h"`)
-- **Clear Separation:** Engine infrastructure separate from game logic
-- **Component-based design:** Small, focused classes with clear responsibilities
-- **CMake build system:** vcpkg for dependency management, system includes for engine headers
-- **Modular Engine Organization:** Entity system, World systems, Utilities clearly separated
-- **Generic vs Game-Specific:** Reusable classes in Engine, specific implementations in Snake
-
-### Current Technology Stack
-
-- **Language:** C++20
-- **Build System:** CMake with vcpkg
-- **Graphics:** OpenGL + GLFW
-- **Platform:** Windows (primary), designed for cross-platform compatibility
+For the current architecture, project structure, entity system, type registry, build instructions, and technology stack, see [README.md](../README.md). The README is the single source of truth for what the engine looks like today.
 
 ## Development Guidelines
+
+### Keeping Documentation Current
+
+Any core change — new module, architectural change, new technology, renamed target, added/removed system — **must** include an update to [README.md](../README.md) in the same commit. The README should always accurately describe the current state of the project.
 
 ### Code Quality & Style
 
@@ -66,6 +19,7 @@ src/
 - **Small Components:** Prefer many small, focused classes over monolithic ones
 - **Proper Namespacing:** Engine code lives in `Engine` namespace
 - **RAII Principles:** Proper resource management with constructors/destructors
+- **Correct C++:** Follow established C++ best practices and sound software design principles. When a newer language feature (concepts, ranges, constexpr, etc.) makes code clearer or safer, use it and explain the benefit.
 
 ### Learning Partnership Approach
 
@@ -85,7 +39,7 @@ src/
 - **Present Options:** When multiple approaches exist, explain pros/cons and ask for preference
 - **Stop and Ask:** If you encounter issues, present options rather than trying multiple solutions
 - **Educational Focus:** Teaching moments are more important than just getting things working
-- **Reference Sources:** When using patterns or techniques, reference learning materials or documentation (use the references provided in the project under references/)
+- **Reference Sources:** When using patterns or techniques, reference learning materials or documentation — both for game engine architecture (use references/ in the project) and for C++ best practices (C++ Core Guidelines, cppreference, etc.)
 
 ### Implementation Workflow
 
@@ -96,18 +50,6 @@ src/
 5. **Explain Each Step:** Walk through what you're adding and why
 6. **Test as You Go:** Ensure each increment compiles and works before moving on
 
-### Common Patterns to Follow
-
-- **Engine-Owned Entry Point:** Engine provides `main()`, games implement `Engine::CreateApplication()`
-- **Single Header Include:** Games use `#include <Engine.h>` for all engine functionality
-- **Factory Pattern:** Games return their application instance via the CreateApplication() function
-- **Inheritance for Core Systems:** Snake inherits from Engine::Application
-- **Abstract Interfaces:** Engine provides pure virtual methods for game implementation
-- **Professional Include Style:** `<Engine.h>` for engine, `"Snake.h"` for local files
-- **Resource Management:** Use RAII, smart pointers where appropriate
-- **Error Handling:** Clear error messages and graceful degradation
-- **Configuration:** Use config structs for system setup (like WindowConfig)
-
 ### What NOT to Do
 
 - Don't implement multiple large features simultaneously
@@ -115,34 +57,6 @@ src/
 - Don't assume the developer understands advanced patterns
 - Don't proceed with major architectural changes without discussion
 - Don't optimize prematurely - clarity first, performance later
-
-### Current Development Status
-
-The engine currently has:
-
-- ✅ Engine-owned entry point architecture (professional main() handling)
-- ✅ Single header API (`#include <Engine.h>`)
-- ✅ Factory pattern for application creation
-- ✅ Basic application lifecycle (Application class)
-- ✅ Scene-based entity ownership (Scene class with Instantiate/Destroy/Clear)
-- ✅ Window management with GLFW
-- ✅ Input handling (Keyboard, Mouse)
-- ✅ Clean Snake/Engine separation
-- ✅ CMake build system with vcpkg
-- ✅ Professional include style (system vs local headers)
-- ✅ Entity system (Entity, GridEntity, GridTile)
-- ✅ World systems (Grid coordinate system)
-- ✅ Utilities (Timer for game timing)
-- ✅ Modular Engine organization
-
-Next logical areas for development:
-
-- Rendering pipeline improvements
-- Resource management
-- Audio system
-- Physics integration
-- Scene lifecycle (switching, loading)
-- Enhanced Entity-Component System features
 
 ### Questions to Ask Yourself Before Making Changes
 
