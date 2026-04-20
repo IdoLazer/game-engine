@@ -10,7 +10,7 @@ For the current architecture, project structure, entity system, type registry, b
 
 ### Keeping Documentation Current
 
-Any core change — new module, architectural change, new technology, renamed target, added/removed system — **must** include an update to [README.md](../README.md) in the same commit. The README should always accurately describe the current state of the project.
+Any core change — new module, architectural change, new technology, renamed target, added/removed system — **must** include an update to [README.md](../README.md) in the same commit. The README should always accurately describe the current state of the project. This includes the **Project Structure** tree — any new files, folders, or modules must be reflected there.
 
 ### Code Quality & Style
 

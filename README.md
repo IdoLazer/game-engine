@@ -16,6 +16,9 @@ src/
 │   │   ├── Entity.h                    # Base entity class (with Scene access for spawning)
 │   │   ├── GridEntity.h                # Grid-based entity with coordinate management
 │   │   └── GridTile.h                  # Simple renderable grid tile
+│   ├── Events/                         # Observer pattern event system
+│   │   ├── Event.h                     # Event<Args...> / EventSubscriber<Args...>
+│   │   └── Subscription.h             # RAII subscription handle
 │   ├── Types/                          # Runtime type registry and self-registration
 │   │   ├── TypeRegistry.h              # Singleton mapping type names → factories + properties
 │   │   └── TypeRegistrationMacros.h    # DECLARE_TYPE / REGISTER_PROPERTY macros
@@ -40,6 +43,9 @@ src/
     ├── ChessBoard.h/cpp                # Board with tile and piece management
     ├── ChessTile.h/cpp                 # Clickable board tile
     └── Pieces/                         # Piece hierarchy (Pawn, Rook, Bishop, Knight, Queen, King)
+Tests/                                  # Google Test suite
+├── Vec2Test.cpp                        # Vec2 math tests
+└── EventTest.cpp                       # Event system tests
 ```
 
 ## How It Works
