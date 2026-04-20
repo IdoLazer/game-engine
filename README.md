@@ -129,6 +129,21 @@ cmake --build build/windows-x64-debug --target Chess
 .\build\windows-x64-debug\bin\Chess\Chess.exe
 ```
 
+## Testing
+
+Tests use [Google Test](https://google.github.io/googletest/) (fetched automatically via CMake FetchContent). Test files live in `Tests/` and are compiled into a single `Tests` executable.
+
+```bash
+# Build and run tests
+cmake --build build/windows-x64-debug --target Tests
+ctest --test-dir build/windows-x64-debug --output-on-failure
+
+# Filter by name
+ctest --test-dir build/windows-x64-debug -R "Vec2"
+```
+
+VS Code tasks are also available: **Build + Test (Debug)** builds and runs all tests via CTest.
+
 ## Technology
 
 - **C++20** with modern language features

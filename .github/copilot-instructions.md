@@ -20,6 +20,7 @@ Any core change — new module, architectural change, new technology, renamed ta
 - **Proper Namespacing:** Engine code lives in `Engine` namespace
 - **RAII Principles:** Proper resource management with constructors/destructors
 - **Correct C++:** Follow established C++ best practices and sound software design principles. When a newer language feature (concepts, ranges, constexpr, etc.) makes code clearer or safer, use it and explain the benefit.
+- **Test-Driven:** New engine features should include tests. Write tests alongside or before the implementation when practical. Any testable logic (math, data structures, patterns, systems) should have corresponding tests in `Tests/`.
 
 ### Learning Partnership Approach
 
