@@ -25,6 +25,10 @@
 #include "Patterns/Command/Command.h"
 #include "Patterns/Command/CommandQueue.h"
 
+// Events
+#include "Events/Event.h"
+#include "Events/Subscription.h"
+
 // Graphics
 #include "Graphics/Color.h"
 
