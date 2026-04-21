@@ -1,5 +1,5 @@
 #include "Player.h"
-#include "Commands/InputManager.h"
+#include "Commands/MovementInputHandler.h"
 
 // --- Type Registration ---
 
@@ -107,7 +107,7 @@ bool Player::CheckSelfCollision() const
 
 const std::vector<GridTile> &Player::GetTailSegments() const { return m_tailSegments; }
 Vec2 Player::GetDirection() const { return m_direction; }
-void Player::SetInputManager(InputManager *inputManager) { m_inputManager = inputManager; }
+void Player::SetInputHandler(MovementInputHandler *handler) { m_inputHandler = handler; }
 void Player::SetInitialTailLength(int length) { m_initialTailLength = length; }
 void Player::SetMoveSpeed(float speed) { m_moveSpeed = speed; }
 
@@ -124,9 +124,9 @@ void Player::SetDirection(const Vec2 &dir)
 
 void Player::ProcessQueuedCommand()
 {
-    if (m_inputManager && m_inputManager->HasQueuedMovementCommands())
+    if (m_inputHandler && m_inputHandler->HasQueuedMovementCommands())
     {
-        auto command = m_inputManager->GetNextMovementCommand();
+        auto command = m_inputHandler->GetNextMovementCommand();
         if (command)
         {
             command->Execute();

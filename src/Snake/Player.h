@@ -16,7 +16,7 @@ private:
     Engine::Timer m_moveTimer;
     bool m_updateMoveThisFrame{false};
     bool m_growTailOnNextMove{false};
-    class InputManager *m_inputManager{nullptr};
+    class MovementInputHandler *m_inputHandler{nullptr};
 
 // --- Constructors & Destructors ---
 public:
@@ -35,7 +35,7 @@ public:
     const std::vector<Engine::GridTile> &GetTailSegments() const;
     Engine::Vec2 GetDirection() const;
     void SetDirection(const Engine::Vec2 &dir) override;
-    void SetInputManager(class InputManager *inputManager);
+    void SetInputHandler(class MovementInputHandler *handler);
     void SetInitialTailLength(int length);
     void SetMoveSpeed(float speed);
 

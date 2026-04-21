@@ -26,15 +26,18 @@ void Snake::Initialize()
     InitializeWorld();
     InitializePlayer();
     InitializeFood();
+
+    m_escapeSub = Keyboard::OnKeyPressed().Subscribe([this](const Key &key)
+    {
+        if (key == Key::Escape)
+            Close();
+    });
 }
 
 void Snake::Update(float deltaTime)
 {
-    // Process input and convert to commands
-    m_inputManager->ProcessInput();
-
     m_player->Update(deltaTime);
-    ReadInput();
+
     if (CheckGameOver())
     {
         std::cout << "Game Over!" << std::endl;
@@ -83,15 +86,13 @@ void Snake::PlaceFood()
     // If we couldn't find a valid position, just place it anyway (game is probably about to end)
 }
 
-void Snake::ReadInput()
+void Snake::Shutdown()
 {
-    // Exit game on Escape
-    if (m_inputManager->IsExitRequested())
-    {
-        std::cout << "Escape pressed - exiting game!" << std::endl;
-        Close();
-    }
+    std::cout << "Snake shutting down." << std::endl;
+    m_player->Destroy();
 }
+
+// --- Game Logic ---
 
 bool Snake::CheckGameOver() const
 {
@@ -107,12 +108,6 @@ bool Snake::CheckWallCollision() const
 {
     // Check if the player has collided with the walls using Grid's boundary checking
     return !m_grid.IsInBounds(m_player->GetGridPosition());
-}
-
-void Snake::Shutdown()
-{
-    std::cout << "Snake shutting down." << std::endl;
-    m_player->Destroy();
 }
 
 // --- Initialization ---
@@ -148,11 +143,8 @@ void Snake::InitializePlayer()
     m_player->SetMoveSpeed(SnakeConstants::MOVE_SPEED);
     m_player->Initialize();
 
-    // Initialize Input Manager
-    m_inputManager = std::make_unique<InputManager>(m_player);
-
-    // Connect the input manager to the player for command processing
-    m_player->SetInputManager(m_inputManager.get());
+    m_inputHandler = std::make_unique<MovementInputHandler>(m_player);
+    m_player->SetInputHandler(m_inputHandler.get());
 }
 
 void Snake::InitializeFood()

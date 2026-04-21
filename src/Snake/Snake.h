@@ -4,7 +4,7 @@
 #include <vector>
 #include <functional>
 #include "Player.h"
-#include "Commands/InputManager.h"
+#include "Commands/MovementInputHandler.h"
 
 class Snake : public Engine::Application
 {
@@ -27,7 +27,6 @@ private:
     void InitializeFood();
 
     // --- Game Logic ---
-    void ReadInput();
     bool CheckGameOver() const;
     bool CheckFoodCollision() const;
     bool CheckWallCollision() const;
@@ -35,7 +34,8 @@ private:
     bool IsValidFoodPosition(const Engine::Vec2 &position) const;
 
     // --- Fields ---
-    std::unique_ptr<InputManager> m_inputManager;
+    std::unique_ptr<MovementInputHandler> m_inputHandler;
+    Engine::Subscription m_escapeSub;
     Engine::Grid m_grid;
     Engine::Vec2 m_gridWorldSize;
     Engine::Color m_backgroundColor;

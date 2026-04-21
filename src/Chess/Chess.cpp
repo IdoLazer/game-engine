@@ -32,29 +32,27 @@ void Chess::Initialize()
     }
 
     Mouse::SetCursorVisibility(false);
+
+    // --- Event subscriptions ---
+    m_escapeSub = Keyboard::OnKeyPressed().Subscribe([this](const Key &key)
+    {
+        if (key == Key::Escape)
+            Close();
+    });
+
+    m_clickSub = Mouse::OnButtonPressed().Subscribe([this](const MouseButton &button)
+    {
+        if (button != MouseButton::Left || m_gameOver)
+            return;
+
+        Vec2 mousePos = Mouse::GetWorldPosition();
+        Vec2 gridPos = m_grid.WorldToGrid(mousePos);
+        if (m_grid.IsInBounds(gridPos))
+            OnCellClicked(m_grid.GetCellFromGridPosition(gridPos));
+    });
 }
 
-void Chess::Update(float deltaTime)
-{
-    m_inputManager.ProcessInput();
-    if (m_inputManager.IsExitRequested())
-    {
-        Close();
-        return;
-    }
-
-    if (m_gameOver)
-        return;
-
-    // Handle mouse input
-    Vec2 mousePos = Mouse::GetWorldPosition();
-    Vec2 gridPos = m_grid.WorldToGrid(mousePos);
-    if (m_grid.IsInBounds(gridPos) && Mouse::IsButtonPressed(MouseButton::Left))
-    {
-        Vec2 cell = m_grid.GetCellFromGridPosition(gridPos);
-        OnMouseClick(cell);
-    }
-}
+void Chess::Update(float deltaTime) {}
 
 void Chess::Render() const
 {
@@ -93,77 +91,93 @@ void Chess::AddPiece(ChessPiece *piece)
         m_whitePieces.push_back(piece);
 }
 
-void Chess::OnMouseClick(const Vec2 &cell)
+void Chess::OnCellClicked(const Vec2 &cell)
 {
-    // Use the Grid spatial index to find what's at the clicked cell
     ChessPiece *clickedPiece = m_grid.GetFirstEntityAt<ChessPiece>(cell);
 
-    // Check for piece selection (clicked a piece of the current player's color)
+    // Clicking a piece of the current player's color → select it
     if (clickedPiece && clickedPiece->GetPieceColor() == m_currentPlayerColor)
     {
-        if (m_selectedPiece && clickedPiece != m_selectedPiece)
-            // Clear highlights from previously selected piece
-            ToggleHighlight(m_selectedPiece, false);
-
-        m_selectedPiece = clickedPiece;
-
-        // Highlight the selected piece and its possible moves
-        ToggleHighlight(m_selectedPiece, true);
+        SelectPiece(clickedPiece);
         return;
     }
 
-    // If a piece is already selected, attempt to move it
-    if (m_selectedPiece)
+    // A piece is selected → try to move it to the clicked cell
+    if (m_selectedPiece && TryMovePiece(cell))
     {
-        auto possibleMoves = m_selectedPiece->GetPossibleMoves();
-        bool isNormalMove = std::find(possibleMoves.begin(), possibleMoves.end(), cell) != possibleMoves.end();
-        bool isCastle = !isNormalMove && IsCastlingMove(cell);
-
-        if (isNormalMove || isCastle)
-        {
-            // Clear highlights from the selected piece
-            ToggleHighlight(m_selectedPiece, false);
-
-            if (isCastle)
-            {
-                // Castling — move both king and rook
-                PerformCastle(dynamic_cast<King *>(m_selectedPiece), cell);
-            }
-            else
-            {
-                // Normal move — capture first, then move
-                ChessPiece *captured = m_grid.GetFirstEntityAt<ChessPiece>(cell);
-                if (captured)
-                {
-                    if (dynamic_cast<King *>(captured))
-                    {
-                        m_gameOver = true;
-                        std::cout << "Game Over! "
-                                  << ((m_currentPlayerColor == PieceColor::White) ? "White" : "Black")
-                                  << " wins!" << std::endl;
-                        Close();
-                        return;
-                    }
-                    auto &opponentPieces = (m_currentPlayerColor == PieceColor::White) ? m_blackPieces : m_whitePieces;
-                    std::erase(opponentPieces, captured);
-                    GetScene()->Destroy(captured);
-                }
-
-                m_selectedPiece->SetGridPosition(cell);
-            }
-
-            m_selectedPiece = nullptr;
-
-            // Switch player turn
-            m_currentPlayerColor = (m_currentPlayerColor == PieceColor::White) ? PieceColor::Black : PieceColor::White;
-        }
-        else
-        {
-            // Invalid move, just deselect
-            ToggleHighlight(m_selectedPiece, false);
-            m_selectedPiece = nullptr;
-        }
+        SwitchTurn();
+        return;
     }
+
+    // Invalid click → deselect
+    if (m_selectedPiece)
+        DeselectPiece();
+}
+
+void Chess::SelectPiece(ChessPiece *piece)
+{
+    if (m_selectedPiece && piece != m_selectedPiece)
+        ToggleHighlight(m_selectedPiece, false);
+
+    m_selectedPiece = piece;
+    ToggleHighlight(m_selectedPiece, true);
+}
+
+void Chess::DeselectPiece()
+{
+    ToggleHighlight(m_selectedPiece, false);
+    m_selectedPiece = nullptr;
+}
+
+bool Chess::TryMovePiece(const Vec2 &cell)
+{
+    auto possibleMoves = m_selectedPiece->GetPossibleMoves();
+    bool isNormalMove = std::find(possibleMoves.begin(), possibleMoves.end(), cell) != possibleMoves.end();
+    bool isCastle = !isNormalMove && IsCastlingMove(cell);
+
+    if (!isNormalMove && !isCastle)
+        return false;
+
+    ToggleHighlight(m_selectedPiece, false);
+
+    if (isCastle)
+    {
+        PerformCastle(dynamic_cast<King *>(m_selectedPiece), cell);
+    }
+    else
+    {
+        ChessPiece *captured = m_grid.GetFirstEntityAt<ChessPiece>(cell);
+        if (captured)
+        {
+            if (dynamic_cast<King *>(captured))
+            {
+                m_gameOver = true;
+                std::cout << "Game Over! "
+                          << ((m_currentPlayerColor == PieceColor::White) ? "White" : "Black")
+                          << " wins!" << std::endl;
+                Close();
+                return true;
+            }
+            CapturePiece(captured);
+        }
+
+        m_selectedPiece->SetGridPosition(cell);
+    }
+
+    m_selectedPiece = nullptr;
+    return true;
+}
+
+void Chess::CapturePiece(ChessPiece *piece)
+{
+    auto &opponentPieces = (m_currentPlayerColor == PieceColor::White) ? m_blackPieces : m_whitePieces;
+    std::erase(opponentPieces, piece);
+    GetScene()->Destroy(piece);
+}
+
+void Chess::SwitchTurn()
+{
+    m_currentPlayerColor = (m_currentPlayerColor == PieceColor::White) ? PieceColor::Black : PieceColor::White;
 }
 
 void Chess::ToggleHighlight(ChessPiece *piece, bool highlight)

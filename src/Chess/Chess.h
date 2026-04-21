@@ -4,7 +4,6 @@
 #include <Core/EntryPoint.h>
 #include <vector>
 
-#include "InputManager.h"
 #include "ChessBoard.h"
 #include "ChessTypes.h"
 
@@ -28,7 +27,12 @@ public:
 
 private:
     // --- Game Logic ---
-    void OnMouseClick(const Engine::Vec2 &cell);
+    void OnCellClicked(const Engine::Vec2 &cell);
+    void SelectPiece(ChessPiece *piece);
+    void DeselectPiece();
+    bool TryMovePiece(const Engine::Vec2 &cell);
+    void CapturePiece(ChessPiece *piece);
+    void SwitchTurn();
     void AddPiece(ChessPiece *piece);
     void ToggleHighlight(ChessPiece *piece, bool highlight);
 
@@ -45,5 +49,6 @@ private:
     ChessPiece *m_selectedPiece{nullptr};
     PieceColor m_currentPlayerColor{PieceColor::White};
     bool m_gameOver{false};
-    InputManager m_inputManager;
+    Engine::Subscription m_escapeSub;
+    Engine::Subscription m_clickSub;
 };
