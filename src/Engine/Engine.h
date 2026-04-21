@@ -34,6 +34,7 @@
 
 // Entity System
 #include "Entity/Entity.h"
+#include "Entity/Tile.h"
 #include "Entity/GridEntity.h"
 #include "Entity/GridTile.h"
 

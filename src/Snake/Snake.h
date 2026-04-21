@@ -15,7 +15,6 @@ public:
     // --- Game Interface ---
     void Initialize() override;
     void Update(float deltaTime) override;
-    void Render() const override;
     void Shutdown() override;
 
     Engine::WindowConfig GetWindowConfig() const override;
@@ -38,7 +37,6 @@ private:
     Engine::Subscription m_escapeSub;
     Engine::Grid m_grid;
     Engine::Vec2 m_gridWorldSize;
-    Engine::Color m_backgroundColor;
     Player *m_player{nullptr};
     Engine::GridTile *m_food{nullptr};
 };

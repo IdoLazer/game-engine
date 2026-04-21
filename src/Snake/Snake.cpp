@@ -36,8 +36,6 @@ void Snake::Initialize()
 
 void Snake::Update(float deltaTime)
 {
-    m_player->Update(deltaTime);
-
     if (CheckGameOver())
     {
         std::cout << "Game Over!" << std::endl;
@@ -48,18 +46,6 @@ void Snake::Update(float deltaTime)
         PlaceFood();
         m_player->Grow();
     }
-}
-
-void Snake::Render() const
-{
-    // Draw background
-    Renderer2D::DrawTile(Vec2{0, 0}, m_gridWorldSize, m_backgroundColor);
-
-    // Draw Player
-    m_player->Render();
-
-    // Draw Food
-    m_food->Render();
 }
 
 // --- Game Logic ---
@@ -89,7 +75,6 @@ void Snake::PlaceFood()
 void Snake::Shutdown()
 {
     std::cout << "Snake shutting down." << std::endl;
-    m_player->Destroy();
 }
 
 // --- Game Logic ---
@@ -128,7 +113,12 @@ void Snake::InitializeWorld()
     m_grid = Grid(cellSize, SnakeConstants::GRID_CELL_COUNT);
     m_gridWorldSize = Vec2(cellSize * SnakeConstants::GRID_CELL_COUNT.x,
                            cellSize * SnakeConstants::GRID_CELL_COUNT.y);
-    m_backgroundColor = SnakeConstants::BACKGROUND_COLOR;
+
+    // Background tile (instantiated first so it renders behind everything)
+    auto *background = GetScene()->Instantiate<Tile>();
+    background->SetWorldPosition(Vec2{0, 0});
+    background->SetWorldSize(m_gridWorldSize);
+    background->SetColor(SnakeConstants::BACKGROUND_COLOR);
 }
 
 void Snake::InitializePlayer()
@@ -141,7 +131,6 @@ void Snake::InitializePlayer()
     m_player->SetDirection(SnakeConstants::DIRECTION_RIGHT);
     m_player->SetInitialTailLength(SnakeConstants::INITIAL_TAIL_LENGTH);
     m_player->SetMoveSpeed(SnakeConstants::MOVE_SPEED);
-    m_player->Initialize();
 
     m_inputHandler = std::make_unique<MovementInputHandler>(m_player);
     m_player->SetInputHandler(m_inputHandler.get());
@@ -160,7 +149,6 @@ void Snake::InitializeFood()
     m_food->SetGridPosition(foodPosition);
     m_food->SetGridSize(SnakeConstants::FOOD_SIZE);
     m_food->SetColor(SnakeConstants::FOOD_COLOR);
-    m_food->Initialize();
 }
 
 bool Snake::IsValidFoodPosition(const Vec2 &position) const

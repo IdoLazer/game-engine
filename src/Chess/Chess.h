@@ -20,7 +20,6 @@ public:
     // --- Game Interface ---
     void Initialize() override;
     void Update(float deltaTime) override;
-    void Render() const override;
     void Shutdown() override;
 
     Engine::WindowConfig GetWindowConfig() const override;

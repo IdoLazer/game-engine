@@ -68,9 +68,10 @@ namespace Engine
             float deltaTime = static_cast<float>(currentTime - m_lastFrameTime);
             m_lastFrameTime = currentTime;
 
-            UpdateEngine();    // Update engine systems
-            Update(deltaTime); // Update game logic with delta time
-            RenderFrame();     // Render the frame
+            UpdateEngine();             // Update engine systems
+            m_scene.Update(deltaTime);  // Update all entities
+            Update(deltaTime);          // Update game logic
+            RenderFrame();              // Render the frame
         }
 
         std::cout << "Application loop ended." << std::endl;
@@ -150,7 +151,7 @@ namespace Engine
     {
         Renderer2D::BeginFrame();
         Renderer2D::Clear(Color(0.1f, 0.1f, 0.1f, 1.0f));
-        Render();
+        m_scene.Render();
         Renderer2D::EndFrame();
         m_window->SwapBuffers();
     }

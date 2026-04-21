@@ -16,12 +16,14 @@ namespace Engine
     void Entity::Initialize() {}
     void Entity::Update(float deltaTime) {}
     void Entity::Render() const {}
+    void Entity::Destroy() {}
 
     // --- Accessors ---
 
     Vec2 Entity::GetWorldPosition() const { return m_worldPosition; }
     Vec2 Entity::GetWorldSize() const { return m_worldSize; }
     Color Entity::GetColor() const { return m_color; }
+    bool Entity::IsInitialized() const { return m_initialized; }
     void Entity::SetWorldPosition(const Vec2 &position) { m_worldPosition = position; }
     void Entity::SetWorldSize(const Vec2 &size) { m_worldSize = size; }
     void Entity::SetColor(const Color &color) { m_color = color; }

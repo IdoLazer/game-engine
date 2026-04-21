@@ -31,12 +31,14 @@ namespace Engine
         virtual void Initialize();
         virtual void Update(float deltaTime);
         virtual void Render() const;
+        virtual void Destroy();
 
     // --- Accessors ---
     public:
         Vec2 GetWorldPosition() const;
         Vec2 GetWorldSize() const;
         Color GetColor() const;
+        bool IsInitialized() const;
         void SetWorldPosition(const Vec2 &position);
         void SetWorldSize(const Vec2 &size);
         void SetColor(const Color &color);
@@ -48,5 +50,7 @@ namespace Engine
     private:
         void SetScene(Scene *scene);
         Scene *m_scene{nullptr};
+        bool m_initialized{false};
+        bool m_pendingDestroy{false};
     };
 }

@@ -1,4 +1,5 @@
 #include "Chess.h"
+#include "CursorEntity.h"
 #include "Pieces/ChessPieces.h"
 #include <iostream>
 
@@ -19,19 +20,21 @@ void Chess::Initialize()
     // Create the tile map for rendering
     m_board = scene->Instantiate<ChessBoard>();
     m_board->SetCoordSystem(&m_grid.GetCoordinateSystem());
-    m_board->Initialize();
 
-    // Initialize all pieces from data table — properties flow through the
-    // property system, then we wire up the runtime Grid* pointer manually.
+    // Initialize all pieces from data table
     for (const auto &pieceData : ChessConstants::CHESS_PIECES_DATA)
     {
         auto *piece = static_cast<ChessPiece *>(scene->Instantiate(pieceData));
         piece->SetGrid(&m_grid);
-        piece->Initialize();
         AddPiece(piece);
     }
 
     Mouse::SetCursorVisibility(false);
+
+    // Cursor entity (rendered last because it's instantiated last)
+    auto *cursor = scene->Instantiate<CursorEntity>();
+    cursor->SetRadius(ChessConstants::CURSOR_RADIUS);
+    cursor->SetColor(Color::Red);
 
     // --- Event subscriptions ---
     m_escapeSub = Keyboard::OnKeyPressed().Subscribe([this](const Key &key)
@@ -53,22 +56,6 @@ void Chess::Initialize()
 }
 
 void Chess::Update(float deltaTime) {}
-
-void Chess::Render() const
-{
-    // Render tiles
-    m_board->Render();
-
-    // Render pieces
-    for (const auto *piece : m_whitePieces)
-        piece->Render();
-    for (const auto *piece : m_blackPieces)
-        piece->Render();
-
-    // Render cursor
-    Vec2 mousePosition = Mouse::GetWorldPosition();
-    Renderer2D::DrawCircle(mousePosition, ChessConstants::CURSOR_RADIUS, Color::Red);
-}
 
 WindowConfig Chess::GetWindowConfig() const
 {

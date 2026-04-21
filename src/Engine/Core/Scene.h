@@ -24,11 +24,12 @@ namespace Engine
     // --- Fields ---
     private:
         std::vector<std::unique_ptr<Entity>> m_entities;
+        std::vector<std::unique_ptr<Entity>> m_pendingEntities;
 
     // --- Constructors & Destructors ---
     public:
         Scene() = default;
-        ~Scene() = default;
+        ~Scene();
 
     // --- Instantiation ---
     public:
@@ -40,7 +41,7 @@ namespace Engine
             auto entity = std::make_unique<T>();
             entity->SetScene(this);
             T *raw = entity.get();
-            m_entities.push_back(std::move(entity));
+            m_pendingEntities.push_back(std::move(entity));
             return raw;
         }
 
@@ -52,7 +53,14 @@ namespace Engine
 
     // --- Lifecycle ---
     public:
+        void Update(float deltaTime);
+        void Render() const;
         void Destroy(Entity *entity);
         void Clear();
+
+    // --- Internal ---
+    private:
+        void FlushPending();
+        void FlushDestroyed();
     };
 }
