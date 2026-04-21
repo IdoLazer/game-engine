@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include "../Math/Vec2.h"
 #include "MouseCodes.h"
+#include "Events/Event.h"
 
 namespace Engine
 {
@@ -31,6 +32,12 @@ namespace Engine
         // --- Cursor ---
         static void SetCursorVisibility(bool visible);
 
+        // --- Events ---
+        static EventSubscriber<MouseButton> &OnButtonPressed() { return s_buttonPressed; }
+        static EventSubscriber<MouseButton> &OnButtonReleased() { return s_buttonReleased; }
+        static EventSubscriber<Vec2> &OnMoved() { return s_moved; }
+        static EventSubscriber<Vec2> &OnScrolled() { return s_scrolled; }
+
     private:
         // --- Fields ---
         static GLFWwindow *m_window;
@@ -45,5 +52,11 @@ namespace Engine
         static void MouseButtonCallback(GLFWwindow *window, int button, int action, int mods);
         static void CursorPositionCallback(GLFWwindow *window, double xpos, double ypos);
         static void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
+
+        // --- Events ---
+        static Event<MouseButton> s_buttonPressed;
+        static Event<MouseButton> s_buttonReleased;
+        static Event<Vec2> s_moved;
+        static Event<Vec2> s_scrolled;
     };
 }

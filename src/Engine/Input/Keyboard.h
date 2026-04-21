@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <unordered_map>
 #include "KeyCodes.h"
+#include "Events/Event.h"
 
 namespace Engine
 {
@@ -19,6 +20,10 @@ namespace Engine
         static bool IsKeyPressed(Key key);
         static bool IsKeyReleased(Key key);
 
+        // --- Events ---
+        static EventSubscriber<Key> &OnKeyPressed() { return s_keyPressed; }
+        static EventSubscriber<Key> &OnKeyReleased() { return s_keyReleased; }
+
     private:
         // --- Fields ---
         static GLFWwindow *m_window;
@@ -28,5 +33,9 @@ namespace Engine
 
         // --- Internal ---
         static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
+
+        // --- Events ---
+        static Event<Key> s_keyPressed;
+        static Event<Key> s_keyReleased;
     };
 }

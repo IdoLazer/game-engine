@@ -12,6 +12,10 @@ namespace Engine
     Vec2 Mouse::m_previousPosition(0.0f, 0.0f);
     Vec2 Mouse::m_scrollOffset(0.0f, 0.0f);
     bool Mouse::m_initialized = false;
+    Event<MouseButton> Mouse::s_buttonPressed;
+    Event<MouseButton> Mouse::s_buttonReleased;
+    Event<Vec2> Mouse::s_moved;
+    Event<Vec2> Mouse::s_scrolled;
 
     // --- Lifecycle ---
 
@@ -74,21 +78,25 @@ namespace Engine
         if (action == GLFW_PRESS)
         {
             m_currentButtonState[button] = true;
+            s_buttonPressed.Notify(static_cast<MouseButton>(button));
         }
         else if (action == GLFW_RELEASE)
         {
             m_currentButtonState[button] = false;
+            s_buttonReleased.Notify(static_cast<MouseButton>(button));
         }
     }
 
     void Mouse::CursorPositionCallback(GLFWwindow *window, double xpos, double ypos)
     {
         m_currentPosition = Vec2(static_cast<float>(xpos), static_cast<float>(ypos));
+        s_moved.Notify(m_currentPosition);
     }
 
     void Mouse::ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
     {
         m_scrollOffset = Vec2(static_cast<float>(xoffset), static_cast<float>(yoffset));
+        s_scrolled.Notify(m_scrollOffset);
     }
 
     // --- Button Queries ---

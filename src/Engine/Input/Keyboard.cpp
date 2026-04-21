@@ -8,6 +8,8 @@ namespace Engine
     std::unordered_map<int, bool> Keyboard::m_currentKeyState;
     std::unordered_map<int, bool> Keyboard::m_previousKeyState;
     bool Keyboard::m_initialized = false;
+    Event<Key> Keyboard::s_keyPressed;
+    Event<Key> Keyboard::s_keyReleased;
 
     // --- Lifecycle ---
 
@@ -56,10 +58,12 @@ namespace Engine
         if (action == GLFW_PRESS)
         {
             m_currentKeyState[key] = true;
+            s_keyPressed.Notify(static_cast<Key>(key));
         }
         else if (action == GLFW_RELEASE)
         {
             m_currentKeyState[key] = false;
+            s_keyReleased.Notify(static_cast<Key>(key));
         }
     }
 
