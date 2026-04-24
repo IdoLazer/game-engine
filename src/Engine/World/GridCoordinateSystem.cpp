@@ -26,20 +26,20 @@ Vec2 GridCoordinateSystem::GridToWorld(Vec2 gridPos) const
 
 Vec2 GridCoordinateSystem::WorldToGrid(Vec2 worldPos) const
 {
-    float gridX = (worldPos.x - m_topLeft.x) / m_cellSize;
-    float gridY = (m_topLeft.y - worldPos.y) / m_cellSize;
+    float gridX = (worldPos.x - m_topLeft.x) / m_cellSize - 0.5f;
+    float gridY = (m_topLeft.y - worldPos.y) / m_cellSize - 0.5f;
     return Vec2(gridX, gridY);
 }
 
 Vec2 GridCoordinateSystem::GetCellFromGridPosition(const Vec2 &gridPos) const
 {
-    return Vec2{std::floor(gridPos.x), std::floor(gridPos.y)};
+    return Vec2{std::floor(gridPos.x + 0.5f), std::floor(gridPos.y + 0.5f)};
 }
 
 bool GridCoordinateSystem::IsInBounds(Vec2 gridPos) const
 {
-    return gridPos.x >= 0 && gridPos.x < m_cellCount.x &&
-           gridPos.y >= 0 && gridPos.y < m_cellCount.y;
+    return gridPos.x >= -0.5f && gridPos.x < m_cellCount.x - 0.5f &&
+           gridPos.y >= -0.5f && gridPos.y < m_cellCount.y - 0.5f;
 }
 
 // --- Accessors ---
