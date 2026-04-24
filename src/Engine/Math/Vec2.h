@@ -8,7 +8,8 @@ namespace Engine
         float x, y;
 
         // --- Constructors ---
-        constexpr explicit Vec2(float x = 0.0f, float y = 0.0f) : x(x), y(y) {}
+        constexpr Vec2() : x(0.0f), y(0.0f) {}
+        constexpr explicit Vec2(float x, float y) : x(x), y(y) {}
         constexpr explicit Vec2(int x, int y) : x(static_cast<float>(x)), y(static_cast<float>(y)) {}
 
         // --- Operators ---
