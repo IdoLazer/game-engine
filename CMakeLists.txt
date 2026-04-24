@@ -77,10 +77,18 @@ target_link_libraries(Chess PRIVATE Engine)
 set_target_properties(Chess PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Chess)
 copy_game_assets(Chess "${CMAKE_SOURCE_DIR}/games/Chess/assets")
 
+# Platformer
+file(GLOB_RECURSE PLATFORMER_SOURCES "games/Platformer/src/*.cpp")
+add_executable(Platformer ${PLATFORMER_SOURCES})
+target_include_directories(Platformer PRIVATE games/Platformer/src)
+target_link_libraries(Platformer PRIVATE Engine)
+set_target_properties(Platformer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Platformer)
+copy_game_assets(Platformer "${CMAKE_SOURCE_DIR}/games/Platformer/assets")
+
 # In Release builds, suppress the console window for game executables.
 # Debug keeps the console so std::cout/std::cerr diagnostics are visible.
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    set_target_properties(Snake Chess PROPERTIES WIN32_EXECUTABLE TRUE)
+    set_target_properties(Snake Chess Platformer PROPERTIES WIN32_EXECUTABLE TRUE)
 endif()
 
 # ---------- Tests ----------
