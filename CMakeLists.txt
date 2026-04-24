@@ -61,6 +61,13 @@ target_include_directories(Chess PRIVATE src/Chess)
 target_link_libraries(Chess PRIVATE Engine)
 set_target_properties(Chess PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Chess)
 
+# Platformer
+file(GLOB_RECURSE PLATFORMER_SOURCES "src/Platformer/*.cpp")
+add_executable(Platformer ${PLATFORMER_SOURCES})
+target_include_directories(Platformer PRIVATE src/Platformer)
+target_link_libraries(Platformer PRIVATE Engine)
+set_target_properties(Platformer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Platformer)
+
 # ---------- Tests ----------
 include(FetchContent)
 FetchContent_Declare(

@@ -5,7 +5,7 @@
       "id": "targetName",
       "description": "Select the target to build/run",
       "type": "pickString",
-      "options": ["Snake", "Chess", "Tests"],
+      "options": ["Snake", "Chess", "Platformer", "Tests"],
       "default": "Snake"
     }
   ],
@@ -184,7 +184,11 @@
       "label": "Build + Test (Release)",
       "type": "shell",
       "command": "ctest",
-      "args": ["--test-dir", "build/windows-x64-release", "--output-on-failure"],
+      "args": [
+        "--test-dir",
+        "build/windows-x64-release",
+        "--output-on-failure"
+      ],
       "group": "test",
       "dependsOn": "Build Tests (Release)",
       "problemMatcher": [],
