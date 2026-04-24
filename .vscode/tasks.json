@@ -5,7 +5,7 @@
       "id": "targetName",
       "description": "Select the target to build/run",
       "type": "pickString",
-      "options": ["Snake", "Chess", "Tests"],
+      "options": ["Snake", "Chess", "Platformer", "Tests"],
       "default": "Snake"
     }
   ],
