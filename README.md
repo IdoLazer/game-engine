@@ -5,47 +5,53 @@ A learning-focused C++ game engine built with OpenGL and GLFW, featuring engine-
 ## Project Structure
 
 ```text
-src/
-├── Engine/                             # Core engine systems
-│   ├── Engine.h                        # Single header API — everything a game needs
-│   ├── Core/                           # Application lifecycle, entry point, scene management
-│   │   ├── Application.h               # Base application class + CreateApplication() declaration
-│   │   ├── EntryPoint.h                # Engine-owned main() function
-│   │   └── Scene.h                     # Entity ownership and lifecycle management
-│   ├── Entity/                         # Entity system
-│   │   ├── Entity.h                    # Base entity class (with Scene access for spawning)
-│   │   ├── GridEntity.h                # Grid-based entity with coordinate management
-│   │   └── GridTile.h                  # Simple renderable grid tile
-│   ├── Events/                         # Observer pattern event system
-│   │   ├── Event.h                     # Event<Args...> / EventSubscriber<Args...>
-│   │   └── Subscription.h             # RAII subscription handle
-│   ├── Types/                          # Runtime type registry and self-registration
-│   │   ├── TypeRegistry.h              # Singleton mapping type names → factories + properties
-│   │   └── TypeRegistrationMacros.h    # DECLARE_TYPE / REGISTER_PROPERTY macros
-│   ├── Patterns/                       # Reusable design patterns
-│   │   └── Command/                    # Command pattern (Command, CommandQueue)
-│   ├── World/                          # Spatial systems
-│   │   ├── Grid.h                      # Spatial index over grid cells
-│   │   ├── GridCoordinateSystem.h      # Pure coordinate math (grid ↔ world)
-│   │   └── TileMap.h                   # Abstract tile map with per-cell rendering
-│   ├── Input/                          # Keyboard and Mouse (static API)
-│   ├── Math/                           # Vec2
-│   ├── Graphics/                       # Color
-│   ├── Rendering/                      # Window, Renderer2D, Camera2D
-│   └── Utilities/                      # Timer
+engine/
+└── src/                                # Core engine systems
+    ├── Engine.h                        # Single header API — everything a game needs
+    ├── Core/                           # Application lifecycle, entry point, scene management
+    │   ├── Application.h               # Base application class + CreateApplication() declaration
+    │   ├── EntryPoint.h                # Engine-owned main() function
+    │   └── Scene.h                     # Entity ownership and lifecycle management
+    ├── Entity/                         # Entity system
+    │   ├── Entity.h                    # Base entity class (with Scene access for spawning)
+    │   ├── GridEntity.h                # Grid-based entity with coordinate management
+    │   └── GridTile.h                  # Simple renderable grid tile
+    ├── Events/                         # Observer pattern event system
+    │   ├── Event.h                     # Event<Args...> / EventSubscriber<Args...>
+    │   └── Subscription.h             # RAII subscription handle
+    ├── Types/                          # Runtime type registry and self-registration
+    │   ├── TypeRegistry.h              # Singleton mapping type names → factories + properties
+    │   └── TypeRegistrationMacros.h    # DECLARE_TYPE / REGISTER_PROPERTY macros
+    ├── Patterns/                       # Reusable design patterns
+    │   └── Command/                    # Command pattern (Command, CommandQueue)
+    ├── World/                          # Spatial systems
+    │   ├── Grid.h                      # Spatial index over grid cells
+    │   ├── GridCoordinateSystem.h      # Pure coordinate math (grid ↔ world)
+    │   └── TileMap.h                   # Abstract tile map with per-cell rendering
+    ├── Input/                          # Keyboard and Mouse (static API)
+    ├── Math/                           # Vec2
+    ├── Graphics/                       # Color
+    ├── Rendering/                      # Window, Renderer2D, Camera2D
+    └── Utilities/                      # Timer
+games/
 ├── Snake/                              # Snake game
-│   ├── Snake.h/cpp                     # Application subclass + CreateApplication()
-│   ├── SnakeConstants.h                # Tuning constants
-│   ├── Player.h/cpp                    # Snake player (GridEntity + movement + tail)
-│   └── Commands/                       # Input → Command pattern wiring
+│   ├── src/
+│   │   ├── Snake.h/cpp                 # Application subclass + CreateApplication()
+│   │   ├── SnakeConstants.h            # Tuning constants
+│   │   ├── Player.h/cpp               # Snake player (GridEntity + movement + tail)
+│   │   └── Commands/                   # Input → Command pattern wiring
+│   └── assets/                         # Game-specific assets (future)
 └── Chess/                              # Chess game
-    ├── Chess.h/cpp                     # Application subclass + CreateApplication()
-    ├── ChessBoard.h/cpp                # Board with tile and piece management
-    ├── ChessTile.h/cpp                 # Clickable board tile
-    └── Pieces/                         # Piece hierarchy (Pawn, Rook, Bishop, Knight, Queen, King)
-Tests/                                  # Google Test suite
+    ├── src/
+    │   ├── Chess.h/cpp                 # Application subclass + CreateApplication()
+    │   ├── ChessBoard.h/cpp            # Board with tile and piece management
+    │   ├── ChessTile.h/cpp             # Clickable board tile
+    │   └── Pieces/                     # Piece hierarchy (Pawn, Rook, Bishop, Knight, Queen, King)
+    └── assets/                         # Game-specific assets (future)
+tests/                                  # Google Test suite
 ├── Vec2Test.cpp                        # Vec2 math tests
-└── EventTest.cpp                       # Event system tests
+├── EventTest.cpp                       # Event system tests
+└── GridCoordinateSystemTest.cpp        # Grid coordinate system tests
 ```
 
 ## How It Works
@@ -137,7 +143,7 @@ cmake --build build/windows-x64-debug --target Chess
 
 ## Testing
 
-Tests use [Google Test](https://google.github.io/googletest/) (fetched automatically via CMake FetchContent). Test files live in `Tests/` and are compiled into a single `Tests` executable.
+Tests use [Google Test](https://google.github.io/googletest/) (fetched automatically via CMake FetchContent). Test files live in `tests/` and are compiled into a single `Tests` executable.
 
 ```bash
 # Build and run tests

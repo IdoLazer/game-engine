@@ -35,29 +35,28 @@ find_package(OpenGL REQUIRED)
 # initializers in Entity.cpp, GridEntity.cpp, etc.) — a STATIC library would
 # let the linker strip TUs that don't resolve any symbols, silently dropping
 # the type registrations.
-file(GLOB_RECURSE ENGINE_SOURCES "src/Engine/*.cpp")
-file(GLOB_RECURSE ENGINE_HEADERS "src/Engine/*.h")
+file(GLOB_RECURSE ENGINE_SOURCES "engine/src/*.cpp")
+file(GLOB_RECURSE ENGINE_HEADERS "engine/src/*.h")
 
 add_library(Engine OBJECT ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
-target_include_directories(Engine PUBLIC src/Engine)
-target_include_directories(Engine PUBLIC src)
+target_include_directories(Engine PUBLIC engine/src)
 target_link_libraries(Engine PUBLIC glfw OpenGL::GL)
 
 # ---------- Game projects ----------
 # To add a new game project, just add another entry below.
 
 # Snake
-file(GLOB_RECURSE SNAKE_SOURCES "src/Snake/*.cpp")
+file(GLOB_RECURSE SNAKE_SOURCES "games/Snake/src/*.cpp")
 add_executable(Snake ${SNAKE_SOURCES})
-target_include_directories(Snake PRIVATE src/Snake)
+target_include_directories(Snake PRIVATE games/Snake/src)
 target_link_libraries(Snake PRIVATE Engine)
 set_target_properties(Snake PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Snake)
 
 # Chess
-file(GLOB_RECURSE CHESS_SOURCES "src/Chess/*.cpp")
+file(GLOB_RECURSE CHESS_SOURCES "games/Chess/src/*.cpp")
 add_executable(Chess ${CHESS_SOURCES})
-target_include_directories(Chess PRIVATE src/Chess)
+target_include_directories(Chess PRIVATE games/Chess/src)
 target_link_libraries(Chess PRIVATE Engine)
 set_target_properties(Chess PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Chess)
 
@@ -74,7 +73,7 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 include(GoogleTest)
 
-file(GLOB_RECURSE TEST_SOURCES "Tests/*.cpp")
+file(GLOB_RECURSE TEST_SOURCES "tests/*.cpp")
 add_executable(Tests ${TEST_SOURCES})
 target_link_libraries(Tests PRIVATE Engine gtest gtest_main)
 set_target_properties(Tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Tests)
