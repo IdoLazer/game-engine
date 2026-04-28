@@ -31,7 +31,7 @@ engine/
     ├── Input/                          # Keyboard and Mouse (static API)
     ├── Math/                           # Vec2
     ├── Graphics/                       # Color
-    ├── Rendering/                      # Window, Renderer2D, Camera2D
+    ├── Rendering/                      # Window, Renderer2D, Camera2D, Texture2D
     └── Utilities/                      # Timer
 games/
 ├── Snake/                              # Snake game

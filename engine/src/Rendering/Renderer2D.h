@@ -3,6 +3,7 @@
 #include <GLFW/glfw3.h>
 #include "Window.h"
 #include "Camera2D.h"
+#include "Texture2D.h"
 #include "Graphics/Color.h"
 #include "Math/Vec2.h"
 
@@ -25,6 +26,10 @@ namespace Engine
         static void DrawCircle(const Vec2 &center, float radius, const Color &color);
         static void DrawTriangle(const Vec2 &point1, const Vec2 &point2, const Vec2 &point3, const Color &color);
         static void DrawRectOutline(const Vec2 &position, const Vec2 &size, const Color &color, float thickness = 0.05f);
+
+        // --- Textured Drawing ---
+        static void DrawSprite(const Vec2 &position, const Vec2 &size, const Texture2D &texture, const Color &tint = Color::White);
+        static void DrawSprite(const Vec2 &position, const Vec2 &size, const Texture2D &texture, const TextureRect &srcRect, const Color &tint = Color::White);
 
         // --- Accessors ---
         static Camera2D &GetCamera();

@@ -176,6 +176,76 @@ namespace Engine
 
     Camera2D &Renderer2D::GetCamera() { return s_Camera; }
 
+    // --- Textured Drawing ---
+
+    void Renderer2D::DrawSprite(const Vec2 &position, const Vec2 &size, const Texture2D &texture, const Color &tint)
+    {
+        // Enable texturing, draw a full-texture quad, then disable.
+        // We enable/disable per call so untextured drawing (DrawTile, etc.)
+        // continues to work without any changes.
+        glEnable(GL_TEXTURE_2D);
+        texture.Bind();
+
+        // The tint color multiplies with the texture color per-pixel.
+        // White (1,1,1,1) = draw as-is. Any other color tints the texture.
+        glColor4f(tint.r, tint.g, tint.b, tint.a);
+
+        Vec2 halfSize = size * 0.5f;
+        Vec2 bottomLeft = position - halfSize;
+        Vec2 topRight = position + halfSize;
+
+        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(bottomLeft);
+        Vec2 glTopRight = s_Camera.WorldToOpenGL(topRight);
+
+        // UV coordinates: (0,0) = bottom-left, (1,1) = top-right of the texture.
+        // stb_image flipped the image on load, so this matches screen orientation.
+        glBegin(GL_QUADS);
+        glTexCoord2f(0.0f, 0.0f); glVertex2f(glBottomLeft.x, glBottomLeft.y);
+        glTexCoord2f(1.0f, 0.0f); glVertex2f(glTopRight.x, glBottomLeft.y);
+        glTexCoord2f(1.0f, 1.0f); glVertex2f(glTopRight.x, glTopRight.y);
+        glTexCoord2f(0.0f, 1.0f); glVertex2f(glBottomLeft.x, glTopRight.y);
+        glEnd();
+
+        texture.Unbind();
+        glDisable(GL_TEXTURE_2D);
+    }
+
+    void Renderer2D::DrawSprite(const Vec2 &position, const Vec2 &size, const Texture2D &texture, const TextureRect &srcRect, const Color &tint)
+    {
+        glEnable(GL_TEXTURE_2D);
+        texture.Bind();
+        glColor4f(tint.r, tint.g, tint.b, tint.a);
+
+        Vec2 halfSize = size * 0.5f;
+        Vec2 bottomLeft = position - halfSize;
+        Vec2 topRight = position + halfSize;
+
+        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(bottomLeft);
+        Vec2 glTopRight = s_Camera.WorldToOpenGL(topRight);
+
+        // Convert pixel coordinates to normalized UV coordinates [0, 1].
+        // srcRect is in pixel space: (x, y) = top-left corner, (width, height) = size.
+        float texW = static_cast<float>(texture.GetWidth());
+        float texH = static_cast<float>(texture.GetHeight());
+
+        float u0 = srcRect.x / texW;                       // left
+        float u1 = (srcRect.x + srcRect.width) / texW;     // right
+        // Note the flip: srcRect.y is from the top of the image, but UV (0,0) is
+        // at the bottom (because we flipped on load). So the bottom UV = 1 - (y + height)/H.
+        float v0 = 1.0f - (srcRect.y + srcRect.height) / texH;  // bottom
+        float v1 = 1.0f - srcRect.y / texH;                      // top
+
+        glBegin(GL_QUADS);
+        glTexCoord2f(u0, v0); glVertex2f(glBottomLeft.x, glBottomLeft.y);
+        glTexCoord2f(u1, v0); glVertex2f(glTopRight.x, glBottomLeft.y);
+        glTexCoord2f(u1, v1); glVertex2f(glTopRight.x, glTopRight.y);
+        glTexCoord2f(u0, v1); glVertex2f(glBottomLeft.x, glTopRight.y);
+        glEnd();
+
+        texture.Unbind();
+        glDisable(GL_TEXTURE_2D);
+    }
+
     // --- Internal ---
 
     void Renderer2D::InitializeViewPort(GLFWwindow *window, int width, int height)
