@@ -12,6 +12,10 @@ For the current architecture, project structure, entity system, type registry, b
 
 Any core change — new module, architectural change, new technology, renamed target, added/removed system — **must** include an update to [README.md](../README.md) in the same commit. The README should always accurately describe the current state of the project. This includes the **Project Structure** tree — any new files, folders, or modules must be reflected there.
 
+### Tracking Deferred Decisions
+
+[FUTURE.md](../FUTURE.md) tracks architectural decisions where we chose a simpler approach now but know a better path exists, as well as ideas worth revisiting later. When planning new work, review FUTURE.md — the right time to address a deferred item is when new work naturally touches the same area. Whenever we decide to defer something (e.g., "this is fine for now, but later we should..."), add it to FUTURE.md immediately rather than relying on memory.
+
 ### Code Quality & Style
 
 - **Incremental Development:** Add features in small, testable chunks
