@@ -20,6 +20,7 @@ namespace Engine
 {
     Texture2D::Texture2D(const std::string& filePath)
     {
+        m_path = filePath;
         // stb_image loads with (0,0) at top-left, but OpenGL expects
         // (0,0) at bottom-left. This flips the image vertically on load
         // so UV coordinates work correctly: (0,0) = bottom-left.

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "Resources/Resource.h"
 
 namespace Engine
 {
@@ -14,7 +15,7 @@ namespace Engine
         float height = 0.0f;
     };
 
-    class Texture2D
+    class Texture2D : public Resource
     {
     public:
         // Loads an image from disk and uploads it to the GPU.

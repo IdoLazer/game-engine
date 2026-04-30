@@ -31,7 +31,8 @@ engine/
     ├── Input/                          # Keyboard and Mouse (static API)
     ├── Math/                           # Vec2
     ├── Graphics/                       # Color
-    ├── Rendering/                      # Window, Renderer2D, Camera2D, Texture2D
+    ├── Rendering/                      # Window, Renderer2D, Camera2D, Texture2D, Sprite
+    ├── Resources/                      # Resource base class, ResourceManager (static API)
     └── Utilities/                      # Timer
 games/
 ├── Snake/                              # Snake game
@@ -40,14 +41,14 @@ games/
 │   │   ├── SnakeConstants.h            # Tuning constants
 │   │   ├── Player.h/cpp               # Snake player (GridEntity + movement + tail)
 │   │   └── Commands/                   # Input → Command pattern wiring
-│   └── assets/                         # Game-specific assets (future)
+│   └── assets/                         # Game-specific assets (copied to build dir)
 └── Chess/                              # Chess game
     ├── src/
     │   ├── Chess.h/cpp                 # Application subclass + CreateApplication()
     │   ├── ChessBoard.h/cpp            # Board with tile and piece management
     │   ├── ChessTile.h/cpp             # Clickable board tile
     │   └── Pieces/                     # Piece hierarchy (Pawn, Rook, Bishop, Knight, Queen, King)
-    └── assets/                         # Game-specific assets (future)
+    └── assets/                         # Game-specific assets (copied to build dir)
 tests/                                  # Google Test suite
 ├── Vec2Test.cpp                        # Vec2 math tests
 ├── EventTest.cpp                       # Event system tests
@@ -89,6 +90,19 @@ The engine's `Application` base class provides:
 - A `Scene` for entity ownership (`GetScene()->Instantiate<T>()`)
 - A main loop that calls `Initialize → Update/Render → Shutdown`
 - `Close()` to request a clean exit
+
+## Resource System
+
+`ResourceManager` is a static subsystem that loads, caches, and owns assets:
+
+```cpp
+// Load a texture — cached on subsequent calls, shared across all users
+auto* texture = ResourceManager::Load<Texture2D>("assets/Pawn.png");
+```
+
+All paths are resolved relative to the executable's directory. CMake copies each game's `assets/` folder next to its exe at build time via a `POST_BUILD` step, so games use clean relative paths regardless of working directory.
+
+Loadable resource types inherit from `Resource`. Currently only `Texture2D` exists; future types (fonts, audio) follow the same pattern.
 
 ## Entity System
 
@@ -161,4 +175,5 @@ VS Code tasks are also available: **Build + Test (Debug)** builds and runs all t
 - **C++20** with modern language features
 - **CMake** with vcpkg for dependency management
 - **OpenGL + GLFW** for rendering and windowing
+- **stb_image** for PNG/image loading (via vcpkg)
 - **Windows** (primary), designed for cross-platform compatibility

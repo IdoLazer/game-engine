@@ -11,6 +11,12 @@
 #include "Rendering/Window.h"
 #include "Rendering/Renderer2D.h"
 #include "Rendering/Camera2D.h"
+#include "Rendering/Texture2D.h"
+#include "Rendering/Sprite.h"
+
+// Resources
+#include "Resources/Resource.h"
+#include "Resources/ResourceManager.h"
 
 // Input System
 #include "Input/KeyCodes.h"

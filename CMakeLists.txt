@@ -46,12 +46,26 @@ target_link_libraries(Engine PUBLIC glfw OpenGL::GL)
 # ---------- Game projects ----------
 # To add a new game project, just add another entry below.
 
+# Copies a game's assets/ folder next to its executable after each build.
+# This ensures assets are always found relative to the exe, regardless of CWD.
+function(copy_game_assets TARGET ASSET_DIR)
+    if(EXISTS "${ASSET_DIR}")
+        add_custom_command(TARGET ${TARGET} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${ASSET_DIR}"
+            "$<TARGET_FILE_DIR:${TARGET}>/assets"
+            COMMENT "Copying assets for ${TARGET}"
+        )
+    endif()
+endfunction()
+
 # Snake
 file(GLOB_RECURSE SNAKE_SOURCES "games/Snake/src/*.cpp")
 add_executable(Snake ${SNAKE_SOURCES})
 target_include_directories(Snake PRIVATE games/Snake/src)
 target_link_libraries(Snake PRIVATE Engine)
 set_target_properties(Snake PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Snake)
+copy_game_assets(Snake "${CMAKE_SOURCE_DIR}/games/Snake/assets")
 
 # Chess
 file(GLOB_RECURSE CHESS_SOURCES "games/Chess/src/*.cpp")
@@ -59,6 +73,13 @@ add_executable(Chess ${CHESS_SOURCES})
 target_include_directories(Chess PRIVATE games/Chess/src)
 target_link_libraries(Chess PRIVATE Engine)
 set_target_properties(Chess PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Chess)
+copy_game_assets(Chess "${CMAKE_SOURCE_DIR}/games/Chess/assets")
+
+# In Release builds, suppress the console window for game executables.
+# Debug keeps the console so std::cout/std::cerr diagnostics are visible.
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set_target_properties(Snake Chess PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
 
 # ---------- Tests ----------
 include(FetchContent)

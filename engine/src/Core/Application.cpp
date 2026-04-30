@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "Rendering/Renderer2D.h"
+#include "Resources/ResourceManager.h"
 #include <iostream>
 
 namespace Engine
@@ -134,6 +135,7 @@ namespace Engine
         Renderer2D::Initialize(m_window->GetNativeWindow(), config.width, config.height);
         Keyboard::Initialize(m_window->GetNativeWindow());
         Mouse::Initialize(m_window->GetNativeWindow());
+        ResourceManager::Initialize();
 
         std::cout << "Engine subsystems initialized successfully." << std::endl;
         std::cout << "Window: \"" << config.title << "\" (" << config.width << "x" << config.height << ")" << std::endl;
@@ -158,6 +160,7 @@ namespace Engine
 
     void Application::ShutdownSubsystems()
     {
+        ResourceManager::Shutdown();
         Mouse::Shutdown();
         Keyboard::Shutdown();
         Renderer2D::Shutdown();
