@@ -5,6 +5,9 @@
 
 namespace Engine
 {
+    // Forward declaration to avoid including OpenGL headers in the header file.
+    using GLenum = unsigned int;
+
     // A rectangle in pixel coordinates within a texture.
     // Used to select a sub-region for sprite sheet rendering.
     struct TextureRect
@@ -39,6 +42,8 @@ namespace Engine
         unsigned int GetID() const { return m_textureID; }
 
     private:
+        void GenerateMipmaps(unsigned char* pixels, GLenum format, int channels);
+
         unsigned int m_textureID = 0;
         int m_width = 0;
         int m_height = 0;
