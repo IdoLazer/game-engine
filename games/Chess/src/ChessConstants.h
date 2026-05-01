@@ -30,8 +30,8 @@ namespace ChessConstants
 
     // Piece sizes (grid-relative)
     const Engine::Vec2 PAWN_SIZE{1.0f, 1.0f};
-    const Engine::Vec2 ROOK_SIZE{0.4f, 0.6f};
-    const Engine::Vec2 KNIGHT_SIZE{0.3f, 0.6f};
+    const Engine::Vec2 ROOK_SIZE{1.0f, 1.0f};
+    const Engine::Vec2 KNIGHT_SIZE{1.0f, 1.0f};
     const Engine::Vec2 BISHOP_SIZE{1.0f, 1.0f};
     const Engine::Vec2 QUEEN_SIZE{1.0f, 1.0f};
     const Engine::Vec2 KING_SIZE{1.0f, 1.0f};
@@ -67,43 +67,43 @@ namespace ChessConstants
 
     static const std::vector<EntityInfo> CHESS_PIECES_DATA = {
         // White Pawns
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(0, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(1, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(2, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(3, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(4, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(5, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(6, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(7, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(0, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(1, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(2, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(3, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(4, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(5, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(6, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(7, 1)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
 
         // Black Pawns
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(0, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(1, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(2, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(3, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(4, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(5, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(6, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}}},
-        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(7, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(0, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(1, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(2, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(3, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(4, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(5, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(6, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Pawn", PropertyMap{{"GridPosition", Engine::Vec2(7, 6)}, {"GridSize", PAWN_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
 
         // White Back Row
-        {"Rook",   PropertyMap{{"GridPosition", Engine::Vec2(0, 0)}, {"GridSize", ROOK_SIZE},   {"PieceColor", PieceColor::White}}},
-        {"Knight", PropertyMap{{"GridPosition", Engine::Vec2(1, 0)}, {"GridSize", KNIGHT_SIZE}, {"PieceColor", PieceColor::White}}},
-        {"Bishop", PropertyMap{{"GridPosition", Engine::Vec2(2, 0)}, {"GridSize", BISHOP_SIZE}, {"PieceColor", PieceColor::White}}},
-        {"Queen",  PropertyMap{{"GridPosition", Engine::Vec2(3, 0)}, {"GridSize", QUEEN_SIZE},  {"PieceColor", PieceColor::White}}},
-        {"King",   PropertyMap{{"GridPosition", Engine::Vec2(4, 0)}, {"GridSize", KING_SIZE},   {"PieceColor", PieceColor::White}}},
-        {"Bishop", PropertyMap{{"GridPosition", Engine::Vec2(5, 0)}, {"GridSize", BISHOP_SIZE}, {"PieceColor", PieceColor::White}}},
-        {"Knight", PropertyMap{{"GridPosition", Engine::Vec2(6, 0)}, {"GridSize", KNIGHT_SIZE}, {"PieceColor", PieceColor::White}}},
-        {"Rook",   PropertyMap{{"GridPosition", Engine::Vec2(7, 0)}, {"GridSize", ROOK_SIZE},   {"PieceColor", PieceColor::White}}},
+        {"Rook",   PropertyMap{{"GridPosition", Engine::Vec2(0, 0)}, {"GridSize", ROOK_SIZE},   {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Knight", PropertyMap{{"GridPosition", Engine::Vec2(1, 0)}, {"GridSize", KNIGHT_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Bishop", PropertyMap{{"GridPosition", Engine::Vec2(2, 0)}, {"GridSize", BISHOP_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Queen",  PropertyMap{{"GridPosition", Engine::Vec2(3, 0)}, {"GridSize", QUEEN_SIZE},  {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"King",   PropertyMap{{"GridPosition", Engine::Vec2(4, 0)}, {"GridSize", KING_SIZE},   {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Bishop", PropertyMap{{"GridPosition", Engine::Vec2(5, 0)}, {"GridSize", BISHOP_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Knight", PropertyMap{{"GridPosition", Engine::Vec2(6, 0)}, {"GridSize", KNIGHT_SIZE}, {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
+        {"Rook",   PropertyMap{{"GridPosition", Engine::Vec2(7, 0)}, {"GridSize", ROOK_SIZE},   {"PieceColor", PieceColor::White}, {"Color", Engine::Color::White}}},
 
         // Black Back Row
-        {"Rook",   PropertyMap{{"GridPosition", Engine::Vec2(0, 7)}, {"GridSize", ROOK_SIZE},   {"PieceColor", PieceColor::Black}}},
-        {"Knight", PropertyMap{{"GridPosition", Engine::Vec2(1, 7)}, {"GridSize", KNIGHT_SIZE}, {"PieceColor", PieceColor::Black}}},
-        {"Bishop", PropertyMap{{"GridPosition", Engine::Vec2(2, 7)}, {"GridSize", BISHOP_SIZE}, {"PieceColor", PieceColor::Black}}},
-        {"Queen",  PropertyMap{{"GridPosition", Engine::Vec2(3, 7)}, {"GridSize", QUEEN_SIZE},  {"PieceColor", PieceColor::Black}}},
-        {"King",   PropertyMap{{"GridPosition", Engine::Vec2(4, 7)}, {"GridSize", KING_SIZE},   {"PieceColor", PieceColor::Black}}},
-        {"Bishop", PropertyMap{{"GridPosition", Engine::Vec2(5, 7)}, {"GridSize", BISHOP_SIZE}, {"PieceColor", PieceColor::Black}}},
-        {"Knight", PropertyMap{{"GridPosition", Engine::Vec2(6, 7)}, {"GridSize", KNIGHT_SIZE}, {"PieceColor", PieceColor::Black}}},
-        {"Rook",   PropertyMap{{"GridPosition", Engine::Vec2(7, 7)}, {"GridSize", ROOK_SIZE},   {"PieceColor", PieceColor::Black}}},
+        {"Rook",   PropertyMap{{"GridPosition", Engine::Vec2(0, 7)}, {"GridSize", ROOK_SIZE},   {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Knight", PropertyMap{{"GridPosition", Engine::Vec2(1, 7)}, {"GridSize", KNIGHT_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Bishop", PropertyMap{{"GridPosition", Engine::Vec2(2, 7)}, {"GridSize", BISHOP_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Queen",  PropertyMap{{"GridPosition", Engine::Vec2(3, 7)}, {"GridSize", QUEEN_SIZE},  {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"King",   PropertyMap{{"GridPosition", Engine::Vec2(4, 7)}, {"GridSize", KING_SIZE},   {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Bishop", PropertyMap{{"GridPosition", Engine::Vec2(5, 7)}, {"GridSize", BISHOP_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Knight", PropertyMap{{"GridPosition", Engine::Vec2(6, 7)}, {"GridSize", KNIGHT_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
+        {"Rook",   PropertyMap{{"GridPosition", Engine::Vec2(7, 7)}, {"GridSize", ROOK_SIZE},   {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
     };
 }

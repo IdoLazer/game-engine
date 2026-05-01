@@ -15,16 +15,6 @@ void Pawn::Initialize()
     ChessPiece::Initialize();
 }
 
-void Pawn::Render() const
-{
-    // Draw the pawn as a triangle with a circle on top
-    Vec2 topCenter = m_worldPosition + Vec2(0.0f, m_worldSize.y / 4.0f);
-    Vec2 leftBase = m_worldPosition + Vec2(-m_worldSize.x / 5.0f, -m_worldSize.y / 4.0f);
-    Vec2 rightBase = m_worldPosition + Vec2(m_worldSize.x / 5.0f, -m_worldSize.y / 4.0f);
-    Renderer2D::DrawTriangle(topCenter, leftBase, rightBase, m_color);
-    Renderer2D::DrawCircle(topCenter, m_worldSize.x / 7.0f, m_color);
-}
-
 // --- Accessors ---
 
 std::vector<Vec2> Pawn::GetPossibleMoves() const

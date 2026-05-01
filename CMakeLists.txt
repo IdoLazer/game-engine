@@ -46,16 +46,18 @@ target_link_libraries(Engine PUBLIC glfw OpenGL::GL)
 # ---------- Game projects ----------
 # To add a new game project, just add another entry below.
 
-# Copies a game's assets/ folder next to its executable after each build.
-# This ensures assets are always found relative to the exe, regardless of CWD.
+# Copies a game's assets/ folder next to its executable on every build.
+# Uses a standalone custom target (always out-of-date) so asset changes
+# are picked up even when no source files changed.
 function(copy_game_assets TARGET ASSET_DIR)
     if(EXISTS "${ASSET_DIR}")
-        add_custom_command(TARGET ${TARGET} POST_BUILD
+        add_custom_target(${TARGET}_Assets ALL
             COMMAND ${CMAKE_COMMAND} -E copy_directory
             "${ASSET_DIR}"
             "$<TARGET_FILE_DIR:${TARGET}>/assets"
             COMMENT "Copying assets for ${TARGET}"
         )
+        add_dependencies(${TARGET} ${TARGET}_Assets)
     endif()
 endfunction()
 

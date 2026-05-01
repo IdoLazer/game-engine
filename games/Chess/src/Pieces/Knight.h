@@ -9,11 +9,8 @@ class Knight : public ChessPiece
 public:
     Knight() = default;
 
-// --- Lifecycle ---
-public:
-    void Render() const override;
-
 // --- Accessors ---
 public:
     std::vector<Engine::Vec2> GetPossibleMoves() const override;
+    std::string GetPieceName() const override { return "Knight"; }
 };

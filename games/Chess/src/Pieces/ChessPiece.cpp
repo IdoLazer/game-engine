@@ -13,11 +13,27 @@ using namespace Engine;
 
 void ChessPiece::Initialize()
 {
-    // Derive visual color from piece color
-    m_color = (m_pieceColor == PieceColor::White) ? ChessConstants::PIECE_COLOR_WHITE : ChessConstants::PIECE_COLOR_BLACK;
-
     // Register with grid (GridEntity::Initialize handles sync + registration)
     GridEntity::Initialize();
+
+    // Load texture if this piece type has one
+    std::string name = GetPieceName();
+    if (!name.empty())
+    {
+        std::string colorPrefix = (m_pieceColor == PieceColor::White) ? "White " : "Black ";
+        std::string path = "assets/" + colorPrefix + name + ".png";
+        auto* texture = ResourceManager::Load<Texture2D>(path);
+        m_sprite = Sprite(texture, m_color);
+    }
+}
+
+void ChessPiece::Render() const
+{
+    // If we have a texture, render the sprite. Otherwise fall back to a colored tile.
+    if (m_sprite.GetTexture())
+        m_sprite.Render(m_worldPosition, m_worldSize);
+    else
+        Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
 }
 
 // --- Accessors ---

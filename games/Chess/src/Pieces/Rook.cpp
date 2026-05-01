@@ -15,25 +15,6 @@ void Rook::Initialize()
     ChessPiece::Initialize();
 }
 
-void Rook::Render() const
-{
-    // Render the rook as a rectangle with merlons
-    // First, render the base rectangle
-    Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
-
-    // Then, render the merlons on top
-    float merlonWidth = m_worldSize.x / 5.0f;
-    float embrasureWidth = m_worldSize.x / 5.0f;
-    float merlonHeight = m_worldSize.y / 5.0f;
-    for (int i = 0; i < 3; ++i)
-    {
-        Vec2 merlonPos = m_worldPosition + Vec2(
-                                               -(m_worldSize.x / 2.0f) + (i * (merlonWidth + embrasureWidth) + merlonWidth / 2.0f),
-                                               (m_worldSize.y / 2.0f) + (merlonHeight / 2.0f));
-        Renderer2D::DrawTile(merlonPos, Vec2(merlonWidth, merlonHeight), m_color);
-    }
-}
-
 // --- Accessors ---
 
 std::vector<Vec2> Rook::GetPossibleMoves() const
