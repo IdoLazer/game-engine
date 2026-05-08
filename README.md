@@ -15,10 +15,11 @@ engine/
     ├── Entity/                         # Entity system
     │   ├── Entity.h                    # Base entity class (with Scene access for spawning)
     │   ├── GridEntity.h                # Grid-based entity with coordinate management
-    │   └── GridTile.h                  # Simple renderable grid tile
+    │   ├── GridTile.h                  # Simple renderable grid tile
+    │   └── TextEntity.h                # Text label entity using BitmapFont
     ├── Events/                         # Observer pattern event system
     │   ├── Event.h                     # Event<Args...> / EventSubscriber<Args...>
-    │   └── Subscription.h             # RAII subscription handle
+    │   └── Subscription.h              # RAII subscription handle
     ├── Types/                          # Runtime type registry and self-registration
     │   ├── TypeRegistry.h              # Singleton mapping type names → factories + properties
     │   └── TypeRegistrationMacros.h    # DECLARE_TYPE / REGISTER_PROPERTY macros
@@ -31,7 +32,7 @@ engine/
     ├── Input/                          # Keyboard and Mouse (static API)
     ├── Math/                           # Vec2
     ├── Graphics/                       # Color
-    ├── Rendering/                      # Window, Renderer2D, Camera2D, Texture2D, Sprite
+    ├── Rendering/                      # Window, Renderer2D, Camera2D, Texture2D, Sprite, BitmapFont
     ├── Resources/                      # Resource base class, ResourceManager (static API)
     └── Utilities/                      # Timer
 games/
@@ -67,7 +68,7 @@ The engine owns `main()`. A game implements a factory function and the engine ha
 class Snake : public Engine::Application {
     void Initialize() override;
     void Update(float deltaTime) override;
-    void Render() const override;
+    void Render() override;
     void Shutdown() override;
 };
 
@@ -102,13 +103,33 @@ auto* texture = ResourceManager::Load<Texture2D>("assets/Pawn.png");
 
 All paths are resolved relative to the executable's directory. CMake copies each game's `assets/` folder next to its exe at build time via a `POST_BUILD` step, so games use clean relative paths regardless of working directory.
 
-Loadable resource types inherit from `Resource`. Currently only `Texture2D` exists; future types (fonts, audio) follow the same pattern.
+Loadable resource types inherit from `Resource`. Currently `Texture2D` and `BitmapFont` exist; future types (audio, etc.) follow the same pattern.
+
+## Text Rendering
+
+`BitmapFont` is a `Resource` that loads a grid-based character atlas. `TextEntity` renders text as an entity in the scene:
+
+```cpp
+// Load a bitmap font — cached like any other resource
+auto* font = ResourceManager::Load<BitmapFont>("assets/font.png");
+
+// Create a text label as a scene entity
+auto* label = scene->Instantiate<TextEntity>();
+label->SetFont(font);
+label->SetText("Hello!");
+label->SetCharHeight(0.5f);
+label->SetColor(Color::White);
+label->SetWorldPosition(Vec2(-3.0f, 4.0f));
+```
+
+The font atlas is a PNG with characters in a 16-column × 6-row grid (ASCII 32–127). `Renderer2D::DrawText()` is also available for direct draw calls.
 
 ## Entity System
 
 All game objects inherit from `Entity`. The engine provides a hierarchy for grid-based games:
 
 - **`Entity`** — base class with world position, size, color, and `Scene` access
+- **`TextEntity`** — renders a text string using a `BitmapFont`
 - **`GridEntity`** — adds grid coordinates that auto-sync to world coordinates, registers with a spatial `Grid`
 - **`GridTile`** — a simple filled rectangle at a grid position
 

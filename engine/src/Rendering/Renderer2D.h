@@ -1,9 +1,11 @@
 #pragma once
 
+#include <string>
 #include <GLFW/glfw3.h>
 #include "Window.h"
 #include "Camera2D.h"
 #include "Texture2D.h"
+#include "BitmapFont.h"
 #include "Graphics/Color.h"
 #include "Math/Vec2.h"
 
@@ -30,6 +32,9 @@ namespace Engine
         // --- Textured Drawing ---
         static void DrawSprite(const Vec2 &position, const Vec2 &size, const Texture2D &texture, const Color &tint = Color::White);
         static void DrawSprite(const Vec2 &position, const Vec2 &size, const Texture2D &texture, const TextureRect &srcRect, const Color &tint = Color::White);
+
+        // --- Text ---
+        static void DrawText(const Vec2 &position, const std::string &text, const BitmapFont &font, float charHeight, const Color &color = Color::White);
 
         // --- Accessors ---
         static Camera2D &GetCamera();

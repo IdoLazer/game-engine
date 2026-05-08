@@ -58,6 +58,39 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Add a `Preload()` or batch-load API that populates the cache upfront.  
 **When:** When load hitches become noticeable (unlikely for small 2D games, more relevant with large textures or audio).
 
+---
+
+## Text Rendering
+
+### Grid font → BMFont (proportional text)
+
+**Current:** `BitmapFont` uses a fixed-width grid atlas — each character occupies the same cell size. Monospace only.  
+**Concern:** Monospace looks fine for labels and scores, but proportional fonts look better for UI text, dialogue, or menus.  
+**Future:** Support the BMFont `.fnt` format — a text file describing per-glyph metrics (position, offset, advance, kerning). Tools like BMFont and Hiero generate these from any TTF. The rendering loop is nearly identical; it just reads per-character advance/offset from the descriptor instead of assuming fixed width.  
+**When:** When a game needs proportional text or multiple font sizes.
+
+### BMFont → Runtime TTF / SDF
+
+**Current (future):** BMFont atlas baked offline at a fixed size.  
+**Concern:** Scaling a bitmap font causes blurriness. Multiple sizes require multiple atlases.  
+**Future:** Use runtime TTF rasterization (stb_truetype or FreeType) to generate atlases at any size, or SDF/MSDF rendering for resolution-independent text (requires fragment shaders).  
+**When:** When we have a modern shader pipeline and need crisp text at arbitrary sizes (likely the 3D project).
+
+---
+
+## Serialization
+
+### Per-entity properties → Full scene serialization
+
+**Current:** Entities are instantiated from `EntityInfo` structs (type name + property map) defined in code. Properties are set via the TypeRegistry's `std::any`-based setters. There is no file format, no hierarchy, and no save/load API.  
+**Concern:** All "data" still lives in C++ constants (e.g. `CHESS_PIECES_DATA`). Adding a new entity means recompiling. Parent–child relationships and cross-references (e.g. "this entity points at that entity") aren't handled.  
+**Future:** A hierarchical scene serialization system — load/save an entire scene to a file (JSON, YAML, or custom binary). Entities reference each other by ID. The TypeRegistry provides the reflection needed to serialize any registered property. Editor tooling can produce scene files.  
+**When:** When we want a level editor, runtime scene loading, or game saves.
+
+---
+
+## Resource System
+
 ### Asset paths are relative to the executable
 
 **Current:** CMake copies game assets next to the exe via `POST_BUILD`. Games use paths like `"assets/Pawn.png"`.  

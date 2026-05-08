@@ -50,4 +50,5 @@ private:
     bool m_gameOver{false};
     Engine::Subscription m_escapeSub;
     Engine::Subscription m_clickSub;
+    Engine::TextEntity* m_turnLabel{nullptr};
 };

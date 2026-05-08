@@ -246,6 +246,33 @@ namespace Engine
         glDisable(GL_TEXTURE_2D);
     }
 
+    // --- Text ---
+
+    void Renderer2D::DrawText(const Vec2 &position, const std::string &text, const BitmapFont &font, float charHeight, const Color &color)
+    {
+        const Texture2D* atlas = font.GetTexture();
+        if (!atlas)
+            return;
+
+        float charWidth = charHeight * font.GetAspectRatio();
+
+        // Position is top-left anchored. DrawSprite uses center, so offset by half.
+        float cursorX = position.x + charWidth * 0.5f;
+        float cursorY = position.y - charHeight * 0.5f;
+
+        Vec2 charSize(charWidth, charHeight);
+
+        for (char c : text)
+        {
+            TextureRect srcRect = font.GetGlyphRect(c);
+
+            if (srcRect.width > 0.0f && srcRect.height > 0.0f)
+                DrawSprite(Vec2(cursorX, cursorY), charSize, *atlas, srcRect, color);
+
+            cursorX += charWidth;
+        }
+    }
+
     // --- Internal ---
 
     void Renderer2D::InitializeViewPort(GLFWwindow *window, int width, int height)

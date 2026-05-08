@@ -53,6 +53,9 @@ void Chess::Initialize()
         if (m_grid.IsInBounds(gridPos))
             OnCellClicked(m_grid.GetCellFromGridPosition(gridPos));
     });
+
+    // Turn indicator label
+    m_turnLabel = static_cast<TextEntity*>(scene->Instantiate(ChessConstants::TURN_LABEL_DATA));
 }
 
 void Chess::Update(float deltaTime) {}
@@ -139,11 +142,9 @@ bool Chess::TryMovePiece(const Vec2 &cell)
             if (dynamic_cast<King *>(captured))
             {
                 m_gameOver = true;
-                std::cout << "Game Over! "
-                          << ((m_currentPlayerColor == PieceColor::White) ? "White" : "Black")
-                          << " wins!" << std::endl;
-                Close();
-                return true;
+                TextEntity *gameOverLabel = static_cast<TextEntity *>(GetScene()->Instantiate(ChessConstants::GAME_OVER_LABEL_DATA));
+                gameOverLabel->SetText((m_currentPlayerColor == PieceColor::White) ? "White Wins!" : "Black Wins!");
+                GetScene()->Destroy(m_turnLabel);
             }
             CapturePiece(captured);
         }
@@ -165,6 +166,9 @@ void Chess::CapturePiece(ChessPiece *piece)
 void Chess::SwitchTurn()
 {
     m_currentPlayerColor = (m_currentPlayerColor == PieceColor::White) ? PieceColor::Black : PieceColor::White;
+
+    if (m_turnLabel)
+        m_turnLabel->SetText((m_currentPlayerColor == PieceColor::White) ? "White's Turn" : "Black's Turn");
 }
 
 void Chess::ToggleHighlight(ChessPiece *piece, bool highlight)

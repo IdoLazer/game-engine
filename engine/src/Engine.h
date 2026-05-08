@@ -13,6 +13,7 @@
 #include "Rendering/Camera2D.h"
 #include "Rendering/Texture2D.h"
 #include "Rendering/Sprite.h"
+#include "Rendering/BitmapFont.h"
 
 // Resources
 #include "Resources/Resource.h"
@@ -41,6 +42,7 @@
 // Entity System
 #include "Entity/Entity.h"
 #include "Entity/Tile.h"
+#include "Entity/TextEntity.h"
 #include "Entity/GridEntity.h"
 #include "Entity/GridTile.h"
 

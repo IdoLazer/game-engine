@@ -26,6 +26,14 @@ Any core change — new module, architectural change, new technology, renamed ta
 - **Correct C++:** Follow established C++ best practices and sound software design principles. When a newer language feature (concepts, ranges, constexpr, etc.) makes code clearer or safer, use it and explain the benefit.
 - **Test-Driven:** New engine features should include tests. Write tests alongside or before the implementation when practical. Any testable logic (math, data structures, patterns, systems) should have corresponding tests in `Tests/`.
 
+### Header vs Source File Conventions
+
+- **Trivial accessors** (one-liner get/set): implement inline in the `.h` file
+- **Logic-bearing methods** (Initialize, Render, Update, anything non-trivial): declare in `.h`, implement in `.cpp`
+- **Rule of Zero:** Don't declare constructors, destructors, or copy/move operators unless the class manages a resource that requires custom cleanup. If a class only holds non-owning pointers, value types, or RAII members (like `std::string`), let the compiler generate everything.
+- **Explicit `= default`:** Only declare `= default` constructors/destructors when the class also declares another special member function (e.g. a custom destructor requires explicitly defaulting the constructor).
+- **Consistency:** New code should follow these conventions. Don't refactor old code purely for style — only when already modifying a file for functional reasons.
+
 ### Learning Partnership Approach
 
 **For the Developer:**

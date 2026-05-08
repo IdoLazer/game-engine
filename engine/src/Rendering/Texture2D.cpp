@@ -7,6 +7,7 @@
 
 #include "Texture2D.h"
 #include <GLFW/glfw3.h>
+#include <algorithm>
 #include <iostream>
 #include <utility>
 #include <vector>
@@ -132,12 +133,13 @@ namespace Engine
         std::vector<unsigned char> bufB;
         unsigned char* previousPixels = pixels;
 
-        while (mipWidth > 1 && mipHeight > 1)
+        while (mipWidth > 1 || mipHeight > 1)
         {
             int prevWidth = mipWidth;
+            int prevHeight = mipHeight;
             mipLevel++;
-            mipWidth /= 2;
-            mipHeight /= 2;
+            mipWidth = std::max(1, mipWidth / 2);
+            mipHeight = std::max(1, mipHeight / 2);
 
             // Pick whichever buffer isn't currently 'previous'
             std::vector<unsigned char>& current = (previousPixels == bufA.data()) ? bufB : bufA;
@@ -149,11 +151,18 @@ namespace Engine
                 {
                     for (int c = 0; c < channels; c++)
                     {
+                        // Clamp source coordinates to avoid reading past the edge
+                        // when one dimension is already 1.
+                        int sx = std::min(x * 2, prevWidth - 1);
+                        int sy = std::min(y * 2, prevHeight - 1);
+                        int sx1 = std::min(x * 2 + 1, prevWidth - 1);
+                        int sy1 = std::min(y * 2 + 1, prevHeight - 1);
+
                         int sum = 0;
-                        sum += previousPixels[((y * 2) * prevWidth + (x * 2)) * channels + c];
-                        sum += previousPixels[((y * 2) * prevWidth + (x * 2 + 1)) * channels + c];
-                        sum += previousPixels[((y * 2 + 1) * prevWidth + (x * 2)) * channels + c];
-                        sum += previousPixels[((y * 2 + 1) * prevWidth + (x * 2 + 1)) * channels + c];
+                        sum += previousPixels[(sy * prevWidth + sx) * channels + c];
+                        sum += previousPixels[(sy * prevWidth + sx1) * channels + c];
+                        sum += previousPixels[(sy1 * prevWidth + sx) * channels + c];
+                        sum += previousPixels[(sy1 * prevWidth + sx1) * channels + c];
                         current[(y * mipWidth + x) * channels + c] = static_cast<unsigned char>(sum / 4);
                     }
                 }

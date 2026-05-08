@@ -106,4 +106,31 @@ namespace ChessConstants
         {"Knight", PropertyMap{{"GridPosition", Engine::Vec2(6, 7)}, {"GridSize", KNIGHT_SIZE}, {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
         {"Rook",   PropertyMap{{"GridPosition", Engine::Vec2(7, 7)}, {"GridSize", ROOK_SIZE},   {"PieceColor", PieceColor::Black}, {"Color", Engine::Color::White}}},
     };
+
+    // --- UI ---
+
+    static constexpr float LABEL_CHAR_HEIGHT = 0.3f;
+    const std::string FONT_PATH = "assets/font.png";
+    const std::string TURN_LABEL_TEXT = "White's Turn";
+
+    static const EntityInfo TURN_LABEL_DATA = {
+        "TextEntity", PropertyMap{
+            {"FontPath", std::string("assets/font.png")},
+            {"Text", std::string("White's Turn")},
+            {"CharHeight", LABEL_CHAR_HEIGHT},
+            {"Color", Engine::Color::White},
+            {"BackgroundColor", Engine::Color::Black},
+            {"WorldPosition", Engine::Vec2(-5.0f, 5.0f)}
+        }
+    };
+
+    static const EntityInfo GAME_OVER_LABEL_DATA = {
+        "TextEntity", PropertyMap{
+            {"FontPath", std::string("assets/font.png")},
+            {"CharHeight", 0.5f},
+            {"Color", Engine::Color::Red},
+            {"BackgroundColor", Engine::Color::Black},
+            {"WorldPosition", Engine::Vec2(-3.0f, 0.0f)}
+        }
+    };
 }
