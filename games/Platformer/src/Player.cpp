@@ -1,16 +1,23 @@
 #include "Player.h"
 #include "PlatformTile.h"
 #include "PlatformerInputManager.h"
+#include <cmath>
 #include <iostream>
+#include <numbers>
 
 // --- Type Registration ---
 BEGIN_TYPE_REGISTER(Player)
     REGISTER_PROPERTY(float, Speed, &Player::m_speed)
+    REGISTER_PROPERTY(float, AccelerationCoefficient, &Player::m_accCoeff)
+    REGISTER_PROPERTY(float, DecelerationCoefficient, &Player::m_decCoeff)
     REGISTER_PROPERTY(float, JumpForce, &Player::m_jumpForce)
     REGISTER_PROPERTY(float, Gravity, &Player::m_gravity)
     REGISTER_PROPERTY(float, CoyoteTime, &Player::m_coyoteTime)
     REGISTER_PROPERTY(float, JumpBufferTime, &Player::m_jumpBufferTime)
     REGISTER_PROPERTY(float, MinJumpTime, &Player::m_minJumpTime)
+    REGISTER_PROPERTY(float, WallJumpLockTime, &Player::m_wallJumpLockTime)
+    REGISTER_PROPERTY(float, WallJumpForce, &Player::m_wallJumpForce)
+    REGISTER_PROPERTY(float, WallJumpAngle, &Player::m_wallJumpAngle)
 END_TYPE_REGISTER()
 
 using namespace Engine;
@@ -56,6 +63,9 @@ void Player::Initialize()
             m_jumpStopCommandQueue.DequeueCommand()->Execute();
         }
     }, false);
+    m_wallJumpLockTimer = Timer(m_wallJumpLockTime, [this]() {
+        m_inWallJumpLock = false;
+    }, false);
 }
 
 void Player::Update(float deltaTime)
@@ -63,8 +73,9 @@ void Player::Update(float deltaTime)
     m_coyoteTimer.Update(deltaTime);
     m_jumpBufferTimer.Update(deltaTime);
     m_minJumpTimer.Update(deltaTime);
+    m_wallJumpLockTimer.Update(deltaTime);
     ApplyGravity(deltaTime);
-    m_velocity.x = m_direction.x * m_speed;
+    ApplyHorizontalMovement(deltaTime);
     if (m_isJumping && m_velocity.y > 0) m_isJumping = false; // If we start falling, we're no longer in the jump state
     HandleCollisions(deltaTime);
 }
@@ -98,8 +109,15 @@ bool Player::IsJumping() const
     return m_isJumping;
 }
 
+// --- Jump Actions ---
+// Jump flow:
+//   1. Ground/coyote jump: standard jump, clears grounded state
+//   2. Wall jump: launches away from wall, enters lock → coast → normal control
+//   3. Buffered jump: queued for execution on next landing or wall grab
+
 void Player::Jump()
 {
+    // Case 1: Ground jump (includes coyote time window)
     if (m_isGrounded || m_inCoyoteTime)
     {
         m_velocity.y = -m_jumpForce;
@@ -110,9 +128,14 @@ void Player::Jump()
         m_inCoyoteTime = false;
         m_coyoteTimer.Stop();
     }
+    // Case 2: Wall jump — launch on ballistic arc away from wall
+    else if (m_isOnWall)
+    {
+        EnterWallJump();
+    }
+    // Case 3: Can't jump now — buffer input for later
     else
     {
-        // If we can't jump now, buffer the jump input in case we land soon
         if (!m_jumpCommandQueue.HasCommands())
         {
             m_jumpCommandQueue.EnqueueCommand(std::make_unique<JumpCommand>(*this));
@@ -126,8 +149,8 @@ void Player::StopJump()
     if (m_isJumping)
     {
         if (m_inMinJump && !m_jumpStopCommandQueue.HasCommands())
-       {
-            // If we're still in the minimum jump time, we buffer the stop jump command to execute right after the min jump time expires
+        {
+            // Still in minimum jump time — defer the stop until min jump expires
             m_jumpStopCommandQueue.EnqueueCommand(std::make_unique<JumpStopCommand>(*this));
         }
         else
@@ -143,86 +166,124 @@ void Player::StopJump()
     }
 }
 
-// --- Internal Methods ---
+// --- Physics ---
 
 void Player::ApplyGravity(float deltaTime)
 {
     m_velocity.y += m_gravity * deltaTime;
 }
 
+// Horizontal movement flow:
+//   Wall jump lock active → no input at all (ballistic arc)
+//   Wall jump coasting    → no deceleration, but input can override
+//   Normal                → accelerate toward input, decelerate when idle
+void Player::ApplyHorizontalMovement(float deltaTime)
+{
+    // Phase 1: Lock — pure ballistic, player has no control
+    if (m_inWallJumpLock) {
+        return;
+    }
+
+    if (m_direction.x != 0)
+    {
+        // Phase 3 (or end of Phase 2): Player provides input — resume normal control
+        m_wallJumpCoasting = false;
+
+        m_velocity.x += m_direction.x * m_accCoeff * deltaTime;
+        if (m_velocity.x > m_speed)
+        {
+            m_velocity.x = m_speed;
+        }
+        else if (m_velocity.x < -m_speed)
+        {
+            m_velocity.x = -m_speed;
+        }
+    }
+    else if (!m_wallJumpCoasting)
+    {
+        // Phase 3: Normal deceleration (only when not coasting)
+        if (m_velocity.x > 0)
+        {
+            m_velocity.x -= m_decCoeff * deltaTime;
+            if (m_velocity.x < 0) m_velocity.x = 0;
+        }
+        else if (m_velocity.x < 0)
+        {
+            m_velocity.x += m_decCoeff * deltaTime;
+            if (m_velocity.x > 0) m_velocity.x = 0;
+        }
+    }
+    // Phase 2: Coasting — no input and coasting flag set, velocity preserved as-is
+}
+
+// --- Collision ---
+// Collision resolution order: horizontal → vertical → wall adjacency probe.
+// Horizontal first so wall sliding works correctly with vertical checks.
+
 void Player::HandleCollisions(float deltaTime)
 {
-    // Check for collisions in all directions and set velocity accordingly
-    
     Vec2 currentPos = GetGridPosition();
     Vec2 newGridPos = currentPos + m_velocity * deltaTime;
 
-    // Check left collision
+    ResolveHorizontalCollisions(currentPos, newGridPos);
+    ResolveVerticalCollisions(currentPos, newGridPos);
+
+    SetGridPosition(newGridPos);
+    UpdateWallContact(newGridPos);
+}
+
+void Player::ResolveHorizontalCollisions(const Vec2 &currentPos, Vec2 &newGridPos)
+{
+    // Left collision
     if (m_velocity.x < 0)
     {
-        Vec2 playerLeft = Vec2(newGridPos.x + m_playerBoundingBox[0].x, currentPos.y);
-        auto cell = GetGrid()->GetCellFromGridPosition(playerLeft);
-        auto platformTile = GetGrid()->GetFirstEntityAt<PlatformTile>(cell);
-        if (platformTile)
+        Vec2 probePoint = Vec2(newGridPos.x + m_playerBoundingBox[0].x, currentPos.y);
+        auto tile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(probePoint));
+        if (tile)
         {
-            // Stop horizontal movement
             m_velocity.x = 0;
-
-            // Snap to edge of platform
-            Vec2 platformCenter = platformTile->GetGridPosition();
-            Vec2 platformRight = Vec2(platformCenter.x + platformTile->GetGridSize().x / 2.0f, platformCenter.y);
-            newGridPos.x = platformRight.x - m_playerBoundingBox[0].x;
+            float tileRight = tile->GetGridPosition().x + tile->GetGridSize().x / 2.0f;
+            newGridPos.x = tileRight - m_playerBoundingBox[0].x;
         }
     }
-    // Check right collision
-    else if (m_velocity.x > 0)
+    // Right collision
+    if (m_velocity.x > 0)
     {
-        Vec2 playerRight = Vec2(newGridPos.x + m_playerBoundingBox[1].x, currentPos.y);
-        auto cell = GetGrid()->GetCellFromGridPosition(playerRight);
-        auto platformTile = GetGrid()->GetFirstEntityAt<PlatformTile>(cell);
-        if (platformTile)
+        Vec2 probePoint = Vec2(newGridPos.x + m_playerBoundingBox[1].x, currentPos.y);
+        auto tile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(probePoint));
+        if (tile)
         {
-            // Stop horizontal movement
             m_velocity.x = 0;
-
-            // Snap to edge of platform
-            Vec2 platformCenter = platformTile->GetGridPosition();
-            Vec2 platformLeft = Vec2(platformCenter.x - platformTile->GetGridSize().x / 2.0f, platformCenter.y);
-            newGridPos.x = platformLeft.x - m_playerBoundingBox[1].x;
+            float tileLeft = tile->GetGridPosition().x - tile->GetGridSize().x / 2.0f;
+            newGridPos.x = tileLeft - m_playerBoundingBox[1].x;
         }
     }
-    // Check upward collision
+}
+
+void Player::ResolveVerticalCollisions(const Vec2 &currentPos, Vec2 &newGridPos)
+{
+    // Upward collision
     if (m_velocity.y < 0)
     {
-        Vec2 playerTop = Vec2(currentPos.x, newGridPos.y + m_playerBoundingBox[0].y);
-        auto cell = GetGrid()->GetCellFromGridPosition(playerTop);
-        auto platformTile = GetGrid()->GetFirstEntityAt<PlatformTile>(cell);
-        if (platformTile)
+        Vec2 probePoint = Vec2(currentPos.x, newGridPos.y + m_playerBoundingBox[0].y);
+        auto tile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(probePoint));
+        if (tile)
         {
-            // Stop upward movement
             m_velocity.y = 0;
-
-            // Snap to edge of platform
-            Vec2 platformCenter = platformTile->GetGridPosition();
-            Vec2 platformBottom = Vec2(platformCenter.x, platformCenter.y + platformTile->GetGridSize().y / 2.0f);
-            newGridPos.y = platformBottom.y - m_playerBoundingBox[0].y;
+            float tileBottom = tile->GetGridPosition().y + tile->GetGridSize().y / 2.0f;
+            newGridPos.y = tileBottom - m_playerBoundingBox[0].y;
         }
     }
-    // Finally, check downward collision and set grounded state
+    // Downward collision — also manages grounded state
     else if (m_velocity.y >= 0)
     {
-        Vec2 playerBottom = Vec2(currentPos.x, newGridPos.y + m_playerBoundingBox[1].y);
-        auto nextCell = GetGrid()->GetCellFromGridPosition(playerBottom);
-        auto platformTile = GetGrid()->GetFirstEntityAt<PlatformTile>(nextCell);
-        if (platformTile)
+        Vec2 probePoint = Vec2(currentPos.x, newGridPos.y + m_playerBoundingBox[1].y);
+        auto tile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(probePoint));
+        if (tile)
         {
-            // Stop downward movement
             m_velocity.y = 0;
-
-            // Land on platform
-            Vec2 platformCenter = platformTile->GetGridPosition();
-            Vec2 platformTop = Vec2(platformCenter.x, platformCenter.y - platformTile->GetGridSize().y / 2.0f);
-            newGridPos.y = platformTop.y - m_playerBoundingBox[1].y;
+            float tileTop = tile->GetGridPosition().y - tile->GetGridSize().y / 2.0f;
+            newGridPos.y = tileTop - m_playerBoundingBox[1].y;
             ChangeGroundedState(true);
         }
         else
@@ -230,20 +291,44 @@ void Player::HandleCollisions(float deltaTime)
             ChangeGroundedState(false);
         }
     }
-
-    SetGridPosition(newGridPos);
 }
+
+void Player::UpdateWallContact(const Vec2 &position)
+{
+    // Don't detect wall contact during wall jump lock — we haven't cleared
+    // the wall yet and the probe would prematurely end the lock.
+    if (m_inWallJumpLock) return;
+
+    // Probe slightly beyond edges to detect wall contact even at zero velocity
+    const float probeOffset = 0.01f;
+
+    Vec2 leftProbe = Vec2(position.x + m_playerBoundingBox[0].x - probeOffset, position.y);
+    auto leftTile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(leftProbe));
+
+    Vec2 rightProbe = Vec2(position.x + m_playerBoundingBox[1].x + probeOffset, position.y);
+    auto rightTile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(rightProbe));
+
+    if (leftTile && !m_isGrounded)
+        ChangeWallState(true, -1);
+    else if (rightTile && !m_isGrounded)
+        ChangeWallState(true, 1);
+    else
+        ChangeWallState(false, 0);
+}
+
+// --- State Transitions ---
 
 void Player::ChangeGroundedState(bool grounded)
 {
-    if (m_isGrounded == grounded) return; // No change
+    if (m_isGrounded == grounded) return;
     m_isGrounded = grounded;
+
     if (grounded)
     {
-        m_isJumping = false;
-        m_coyoteTimer.Stop();
-        m_inCoyoteTime = false;
-        // Check if we have a buffered jump input and execute it immediately if we do
+        ClearJumpState();
+        ClearWallJumpTracking();
+
+        // Execute buffered jump immediately on landing
         if (m_jumpCommandQueue.HasCommands())
         {
             auto cmd = m_jumpCommandQueue.DequeueCommand();
@@ -253,7 +338,64 @@ void Player::ChangeGroundedState(bool grounded)
     }
     else
     {
+        // Just left a ledge — start coyote time window
         m_inCoyoteTime = true;
         m_coyoteTimer.Reset();
     }
+}
+
+void Player::ChangeWallState(bool onWall, int direction)
+{
+    if (m_isOnWall == onWall && m_wallDirection == direction) return;
+    m_isOnWall = onWall;
+    m_wallDirection = direction;
+
+    if (onWall)
+    {
+        ClearJumpState();
+        ClearWallJumpTracking();
+
+        // Execute buffered jump immediately on wall grab
+        if (m_jumpCommandQueue.HasCommands())
+        {
+            auto cmd = m_jumpCommandQueue.DequeueCommand();
+            if (cmd) cmd->Execute();
+            m_jumpBufferTimer.Stop();
+        }
+    }
+}
+
+void Player::EnterWallJump()
+{
+    // Decompose wall jump force into horizontal and vertical components
+    float angleRad = m_wallJumpAngle * (std::numbers::pi_v<float> / 180.0f);
+    m_velocity.x = -m_wallDirection * m_wallJumpForce * std::cos(angleRad);
+    m_velocity.y = -m_wallJumpForce * std::sin(angleRad);
+
+    m_isJumping = true;
+    m_inMinJump = true;
+    m_minJumpTimer.Reset();
+
+    // Lock phase: no player input for the duration of the timer
+    m_inWallJumpLock = true;
+    m_wallJumpCoasting = true;
+    m_wallJumpLockTimer.Reset();
+
+    ChangeWallState(false, 0);
+}
+
+void Player::ClearWallJumpTracking()
+{
+    m_inWallJumpLock = false;
+    m_wallJumpCoasting = false;
+    m_wallJumpLockTimer.Stop();
+}
+
+void Player::ClearJumpState()
+{
+    m_isJumping = false;
+    m_inMinJump = false;
+    m_minJumpTimer.Stop();
+    m_inCoyoteTime = false;
+    m_coyoteTimer.Stop();
 }
