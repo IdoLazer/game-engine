@@ -21,38 +21,85 @@ public:
     void Render() const override;
     void Destroy();
 
-// --- Accessors ---
+// --- Public Interface ---
 public:
     void SetDirection(const Engine::Vec2 &dir);
     bool IsJumping() const;
     void Jump();
     void StopJump();
 
-// --- Internal Methods ---
+// --- Physics & Collision ---
 private:
     void ApplyGravity(float deltaTime);
+    void ApplyHorizontalMovement(float deltaTime);
     void HandleCollisions(float deltaTime);
-    void ChangeGroundedState(bool grounded);
+    void ResolveHorizontalCollisions(const Engine::Vec2 &currentPos, Engine::Vec2 &newGridPos);
+    void ResolveVerticalCollisions(const Engine::Vec2 &currentPos, Engine::Vec2 &newGridPos);
+    void UpdateWallContact(const Engine::Vec2 &position);
 
-// --- Fields ---
+// --- State Transitions ---
+private:
+    void ChangeGroundedState(bool grounded);
+    void ChangeWallState(bool onWall, int direction);
+    void EnterWallJump();
+    void ClearWallJumpTracking();
+    void ClearJumpState();
+
+// --- Configuration (data-driven via type registry) ---
 private:
     float m_speed{0.0f};
+    float m_accCoeff{0.0f};
+    float m_decCoeff{0.0f};
     float m_jumpForce{0.0f};
     float m_gravity{0.0f};
     float m_coyoteTime{0.0f};
     float m_jumpBufferTime{0.0f};
     float m_minJumpTime{0.0f};
-    bool m_isJumping{false};
+    float m_wallJumpLockTime{0.0f};
+    float m_wallJumpForce{0.0f};
+    float m_wallJumpAngle{0.0f}; // Degrees from horizontal (0 = pure sideways, 90 = pure up)
+
+// --- Movement State ---
+private:
+    Engine::Vec2 m_velocity{};
+    Engine::Vec2 m_direction{};  // Current input direction from player
     bool m_isGrounded{false};
+    bool m_isJumping{false};     // True from jump initiation until apex or landing
+
+// --- Wall State ---
+private:
+    bool m_isOnWall{false};
+    int m_wallDirection{0};      // -1 = wall on left, 1 = wall on right
+
+// --- Wall Jump State ---
+    // After a wall jump, the player enters a "lock" phase (ballistic arc, no input),
+    // followed by a "coasting" phase (maintains velocity, no deceleration until input).
+private:
+    bool m_inWallJumpLock{false};
+    bool m_wallJumpCoasting{false};
+
+// --- Jump Assist State ---
+    // Coyote time: brief window after leaving a ledge where jump is still allowed.
+    // Jump buffer: if jump is pressed just before landing, it fires on contact.
+    // Min jump: ensures a minimum arc height even on quick tap.
+private:
     bool m_inCoyoteTime{false};
     bool m_inMinJump{false};
-    Engine::Vec2 m_playerBoundingBox[2]{};
-    Engine::Vec2 m_velocity{};
-    Engine::Vec2 m_direction{};
+
+// --- Timers ---
+private:
     Engine::Timer m_coyoteTimer;
     Engine::Timer m_jumpBufferTimer;
     Engine::Timer m_minJumpTimer;
+    Engine::Timer m_wallJumpLockTimer;
+
+// --- Command Queues ---
+private:
     Engine::CommandQueue m_jumpCommandQueue;
     Engine::CommandQueue m_jumpStopCommandQueue;
+
+// --- Other ---
+private:
+    Engine::Vec2 m_playerBoundingBox[2]{};
     std::unique_ptr<PlatformerInputManager> m_inputManager;
 };
