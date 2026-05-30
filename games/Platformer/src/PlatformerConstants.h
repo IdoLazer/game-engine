@@ -5,12 +5,17 @@ namespace PlatformerConstants
 {
     // Player properties
     static const Engine::Vec2 PLAYER_SIZE{0.5f, 0.5f};
-    static const float PLAYER_SPEED = 10.0f;
-    static const float PLAYER_JUMP_FORCE = 15.0f;
-    static const float PLAYER_GRAVITY = 35.0f;
+    static const float PLAYER_SPEED = 12.0f;
+    static const float PLAYER_JUMP_FORCE = 18.0f;
+    static const float PLAYER_GRAVITY = 45.0f;
     static const float PLAYER_COYOTE_TIME = 0.1f; // Time after leaving a platform during which the player can still jump
     static const float PLAYER_JUMP_BUFFER_TIME = 0.1f; // Time before landing during which a jump input is buffered
     static const float PLAYER_MIN_JUMP_TIME = 0.15f; // Minimum time the player must jump before they can cut the jump short by releasing the jump button
+    static const float PLAYER_WALL_JUMP_LOCK_TIME = 0.2f; // Time during which the player is locked in a wall jump
+    static const float PLAYER_ACCELERATION_COEFFICIENT = 150.0f; // How quickly the player accelerates to full speed
+    static const float PLAYER_DECELERATION_COEFFICIENT = 160.0f; // How quickly the player decelerates to a stop when no input is given
+    static const float PLAYER_WALL_JUMP_FORCE = 15.0f; // Diagonal force applied during a wall jump
+    static const float PLAYER_WALL_JUMP_ANGLE = 60.0f; // Angle of wall jump in degrees (0 = pure sideways, 90 = pure up)
 
     // World properties
     static const Engine::Vec2 GRID_WORLD_SIZE{16.0f, 12.0f};

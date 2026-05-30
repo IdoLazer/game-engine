@@ -83,11 +83,16 @@ namespace PlatformerData
             {"Color", PlatformerConstants::PLAYER_COLOR},
             // Player-specific properties
             {"Speed", PlatformerConstants::PLAYER_SPEED},
+            {"AccelerationCoefficient", PlatformerConstants::PLAYER_ACCELERATION_COEFFICIENT},
+            {"DecelerationCoefficient", PlatformerConstants::PLAYER_DECELERATION_COEFFICIENT},
             {"JumpForce", PlatformerConstants::PLAYER_JUMP_FORCE},
             {"Gravity", PlatformerConstants::PLAYER_GRAVITY},
             {"CoyoteTime", PlatformerConstants::PLAYER_COYOTE_TIME},
             {"JumpBufferTime", PlatformerConstants::PLAYER_JUMP_BUFFER_TIME},
-            {"MinJumpTime", PlatformerConstants::PLAYER_MIN_JUMP_TIME}
+            {"MinJumpTime", PlatformerConstants::PLAYER_MIN_JUMP_TIME},
+            {"WallJumpLockTime", PlatformerConstants::PLAYER_WALL_JUMP_LOCK_TIME},
+            {"WallJumpForce", PlatformerConstants::PLAYER_WALL_JUMP_FORCE},
+            {"WallJumpAngle", PlatformerConstants::PLAYER_WALL_JUMP_ANGLE}
         }},
     };
 }
