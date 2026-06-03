@@ -4,6 +4,7 @@
 
 // --- Forward Declarations ---
 class PlatformerInputManager;
+class PlatformerWorld;
 
 class Player : public Engine::GridEntity
 {
@@ -19,11 +20,12 @@ public:
     void Initialize() override;
     void Update(float deltaTime) override;
     void Render() const override;
-    void Destroy();
+    void Destroy() override;
 
 // --- Public Interface ---
 public:
     void SetDirection(const Engine::Vec2 &dir);
+    void SetWorld(PlatformerWorld *world);
     bool IsJumping() const;
     void Jump();
     void StopJump();
@@ -100,6 +102,7 @@ private:
 
 // --- Other ---
 private:
+    PlatformerWorld *m_world{nullptr};
     Engine::Vec2 m_playerBoundingBox[2]{};
     std::unique_ptr<PlatformerInputManager> m_inputManager;
 };
