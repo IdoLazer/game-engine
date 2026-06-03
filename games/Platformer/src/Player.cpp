@@ -1,5 +1,5 @@
 #include "Player.h"
-#include "PlatformTile.h"
+#include "PlatformerWorld.h"
 #include "PlatformerInputManager.h"
 #include <cmath>
 #include <iostream>
@@ -102,6 +102,11 @@ void Player::Destroy()
 void Player::SetDirection(const Vec2 &dir)
 {
     m_direction = dir;
+}
+
+void Player::SetWorld(PlatformerWorld *world)
+{
+    m_world = world;
 }
 
 bool Player::IsJumping() const
@@ -238,24 +243,22 @@ void Player::ResolveHorizontalCollisions(const Vec2 &currentPos, Vec2 &newGridPo
     if (m_velocity.x < 0)
     {
         Vec2 probePoint = Vec2(newGridPos.x + m_playerBoundingBox[0].x, currentPos.y);
-        auto tile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(probePoint));
-        if (tile)
+        Vec2 cell = GetGrid()->GetCellFromGridPosition(probePoint);
+        if (m_world->IsSolid(cell))
         {
             m_velocity.x = 0;
-            float tileRight = tile->GetGridPosition().x + tile->GetGridSize().x / 2.0f;
-            newGridPos.x = tileRight - m_playerBoundingBox[0].x;
+            newGridPos.x = (cell.x + 0.5f) - m_playerBoundingBox[0].x;
         }
     }
     // Right collision
     if (m_velocity.x > 0)
     {
         Vec2 probePoint = Vec2(newGridPos.x + m_playerBoundingBox[1].x, currentPos.y);
-        auto tile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(probePoint));
-        if (tile)
+        Vec2 cell = GetGrid()->GetCellFromGridPosition(probePoint);
+        if (m_world->IsSolid(cell))
         {
             m_velocity.x = 0;
-            float tileLeft = tile->GetGridPosition().x - tile->GetGridSize().x / 2.0f;
-            newGridPos.x = tileLeft - m_playerBoundingBox[1].x;
+            newGridPos.x = (cell.x - 0.5f) - m_playerBoundingBox[1].x;
         }
     }
 }
@@ -266,24 +269,22 @@ void Player::ResolveVerticalCollisions(const Vec2 &currentPos, Vec2 &newGridPos)
     if (m_velocity.y < 0)
     {
         Vec2 probePoint = Vec2(currentPos.x, newGridPos.y + m_playerBoundingBox[0].y);
-        auto tile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(probePoint));
-        if (tile)
+        Vec2 cell = GetGrid()->GetCellFromGridPosition(probePoint);
+        if (m_world->IsSolid(cell))
         {
             m_velocity.y = 0;
-            float tileBottom = tile->GetGridPosition().y + tile->GetGridSize().y / 2.0f;
-            newGridPos.y = tileBottom - m_playerBoundingBox[0].y;
+            newGridPos.y = (cell.y + 0.5f) - m_playerBoundingBox[0].y;
         }
     }
     // Downward collision — also manages grounded state
     else if (m_velocity.y >= 0)
     {
         Vec2 probePoint = Vec2(currentPos.x, newGridPos.y + m_playerBoundingBox[1].y);
-        auto tile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(probePoint));
-        if (tile)
+        Vec2 cell = GetGrid()->GetCellFromGridPosition(probePoint);
+        if (m_world->IsSolid(cell))
         {
             m_velocity.y = 0;
-            float tileTop = tile->GetGridPosition().y - tile->GetGridSize().y / 2.0f;
-            newGridPos.y = tileTop - m_playerBoundingBox[1].y;
+            newGridPos.y = (cell.y - 0.5f) - m_playerBoundingBox[1].y;
             ChangeGroundedState(true);
         }
         else
@@ -303,14 +304,14 @@ void Player::UpdateWallContact(const Vec2 &position)
     const float probeOffset = 0.01f;
 
     Vec2 leftProbe = Vec2(position.x + m_playerBoundingBox[0].x - probeOffset, position.y);
-    auto leftTile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(leftProbe));
+    bool leftSolid = m_world->IsSolid(GetGrid()->GetCellFromGridPosition(leftProbe));
 
     Vec2 rightProbe = Vec2(position.x + m_playerBoundingBox[1].x + probeOffset, position.y);
-    auto rightTile = GetGrid()->GetFirstEntityAt<PlatformTile>(GetGrid()->GetCellFromGridPosition(rightProbe));
+    bool rightSolid = m_world->IsSolid(GetGrid()->GetCellFromGridPosition(rightProbe));
 
-    if (leftTile && !m_isGrounded)
+    if (leftSolid && !m_isGrounded)
         ChangeWallState(true, -1);
-    else if (rightTile && !m_isGrounded)
+    else if (rightSolid && !m_isGrounded)
         ChangeWallState(true, 1);
     else
         ChangeWallState(false, 0);
