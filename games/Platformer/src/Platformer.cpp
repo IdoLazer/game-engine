@@ -1,7 +1,6 @@
 #include "Platformer.h"
 #include "PlatformerData.h"
-#include "PlatformTile.h"
-#include <iostream>
+#include "PlatformerWorld.h"
 #include "Player.h"
 
 using namespace Engine;
@@ -12,6 +11,9 @@ void Platformer::Initialize()
 
     m_grid = Grid(cellSize, PlatformerConstants::GRID_WORLD_SIZE);
     
+    PlatformerWorld *world = nullptr;
+    Player *player = nullptr;
+
     for (const auto &entityInfo : PlatformerData::ENTITY_DATA)
     {
         auto *entity = GetScene()->Instantiate(entityInfo);
@@ -19,7 +21,17 @@ void Platformer::Initialize()
         {
             gridEntity->SetGrid(&m_grid);
         }
+        if (auto *w = dynamic_cast<PlatformerWorld *>(entity))
+        {
+            w->SetCoordSystem(&m_grid.GetCoordinateSystem());
+            world = w;
+        }
+        if (auto *p = dynamic_cast<Player *>(entity))
+            player = p;
     }
+
+    if (player && world)
+        player->SetWorld(world);
     
     m_exitSub = Keyboard::OnKeyPressed().Subscribe([this](const Key &key)
     {
