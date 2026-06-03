@@ -15,6 +15,9 @@
       "type": "shell",
       "command": "cmake",
       "args": ["--preset", "windows-x64-debug", "--fresh"],
+      "osx": {
+        "args": ["--preset", "macos-arm64-debug", "--fresh"]
+      },
       "group": "build",
       "problemMatcher": [],
       "detail": "Configure debug preset"
@@ -24,6 +27,9 @@
       "type": "shell",
       "command": "cmake",
       "args": ["--build", "build/windows-x64-debug", "--target", "clean"],
+      "osx": {
+        "args": ["--build", "build/macos-arm64-debug", "--target", "clean"]
+      },
       "group": "build",
       "problemMatcher": [],
       "detail": "Clean debug build artifacts"
@@ -38,6 +44,14 @@
         "--target",
         "${input:targetName}"
       ],
+      "osx": {
+        "args": [
+          "--build",
+          "build/macos-arm64-debug",
+          "--target",
+          "${input:targetName}"
+        ]
+      },
       "group": {
         "kind": "build",
         "isDefault": true
@@ -55,6 +69,14 @@
         "--target",
         "${input:targetName}"
       ],
+      "osx": {
+        "args": [
+          "--build",
+          "build/macos-arm64-debug",
+          "--target",
+          "${input:targetName}"
+        ]
+      },
       "group": "build",
       "dependsOrder": "sequence",
       "dependsOn": ["Clean (Debug)", "Configure (Debug)"],
@@ -65,6 +87,9 @@
       "label": "Build + Run (Debug)",
       "type": "shell",
       "command": ".\\build\\windows-x64-debug\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "osx": {
+        "command": "./build/macos-arm64-debug/bin/${input:targetName}/${input:targetName}"
+      },
       "group": "build",
       "dependsOn": "Build (Debug)",
       "problemMatcher": [],
@@ -74,6 +99,9 @@
       "label": "Clean Build + Run (Debug)",
       "type": "shell",
       "command": ".\\build\\windows-x64-debug\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "osx": {
+        "command": "./build/macos-arm64-debug/bin/${input:targetName}/${input:targetName}"
+      },
       "group": "build",
       "dependsOn": "Clean Build (Debug)",
       "problemMatcher": [],
@@ -83,6 +111,9 @@
       "label": "Run (Debug)",
       "type": "shell",
       "command": ".\\build\\windows-x64-debug\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "osx": {
+        "command": "./build/macos-arm64-debug/bin/${input:targetName}/${input:targetName}"
+      },
       "group": "build",
       "problemMatcher": [],
       "detail": "Run a target with the debug preset without building"
@@ -111,6 +142,9 @@
       "type": "shell",
       "command": "cmake",
       "args": ["--preset", "windows-x64-release", "--fresh"],
+      "osx": {
+        "args": ["--preset", "macos-arm64-release", "--fresh"]
+      },
       "group": "build",
       "problemMatcher": [],
       "detail": "Configure release preset"
@@ -125,6 +159,14 @@
         "--target",
         "${input:targetName}"
       ],
+      "osx": {
+        "args": [
+          "--build",
+          "build/macos-arm64-release",
+          "--target",
+          "${input:targetName}"
+        ]
+      },
       "group": "build",
       "problemMatcher": ["$gcc"],
       "detail": "Configure + build a target"
@@ -134,6 +176,9 @@
       "type": "shell",
       "command": "cmake",
       "args": ["--build", "build/windows-x64-release", "--target", "clean"],
+      "osx": {
+        "args": ["--build", "build/macos-arm64-release", "--target", "clean"]
+      },
       "group": "build",
       "problemMatcher": [],
       "detail": "Clean built artifacts"
@@ -148,6 +193,14 @@
         "--target",
         "${input:targetName}"
       ],
+      "osx": {
+        "args": [
+          "--build",
+          "build/macos-arm64-release",
+          "--target",
+          "${input:targetName}"
+        ]
+      },
       "group": "build",
       "dependsOrder": "sequence",
       "dependsOn": ["Clean (Release)", "Configure (Release)"],
@@ -158,6 +211,9 @@
       "label": "Build + Run (Release)",
       "type": "shell",
       "command": ".\\build\\windows-x64-release\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "osx": {
+        "command": "./build/macos-arm64-release/bin/${input:targetName}/${input:targetName}"
+      },
       "group": "build",
       "dependsOn": "Build (Release)",
       "problemMatcher": [],
@@ -167,6 +223,9 @@
       "label": "Clean Build + Run (Release)",
       "type": "shell",
       "command": ".\\build\\windows-x64-release\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "osx": {
+        "command": "./build/macos-arm64-release/bin/${input:targetName}/${input:targetName}"
+      },
       "group": "build",
       "dependsOn": "Clean Build (Release)",
       "problemMatcher": [],
@@ -176,6 +235,9 @@
       "label": "Run (Release)",
       "type": "shell",
       "command": ".\\build\\windows-x64-release\\bin\\${input:targetName}\\${input:targetName}.exe",
+      "osx": {
+        "command": "./build/macos-arm64-release/bin/${input:targetName}/${input:targetName}"
+      },
       "group": "build",
       "problemMatcher": [],
       "detail": "Run a target without building"
