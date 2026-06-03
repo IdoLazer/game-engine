@@ -3,6 +3,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#elif __APPLE__
+#include <mach-o/dyld.h>
 #endif
 
 namespace Engine
@@ -20,6 +22,14 @@ namespace Engine
         char buffer[MAX_PATH];
         GetModuleFileNameA(nullptr, buffer, MAX_PATH);
         s_basePath = std::filesystem::path(buffer).parent_path();
+
+#elif __APPLE__
+        // On macOS, get the executable path using _NSGetExecutablePath.
+        char buffer[PATH_MAX];
+        uint32_t bufferSize = sizeof(buffer);
+        _NSGetExecutablePath(buffer, &bufferSize);
+        s_basePath = std::filesystem::path(buffer).parent_path();
+
 #else
         // On other platforms, fall back to cwd.
         s_basePath = std::filesystem::current_path();
