@@ -52,8 +52,8 @@ Engine::WindowConfig Platformer::GetWindowConfig() const
 {
     Engine::WindowConfig config;
     config.title = "Platformer";
-    config.width = 800;
-    config.height = 600;
+    config.width = 1200;
+    config.height = 800;
     config.fullscreen = false;
     config.resizable = true;
     return config;
