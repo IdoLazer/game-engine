@@ -85,11 +85,13 @@ void Player::Render() const
     Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
 
     // Debug: Draw bounding box
-    Vec2 center = GetWorldPosition();
+    Vec2 center = GetGridPosition();
     Vec2 topLeft = center + m_playerBoundingBox[0];
     Vec2 bottomRight = center + m_playerBoundingBox[1];
-    Vec2 size = bottomRight - topLeft;
-    Renderer2D::DrawRectOutline(center, size, Color(1.0f, 1.0f, 1.0f, 1.0f));
+    Vec2 topLeftWorld = GetGrid()->GridToWorld(topLeft);
+    Vec2 bottomRightWorld = GetGrid()->GridToWorld(bottomRight);
+    Vec2 size = bottomRightWorld - topLeftWorld;
+    Renderer2D::DrawRectOutline(m_worldPosition, size, Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
 void Player::Destroy()
