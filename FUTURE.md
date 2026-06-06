@@ -37,6 +37,13 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Add lifecycle events using the existing `Event<>` system.  
 **When:** When something actually needs to observe entity lifecycle changes. Not worth adding speculatively.
 
+### Pre-initialization hook (e.g. `Awake()` or `OnCreated()`)
+
+**Current:** `Initialize()` is deferred — it runs during `FlushPending()` on the first `Update()` frame, not immediately after `Instantiate()`. There is no hook that runs right after an entity is created and its properties are set.  
+**Concern:** Code that needs to set up an entity before the first frame (e.g., positioning the player at a spawn point from the world grid) must rely on initialization order between entities within `FlushPending()`. This works today because entities initialize in instantiation order, but it's implicit and fragile.  
+**Future:** Add an earlier lifecycle hook (similar to Unity's `Awake()`) that runs immediately after `Instantiate()` + property assignment, before the first frame. `Initialize()` would then only contain logic that's safe to depend on all other entities being awake.  
+**When:** When the implicit initialization order causes bugs or when cross-entity setup becomes too complex to reason about.
+
 ---
 
 ## Build System

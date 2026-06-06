@@ -5,7 +5,6 @@ namespace PlatformerConstants
 {
     // Player properties
     static const Engine::Vec2 PLAYER_SIZE{0.5f, 0.5f};
-    static const Engine::Vec2 PLAYER_START_POSITION{1.0f, 2.0f};
     static const float PLAYER_SPEED = 12.0f;
     static const float PLAYER_JUMP_FORCE = 18.0f;
     static const float PLAYER_GRAVITY = 45.0f;
@@ -15,29 +14,33 @@ namespace PlatformerConstants
     static const float PLAYER_WALL_JUMP_LOCK_TIME = 0.25f; // Time during which the player is locked in a wall jump
     static const float PLAYER_ACCELERATION_COEFFICIENT = 150.0f; // How quickly the player accelerates to full speed
     static const float PLAYER_DECELERATION_COEFFICIENT = 160.0f; // How quickly the player decelerates to a stop when no input is given
-    static const float PLAYER_WALL_JUMP_FORCE = 15.0f; // Diagonal force applied during a wall jump
+    static const float PLAYER_WALL_JUMP_FORCE = 18.0f; // Diagonal force applied during a wall jump
     static const float PLAYER_WALL_JUMP_ANGLE = 50.0f; // Angle of wall jump in degrees (0 = pure sideways, 90 = pure up)
+    static const float PLAYER_MAX_FALL_SPEED = 25.0f; // Maximum downward speed in free fall (terminal velocity)
+    static const float PLAYER_WALL_SLIDE_MAX_SPEED = 5.0f; // Maximum downward speed when sliding against a wall
+    static constexpr float PLAYER_WALL_GRAVITY_SCALE = 0.4f; // Gravity multiplier while on a wall (1.0 = normal, 0 = no gravity)
 
     // World properties
     static const Engine::Color BACKGROUND_COLOR{0.5f, 0.7f, 1.0f, 1.0f};
     static const Engine::Color PLAYER_COLOR{1.0f, 0.0f, 0.0f, 1.0f};
-    static const Engine::Color TILE_COLOR{0.3f, 0.3f, 0.3f, 1.0f};
+    static const Engine::Color STATIC_TILE_COLOR{0.3f, 0.3f, 0.3f, 1.0f};
+    static const Engine::Color LEVEL_END_COLOR{0.0f, 0.8f, 0.0f, 1.0f};
     static const std::vector<std::vector<int>> WORLD_GRID = {
         {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
-        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1},
-        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-        {1,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,2,1},
+        {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,1,1,1,1,1,1,1},
+        {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,1,0,0,1,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1},
+        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1},
+        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1},
+        {1,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+        {1,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1},
+        {1,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
         {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},

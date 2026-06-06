@@ -32,6 +32,14 @@ void Platformer::Initialize()
 
     if (player && world)
         player->SetWorld(world);
+
+    if (player)
+    {
+        m_levelEndSub = player->OnLevelEnd().Subscribe([this]()
+        {
+            Close();
+        });
+    }
     
     m_exitSub = Keyboard::OnKeyPressed().Subscribe([this](const Key &key)
     {
@@ -46,6 +54,8 @@ void Platformer::Update(float deltaTime)
 
 void Platformer::Shutdown()
 {
+    m_levelEndSub.Unsubscribe();
+    m_exitSub.Unsubscribe();
 }
 
 Engine::WindowConfig Platformer::GetWindowConfig() const
