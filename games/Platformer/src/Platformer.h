@@ -22,5 +22,6 @@ private:
 
     // --- Fields ---
     Engine::Subscription m_exitSub;
+    Engine::Subscription m_levelEndSub;
     Engine::Grid m_grid;
 };

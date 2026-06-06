@@ -18,6 +18,9 @@ BEGIN_TYPE_REGISTER(Player)
     REGISTER_PROPERTY(float, WallJumpLockTime, &Player::m_wallJumpLockTime)
     REGISTER_PROPERTY(float, WallJumpForce, &Player::m_wallJumpForce)
     REGISTER_PROPERTY(float, WallJumpAngle, &Player::m_wallJumpAngle)
+    REGISTER_PROPERTY(float, MaxFallSpeed, &Player::m_maxFallSpeed)
+    REGISTER_PROPERTY(float, WallSlideMaxSpeed, &Player::m_wallSlideMaxSpeed)
+    REGISTER_PROPERTY(float, WallGravityScale, &Player::m_wallGravityScale)
 END_TYPE_REGISTER()
 
 using namespace Engine;
@@ -47,6 +50,7 @@ private:
 void Player::Initialize()
 {
     GridEntity::Initialize();
+    SetGridPosition(m_world->FindSpawnPosition());
     m_playerBoundingBox[0] = -GetGridSize() / 2.0f;
     m_playerBoundingBox[1] = GetGridSize() / 2.0f;
     m_inputManager = std::make_unique<PlatformerInputManager>(*this);
@@ -177,7 +181,29 @@ void Player::StopJump()
 
 void Player::ApplyGravity(float deltaTime)
 {
-    m_velocity.y += m_gravity * deltaTime;
+    if (!m_isOnWall)
+    {
+        m_velocity.y += m_gravity * deltaTime;
+        if (m_velocity.y > m_maxFallSpeed)
+        {
+            m_velocity.y = m_maxFallSpeed;
+        }
+    }
+    else
+    {
+        if (m_velocity.y < 0) // If player is moving upward while on the wall, apply normal gravity to allow jumping up
+        {
+            m_velocity.y += m_gravity * deltaTime;
+        }
+        else // If player is moving downward or stationary while on the wall, apply reduced gravity for sliding effect
+        {
+            m_velocity.y += m_gravity * m_wallGravityScale * deltaTime;
+            if (m_velocity.y > m_wallSlideMaxSpeed)
+            {
+                m_velocity.y = m_wallSlideMaxSpeed;
+            }
+        }
+    }
 }
 
 // Horizontal movement flow:
@@ -237,6 +263,7 @@ void Player::HandleCollisions(float deltaTime)
 
     SetGridPosition(newGridPos);
     UpdateWallContact(newGridPos);
+    CheckLevelEnd(newGridPos);
 }
 
 void Player::ResolveHorizontalCollisions(const Vec2 &currentPos, Vec2 &newGridPos)
@@ -317,6 +344,15 @@ void Player::UpdateWallContact(const Vec2 &position)
         ChangeWallState(true, 1);
     else
         ChangeWallState(false, 0);
+}
+
+void Player::CheckLevelEnd(const Engine::Vec2 &position)
+{
+    Vec2 cell = GetGrid()->GetCellFromGridPosition(position);
+    if (m_world->IsLevelEnd(cell))
+    {
+        m_levelEnd.Notify();
+    }
 }
 
 // --- State Transitions ---
