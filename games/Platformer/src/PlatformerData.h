@@ -13,12 +13,12 @@ namespace PlatformerData
         // World
         {"PlatformerWorld", PropertyMap{
             {"TileGrid", PlatformerConstants::WORLD_GRID},
-            {"Color", PlatformerConstants::TILE_COLOR}
+            {"StaticTileColor", PlatformerConstants::STATIC_TILE_COLOR},
+            {"LevelEndColor", PlatformerConstants::LEVEL_END_COLOR}
         }},
         // Player
         {"Player", PropertyMap{
             // GridEntity properties
-            {"GridPosition", PlatformerConstants::PLAYER_START_POSITION},
             {"GridSize", PlatformerConstants::PLAYER_SIZE},
             {"Color", PlatformerConstants::PLAYER_COLOR},
             // Player-specific properties
@@ -32,7 +32,10 @@ namespace PlatformerData
             {"MinJumpTime", PlatformerConstants::PLAYER_MIN_JUMP_TIME},
             {"WallJumpLockTime", PlatformerConstants::PLAYER_WALL_JUMP_LOCK_TIME},
             {"WallJumpForce", PlatformerConstants::PLAYER_WALL_JUMP_FORCE},
-            {"WallJumpAngle", PlatformerConstants::PLAYER_WALL_JUMP_ANGLE}
+            {"WallJumpAngle", PlatformerConstants::PLAYER_WALL_JUMP_ANGLE},
+            {"MaxFallSpeed", PlatformerConstants::PLAYER_MAX_FALL_SPEED},
+            {"WallSlideMaxSpeed", PlatformerConstants::PLAYER_WALL_SLIDE_MAX_SPEED},
+            {"WallGravityScale", PlatformerConstants::PLAYER_WALL_GRAVITY_SCALE}
         }},
     };
 }
