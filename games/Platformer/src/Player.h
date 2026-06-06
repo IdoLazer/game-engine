@@ -29,6 +29,7 @@ public:
     bool IsJumping() const;
     void Jump();
     void StopJump();
+    Engine::EventSubscriber<> &OnLevelEnd() { return m_levelEnd; }
 
 // --- Physics & Collision ---
 private:
@@ -38,6 +39,7 @@ private:
     void ResolveHorizontalCollisions(const Engine::Vec2 &currentPos, Engine::Vec2 &newGridPos);
     void ResolveVerticalCollisions(const Engine::Vec2 &currentPos, Engine::Vec2 &newGridPos);
     void UpdateWallContact(const Engine::Vec2 &position);
+    void CheckLevelEnd(const Engine::Vec2 &position);
 
 // --- State Transitions ---
 private:
@@ -60,6 +62,9 @@ private:
     float m_wallJumpLockTime{0.0f};
     float m_wallJumpForce{0.0f};
     float m_wallJumpAngle{0.0f}; // Degrees from horizontal (0 = pure sideways, 90 = pure up)
+    float m_maxFallSpeed{0.0f};
+    float m_wallSlideMaxSpeed{0.0f};
+    float m_wallGravityScale{1.0f};
 
 // --- Movement State ---
 private:
@@ -105,4 +110,5 @@ private:
     PlatformerWorld *m_world{nullptr};
     Engine::Vec2 m_playerBoundingBox[2]{};
     std::unique_ptr<PlatformerInputManager> m_inputManager;
+    Engine::Event<> m_levelEnd;
 };
