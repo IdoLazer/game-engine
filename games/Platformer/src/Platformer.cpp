@@ -2,13 +2,15 @@
 #include "PlatformerData.h"
 #include "PlatformerWorld.h"
 #include "Player.h"
+#include "Levels/Levels.h"
 
 using namespace Engine;
 
 void Platformer::Initialize()
 {
-    float cellSize = Renderer2D::GetCamera().GetWorldWidth() / PlatformerConstants::GRID_WORLD_SIZE.x;
+    const LevelData &level = *Levels::ALL[m_currentLevel];
 
+    float cellSize = Renderer2D::GetCamera().GetWorldWidth() / PlatformerConstants::GRID_WORLD_SIZE.x;
     m_grid = Grid(cellSize, PlatformerConstants::GRID_WORLD_SIZE);
     
     PlatformerWorld *world = nullptr;
@@ -23,6 +25,7 @@ void Platformer::Initialize()
         }
         if (auto *w = dynamic_cast<PlatformerWorld *>(entity))
         {
+            w->SetTileGrid(level.tileGrid);
             w->SetCoordSystem(&m_grid.GetCoordinateSystem());
             world = w;
         }
@@ -37,7 +40,11 @@ void Platformer::Initialize()
     {
         m_levelEndSub = player->OnLevelEnd().Subscribe([this]()
         {
-            Close();
+            m_currentLevel++;
+            if (m_currentLevel < static_cast<int>(Levels::ALL.size()))
+                ReloadScene();
+            else
+                Close();
         });
     }
     
