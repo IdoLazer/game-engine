@@ -6,6 +6,13 @@ using namespace Engine;
 PlatformerInputManager::PlatformerInputManager(Player &player)
     : m_player(player)
 {
+    // Initialize horizontal input from currently held keys
+    if (Engine::Keyboard::IsKeyDown(Key::A) || Engine::Keyboard::IsKeyDown(Key::Left))
+        m_horizontalInput -= 1.0f;
+    if (Engine::Keyboard::IsKeyDown(Key::D) || Engine::Keyboard::IsKeyDown(Key::Right))
+        m_horizontalInput += 1.0f;
+    m_player.SetDirection(Vec2{m_horizontalInput, 0.0});
+
     // Subscribe to keyboard input events
     m_keyPressedSub = Engine::Keyboard::OnKeyPressed().Subscribe(this, &PlatformerInputManager::HandleKeyPress);
     m_keyReleaseSub = Engine::Keyboard::OnKeyReleased().Subscribe(this, &PlatformerInputManager::HandleKeyRelease);
