@@ -94,6 +94,13 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** A hierarchical scene serialization system — load/save an entire scene to a file (JSON, YAML, or custom binary). Entities reference each other by ID. The TypeRegistry provides the reflection needed to serialize any registered property. Editor tooling can produce scene files.  
 **When:** When we want a level editor, runtime scene loading, or game saves.
 
+### File-based level data
+
+**Current:** Level grids (tile layouts) are defined as C++ constants in game code. Adding or changing a level requires recompilation.  
+**Concern:** Designers can't iterate on levels without a C++ toolchain. The data-in-code pattern won't scale to dozens of levels.  
+**Future:** Load level data from files (JSON, CSV, or a custom text format). This requires choosing a format, adding a file-parsing module to the engine, and integrating with the resource system. Could pair with an editor that exports levels directly.  
+**When:** When level count grows beyond what's comfortable in code, or when we build editor tooling.
+
 ---
 
 ## Resource System

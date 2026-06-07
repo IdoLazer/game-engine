@@ -22,6 +22,7 @@ public:
     bool IsSolid(const Engine::Vec2 &cell) const;
     bool IsLevelEnd(const Engine::Vec2 &cell) const;
     Engine::Vec2 FindSpawnPosition() const;
+    void SetTileGrid(const std::vector<std::vector<int>> &grid) { m_tileGrid = grid; }
 
 // --- TileMap Interface ---
 protected:
