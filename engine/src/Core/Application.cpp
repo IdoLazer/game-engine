@@ -64,6 +64,16 @@ namespace Engine
         // Main application loop
         while (m_running && !m_window->ShouldClose())
         {
+            // Handle scene reload between frames
+            if (m_reloadRequested)
+            {
+                m_reloadRequested = false;
+                Shutdown();
+                m_scene.Clear();
+                Initialize();
+                m_lastFrameTime = glfwGetTime();
+            }
+
             // Calculate delta time
             double currentTime = glfwGetTime();
             float deltaTime = static_cast<float>(currentTime - m_lastFrameTime);
@@ -118,6 +128,7 @@ namespace Engine
     Window *Application::GetWindow() { return m_window.get(); }
     Scene *Application::GetScene() { return &m_scene; }
     void Application::Close() { m_running = false; }
+    void Application::ReloadScene() { m_reloadRequested = true; }
 
 // --- Internal ---
 

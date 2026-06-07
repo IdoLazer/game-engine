@@ -24,6 +24,7 @@ namespace Engine
     private:
         bool m_running = true;
         bool m_initialized = false;
+        bool m_reloadRequested = false;
         std::unique_ptr<Window> m_window;
         Scene m_scene;
         double m_lastFrameTime = 0.0;
@@ -51,6 +52,7 @@ namespace Engine
         Window *GetWindow();
         Scene *GetScene();
         void Close();
+        void ReloadScene();
 
     // --- Internal ---
     private:
