@@ -12,7 +12,6 @@ namespace PlatformerData
         {"Tile", PropertyMap{{"WorldPosition", Engine::Vec2(0, 0)}, {"WorldSize", PlatformerConstants::GRID_WORLD_SIZE}, {"Color", PlatformerConstants::BACKGROUND_COLOR}}},
         // World
         {"PlatformerWorld", PropertyMap{
-            {"TileGrid", PlatformerConstants::WORLD_GRID},
             {"StaticTileColor", PlatformerConstants::STATIC_TILE_COLOR},
             {"LevelEndColor", PlatformerConstants::LEVEL_END_COLOR}
         }},

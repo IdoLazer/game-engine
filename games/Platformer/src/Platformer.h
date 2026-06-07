@@ -21,6 +21,7 @@ private:
     // --- Game Logic ---
 
     // --- Fields ---
+    int m_currentLevel = 0;
     Engine::Subscription m_exitSub;
     Engine::Subscription m_levelEndSub;
     Engine::Grid m_grid;
