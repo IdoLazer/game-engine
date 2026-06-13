@@ -34,17 +34,50 @@ void Platformer::Initialize()
     }
 
     if (player && world)
+    {
         player->SetWorld(world);
+
+        if (m_hasSpawnOverride)
+        {
+            Engine::Vec2 spawnPos = (m_spawnType == SpawnType::Entry)
+                ? world->FindEntrySpawn(m_spawnRow)
+                : world->FindReturnSpawn(m_spawnRow);
+            player->SetGridPosition(spawnPos);
+            m_hasSpawnOverride = false;
+        }
+        else
+        {
+            player->SetGridPosition(world->FindDefaultSpawn());
+        }
+    }
 
     if (player)
     {
-        m_levelEndSub = player->OnLevelEnd().Subscribe([this]()
+        m_nextLevelSub = player->OnNextLevel().Subscribe([this](const int &row)
         {
             m_currentLevel++;
             if (m_currentLevel < static_cast<int>(Levels::ALL.size()))
+            {
+                m_hasSpawnOverride = true;
+                m_spawnType = SpawnType::Entry;
+                m_spawnRow = row;
                 ReloadScene();
+            }
             else
                 Close();
+        });
+        m_previousLevelSub = player->OnPreviousLevel().Subscribe([this](const int &row)
+        {
+            m_currentLevel--;
+            if (m_currentLevel >= 0)
+            {
+                m_hasSpawnOverride = true;
+                m_spawnType = SpawnType::Return;
+                m_spawnRow = row;
+                ReloadScene();
+            }
+            else
+                m_currentLevel = 0;
         });
     }
     
@@ -61,7 +94,8 @@ void Platformer::Update(float deltaTime)
 
 void Platformer::Shutdown()
 {
-    m_levelEndSub.Unsubscribe();
+    m_nextLevelSub.Unsubscribe();
+    m_previousLevelSub.Unsubscribe();
     m_exitSub.Unsubscribe();
 }
 

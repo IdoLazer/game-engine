@@ -13,16 +13,15 @@ public:
     PlatformerWorld() = default;
     ~PlatformerWorld() override = default;
 
-// --- Lifecycle ---
-public:
-    void Initialize() override;
-
 // --- Collision Interface ---
 public:
     bool IsSolid(const Engine::Vec2 &cell) const;
-    bool IsLevelEnd(const Engine::Vec2 &cell) const;
-    Engine::Vec2 FindSpawnPosition() const;
-    void SetTileGrid(const std::vector<std::vector<int>> &grid) { m_tileGrid = grid; }
+    bool IsNextLevel(const Engine::Vec2 &cell) const;
+    bool IsPreviousLevel(const Engine::Vec2 &cell) const;
+    Engine::Vec2 FindEntrySpawn(int row) const;
+    Engine::Vec2 FindReturnSpawn(int row) const;
+    Engine::Vec2 FindDefaultSpawn() const;
+    void SetTileGrid(const std::vector<std::vector<int>> &grid);
 
 // --- TileMap Interface ---
 protected:
@@ -36,7 +35,6 @@ private:
 private:
     std::vector<std::vector<int>> m_tileGrid;
     Engine::Color m_staticTileColor{};
-    Engine::Color m_levelEndColor{};
     int m_rows{0};
     int m_cols{0};
 };
