@@ -29,7 +29,8 @@ public:
     bool IsJumping() const;
     void Jump();
     void StopJump();
-    Engine::EventSubscriber<> &OnLevelEnd() { return m_levelEnd; }
+    Engine::EventSubscriber<int> &OnNextLevel() { return m_nextLevelEvent; }
+    Engine::EventSubscriber<int> &OnPreviousLevel() { return m_previousLevelEvent; }
 
 // --- Physics & Collision ---
 private:
@@ -39,7 +40,7 @@ private:
     void ResolveHorizontalCollisions(const Engine::Vec2 &currentPos, Engine::Vec2 &newGridPos);
     void ResolveVerticalCollisions(const Engine::Vec2 &currentPos, Engine::Vec2 &newGridPos);
     void UpdateWallContact(const Engine::Vec2 &position);
-    void CheckLevelEnd(const Engine::Vec2 &position);
+    void CheckChangeLevel(const Engine::Vec2 &position);
 
 // --- State Transitions ---
 private:
@@ -110,5 +111,6 @@ private:
     PlatformerWorld *m_world{nullptr};
     Engine::Vec2 m_playerBoundingBox[2]{};
     std::unique_ptr<PlatformerInputManager> m_inputManager;
-    Engine::Event<> m_levelEnd;
+    Engine::Event<int> m_nextLevelEvent;
+    Engine::Event<int> m_previousLevelEvent;
 };

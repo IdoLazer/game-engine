@@ -3,11 +3,11 @@
 BEGIN_TYPE_REGISTER(PlatformerWorld)
     REGISTER_PROPERTY(std::vector<std::vector<int>>, TileGrid, &PlatformerWorld::m_tileGrid)
     REGISTER_PROPERTY(Engine::Color, StaticTileColor, &PlatformerWorld::m_staticTileColor)
-    REGISTER_PROPERTY(Engine::Color, LevelEndColor, &PlatformerWorld::m_levelEndColor)
 END_TYPE_REGISTER()
 
-void PlatformerWorld::Initialize()
+void PlatformerWorld::SetTileGrid(const std::vector<std::vector<int>> &grid)
 {
+    m_tileGrid = grid;
     m_rows = static_cast<int>(m_tileGrid.size());
     m_cols = m_rows > 0 ? static_cast<int>(m_tileGrid[0].size()) : 0;
 }
@@ -21,26 +21,55 @@ bool PlatformerWorld::IsSolid(const Engine::Vec2 &cell) const
     return GetTileAt(cx, cy) == TileType::Solid;
 }
 
-bool PlatformerWorld::IsLevelEnd(const Engine::Vec2 &cell) const
+bool PlatformerWorld::IsNextLevel(const Engine::Vec2 &cell) const
 {
     int cx = static_cast<int>(cell.x);
     int cy = static_cast<int>(cell.y);
     if (cy < 0 || cy >= m_rows || cx < 0 || cx >= m_cols)
         return false;
-    return GetTileAt(cx, cy) == TileType::LevelEnd;
+    return GetTileAt(cx, cy) == TileType::NextLevel;
 }
 
-Engine::Vec2 PlatformerWorld::FindSpawnPosition() const
+bool PlatformerWorld::IsPreviousLevel(const Engine::Vec2 &cell) const
+{
+    int cx = static_cast<int>(cell.x);
+    int cy = static_cast<int>(cell.y);
+    if (cy < 0 || cy >= m_rows || cx < 0 || cx >= m_cols)
+        return false;
+    return GetTileAt(cx, cy) == TileType::PreviousLevel;
+}
+
+Engine::Vec2 PlatformerWorld::FindEntrySpawn(int row) const
+{
+    for (int x = 0; x < m_cols; ++x)
+    {
+        if (GetTileAt(x, row) == TileType::EntrySpawn)
+            return Engine::Vec2(static_cast<float>(x), static_cast<float>(row));
+    }
+    return FindDefaultSpawn();
+}
+
+Engine::Vec2 PlatformerWorld::FindReturnSpawn(int row) const
+{
+    for (int x = 0; x < m_cols; ++x)
+    {
+        if (GetTileAt(x, row) == TileType::ReturnSpawn)
+            return Engine::Vec2(static_cast<float>(x), static_cast<float>(row));
+    }
+    return FindDefaultSpawn();
+}
+
+Engine::Vec2 PlatformerWorld::FindDefaultSpawn() const
 {
     for (int y = 0; y < m_rows; ++y)
     {
         for (int x = 0; x < m_cols; ++x)
         {
-            if (GetTileAt(x, y) == TileType::Spawn)
+            if (GetTileAt(x, y) == TileType::EntrySpawn)
                 return Engine::Vec2(static_cast<float>(x), static_cast<float>(y));
         }
     }
-    return Engine::Vec2(1.0f, 1.0f); // Fallback if no spawn tile found
+    return Engine::Vec2(1.0f, 1.0f);
 }
 
 void PlatformerWorld::RenderTile(int x, int y, const Engine::Vec2 &worldPos, const Engine::Vec2 &worldSize) const
@@ -49,9 +78,6 @@ void PlatformerWorld::RenderTile(int x, int y, const Engine::Vec2 &worldPos, con
     {
     case TileType::Solid:
         Engine::Renderer2D::DrawTile(worldPos, worldSize, m_staticTileColor);
-        break;
-    case TileType::LevelEnd:
-        Engine::Renderer2D::DrawTile(worldPos, worldSize, m_levelEndColor);
         break;
     default:
         break;
