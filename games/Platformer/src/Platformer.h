@@ -20,9 +20,15 @@ private:
 
     // --- Game Logic ---
 
+    enum class SpawnType { Entry, Return };
+
     // --- Fields ---
     int m_currentLevel = 0;
+    bool m_hasSpawnOverride = false;
+    SpawnType m_spawnType{SpawnType::Entry};
+    int m_spawnRow{0};
     Engine::Subscription m_exitSub;
-    Engine::Subscription m_levelEndSub;
+    Engine::Subscription m_nextLevelSub;
+    Engine::Subscription m_previousLevelSub;
     Engine::Grid m_grid;
 };

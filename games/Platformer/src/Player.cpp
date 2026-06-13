@@ -50,7 +50,6 @@ private:
 void Player::Initialize()
 {
     GridEntity::Initialize();
-    SetGridPosition(m_world->FindSpawnPosition());
     m_playerBoundingBox[0] = -GetGridSize() / 2.0f;
     m_playerBoundingBox[1] = GetGridSize() / 2.0f;
     m_inputManager = std::make_unique<PlatformerInputManager>(*this);
@@ -263,7 +262,7 @@ void Player::HandleCollisions(float deltaTime)
 
     SetGridPosition(newGridPos);
     UpdateWallContact(newGridPos);
-    CheckLevelEnd(newGridPos);
+    CheckChangeLevel(newGridPos);
 }
 
 void Player::ResolveHorizontalCollisions(const Vec2 &currentPos, Vec2 &newGridPos)
@@ -346,12 +345,20 @@ void Player::UpdateWallContact(const Vec2 &position)
         ChangeWallState(false, 0);
 }
 
-void Player::CheckLevelEnd(const Engine::Vec2 &position)
+void Player::CheckChangeLevel(const Engine::Vec2 &position)
 {
     Vec2 cell = GetGrid()->GetCellFromGridPosition(position);
-    if (m_world->IsLevelEnd(cell))
+    int row = static_cast<int>(cell.y);
+
+    if (m_world->IsNextLevel(cell))
     {
-        m_levelEnd.Notify();
+        m_velocity.x = 0;
+        m_nextLevelEvent.Notify(row);
+    }
+    else if (m_world->IsPreviousLevel(cell))
+    {
+        m_velocity.x = 0;
+        m_previousLevelEvent.Notify(row);
     }
 }
 
