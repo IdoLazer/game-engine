@@ -4,6 +4,8 @@ enum class TileType : int
 {
     Empty = 0,
     Solid = 1,
-    LevelEnd = 2,
-    Spawn = 3
+    EntrySpawn = 2,       // Spawn point when entering from previous level (also default spawn)
+    ReturnSpawn = 3,      // Spawn point when returning from next level
+    NextLevel = 4,        // Trigger: advance to next level
+    PreviousLevel = 5,    // Trigger: return to previous level
 };

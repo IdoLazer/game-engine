@@ -4,7 +4,7 @@
 namespace PlatformerConstants
 {
     // Player properties
-    static const Engine::Vec2 PLAYER_SIZE{0.5f, 0.5f};
+    static const Engine::Vec2 PLAYER_SIZE{0.4f, 0.4f};
     static const float PLAYER_SPEED = 12.0f;
     static const float PLAYER_JUMP_FORCE = 18.0f;
     static const float PLAYER_GRAVITY = 45.0f;
@@ -24,7 +24,6 @@ namespace PlatformerConstants
     static const Engine::Color BACKGROUND_COLOR{0.5f, 0.7f, 1.0f, 1.0f};
     static const Engine::Color PLAYER_COLOR{1.0f, 0.0f, 0.0f, 1.0f};
     static const Engine::Color STATIC_TILE_COLOR{0.3f, 0.3f, 0.3f, 1.0f};
-    static const Engine::Color LEVEL_END_COLOR{0.0f, 0.8f, 0.0f, 1.0f};
     static constexpr int GRID_COLS = 30;
     static constexpr int GRID_ROWS = 20;
     static const Engine::Vec2 GRID_WORLD_SIZE{GRID_COLS, GRID_ROWS};
