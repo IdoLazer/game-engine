@@ -8,6 +8,8 @@ class PlatformerWorld;
 
 class Player : public Engine::GridEntity
 {
+    friend class PlatformerInputManager;
+    
     DECLARE_TYPE(Player, GridEntity)
 
 // --- Constructors & Destructors ---
@@ -55,6 +57,7 @@ private:
     float m_speed{0.0f};
     float m_accCoeff{0.0f};
     float m_decCoeff{0.0f};
+    float m_airDecCoeff{0.0f};
     float m_jumpForce{0.0f};
     float m_gravity{0.0f};
     float m_coyoteTime{0.0f};
