@@ -10,6 +10,7 @@ BEGIN_TYPE_REGISTER(Player)
     REGISTER_PROPERTY(float, Speed, &Player::m_speed)
     REGISTER_PROPERTY(float, AccelerationCoefficient, &Player::m_accCoeff)
     REGISTER_PROPERTY(float, DecelerationCoefficient, &Player::m_decCoeff)
+    REGISTER_PROPERTY(float, AirDecelerationCoefficient, &Player::m_airDecCoeff)
     REGISTER_PROPERTY(float, JumpForce, &Player::m_jumpForce)
     REGISTER_PROPERTY(float, Gravity, &Player::m_gravity)
     REGISTER_PROPERTY(float, CoyoteTime, &Player::m_coyoteTime)
@@ -234,14 +235,15 @@ void Player::ApplyHorizontalMovement(float deltaTime)
     else if (!m_wallJumpCoasting)
     {
         // Phase 3: Normal deceleration (only when not coasting)
+        float decCoeff = m_isGrounded ? m_decCoeff : m_airDecCoeff;
         if (m_velocity.x > 0)
         {
-            m_velocity.x -= m_decCoeff * deltaTime;
+            m_velocity.x -= decCoeff * deltaTime;
             if (m_velocity.x < 0) m_velocity.x = 0;
         }
         else if (m_velocity.x < 0)
         {
-            m_velocity.x += m_decCoeff * deltaTime;
+            m_velocity.x += decCoeff * deltaTime;
             if (m_velocity.x > 0) m_velocity.x = 0;
         }
     }
