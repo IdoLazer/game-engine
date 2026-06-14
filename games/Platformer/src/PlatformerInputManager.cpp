@@ -36,6 +36,13 @@ void PlatformerInputManager::HandleKeyPress(const Engine::Key &key)
         if (!m_player.IsJumping())
             m_player.Jump();
         break;
+    // Debug
+    case Key::N:
+        m_player.m_nextLevelEvent.Notify(0);
+        break;
+    case Key::P:
+        m_player.m_previousLevelEvent.Notify(0);
+        break;
     default:
         break;
     }
