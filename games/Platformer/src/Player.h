@@ -61,6 +61,7 @@ private:
     float m_jumpForce{0.0f};
     float m_gravity{0.0f};
     float m_coyoteTime{0.0f};
+    float m_wallCoyoteTime{0.0f};
     float m_jumpBufferTime{0.0f};
     float m_minJumpTime{0.0f};
     float m_wallJumpLockTime{0.0f};
@@ -81,6 +82,7 @@ private:
 private:
     bool m_isOnWall{false};
     int m_wallDirection{0};      // -1 = wall on left, 1 = wall on right
+    int m_lastWallDirection{0};  // remembered during wall coyote time
 
 // --- Wall Jump State ---
     // After a wall jump, the player enters a "lock" phase (ballistic arc, no input),
@@ -90,16 +92,18 @@ private:
     bool m_wallJumpCoasting{false};
 
 // --- Jump Assist State ---
-    // Coyote time: brief window after leaving a ledge where jump is still allowed.
+    // Coyote time: brief window after leaving a ledge/wall where jump is still allowed.
     // Jump buffer: if jump is pressed just before landing, it fires on contact.
     // Min jump: ensures a minimum arc height even on quick tap.
 private:
     bool m_inCoyoteTime{false};
+    bool m_inWallCoyoteTime{false};
     bool m_inMinJump{false};
 
 // --- Timers ---
 private:
     Engine::Timer m_coyoteTimer;
+    Engine::Timer m_wallCoyoteTimer;
     Engine::Timer m_jumpBufferTimer;
     Engine::Timer m_minJumpTimer;
     Engine::Timer m_wallJumpLockTimer;
