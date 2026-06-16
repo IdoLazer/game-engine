@@ -14,6 +14,7 @@ BEGIN_TYPE_REGISTER(Player)
     REGISTER_PROPERTY(float, JumpForce, &Player::m_jumpForce)
     REGISTER_PROPERTY(float, Gravity, &Player::m_gravity)
     REGISTER_PROPERTY(float, CoyoteTime, &Player::m_coyoteTime)
+    REGISTER_PROPERTY(float, WallCoyoteTime, &Player::m_wallCoyoteTime)
     REGISTER_PROPERTY(float, JumpBufferTime, &Player::m_jumpBufferTime)
     REGISTER_PROPERTY(float, MinJumpTime, &Player::m_minJumpTime)
     REGISTER_PROPERTY(float, WallJumpLockTime, &Player::m_wallJumpLockTime)
@@ -57,6 +58,9 @@ void Player::Initialize()
     m_coyoteTimer = Timer(m_coyoteTime, [this]() {
         m_inCoyoteTime = false;
     }, false);
+    m_wallCoyoteTimer = Timer(m_wallCoyoteTime, [this]() {
+        m_inWallCoyoteTime = false;
+    }, false);
     m_jumpBufferTimer = Timer(m_jumpBufferTime, [this]() {
         m_jumpCommandQueue.Clear();
     }, false);
@@ -75,6 +79,7 @@ void Player::Initialize()
 void Player::Update(float deltaTime)
 {
     m_coyoteTimer.Update(deltaTime);
+    m_wallCoyoteTimer.Update(deltaTime);
     m_jumpBufferTimer.Update(deltaTime);
     m_minJumpTimer.Update(deltaTime);
     m_wallJumpLockTimer.Update(deltaTime);
@@ -139,8 +144,8 @@ void Player::Jump()
         m_inCoyoteTime = false;
         m_coyoteTimer.Stop();
     }
-    // Case 2: Wall jump — launch on ballistic arc away from wall
-    else if (m_isOnWall)
+    // Case 2: Wall jump — launch on ballistic arc away from wall (includes coyote window)
+    else if (m_isOnWall || m_inWallCoyoteTime)
     {
         EnterWallJump();
     }
@@ -181,28 +186,19 @@ void Player::StopJump()
 
 void Player::ApplyGravity(float deltaTime)
 {
-    if (!m_isOnWall)
+    bool isWallSliding = m_isOnWall && m_velocity.y >= 0 && (m_direction.x * m_wallDirection > 0);
+
+    if (isWallSliding)
     {
-        m_velocity.y += m_gravity * deltaTime;
-        if (m_velocity.y > m_maxFallSpeed)
-        {
-            m_velocity.y = m_maxFallSpeed;
-        }
+        m_velocity.y += m_gravity * m_wallGravityScale * deltaTime;
+        if (m_velocity.y > m_wallSlideMaxSpeed)
+            m_velocity.y = m_wallSlideMaxSpeed;
     }
     else
     {
-        if (m_velocity.y < 0) // If player is moving upward while on the wall, apply normal gravity to allow jumping up
-        {
-            m_velocity.y += m_gravity * deltaTime;
-        }
-        else // If player is moving downward or stationary while on the wall, apply reduced gravity for sliding effect
-        {
-            m_velocity.y += m_gravity * m_wallGravityScale * deltaTime;
-            if (m_velocity.y > m_wallSlideMaxSpeed)
-            {
-                m_velocity.y = m_wallSlideMaxSpeed;
-            }
-        }
+        m_velocity.y += m_gravity * deltaTime;
+        if (m_velocity.y > m_maxFallSpeed)
+            m_velocity.y = m_maxFallSpeed;
     }
 }
 
@@ -395,11 +391,11 @@ void Player::ChangeGroundedState(bool grounded)
 void Player::ChangeWallState(bool onWall, int direction)
 {
     if (m_isOnWall == onWall && m_wallDirection == direction) return;
-    m_isOnWall = onWall;
-    m_wallDirection = direction;
 
     if (onWall)
     {
+        m_isOnWall = onWall;
+        m_wallDirection = direction;
         ClearJumpState();
         ClearWallJumpTracking();
 
@@ -411,13 +407,25 @@ void Player::ChangeWallState(bool onWall, int direction)
             m_jumpBufferTimer.Stop();
         }
     }
+    else
+    {
+        // Save direction before resetting — needed by EnterWallJump during coyote time
+        m_lastWallDirection = m_wallDirection;
+        m_isOnWall = onWall;
+        m_wallDirection = direction;
+
+        m_inWallCoyoteTime = true;
+        m_wallCoyoteTimer.Reset();
+    }
 }
 
 void Player::EnterWallJump()
 {
-    // Decompose wall jump force into horizontal and vertical components
+    // During coyote time m_wallDirection is 0, so use the remembered direction
+    int jumpDirection = m_isOnWall ? m_wallDirection : m_lastWallDirection;
+
     float angleRad = m_wallJumpAngle * (std::numbers::pi_v<float> / 180.0f);
-    m_velocity.x = -m_wallDirection * m_wallJumpForce * std::cos(angleRad);
+    m_velocity.x = -jumpDirection * m_wallJumpForce * std::cos(angleRad);
     m_velocity.y = -m_wallJumpForce * std::sin(angleRad);
 
     m_isJumping = true;
@@ -430,6 +438,10 @@ void Player::EnterWallJump()
     m_wallJumpLockTimer.Reset();
 
     ChangeWallState(false, 0);
+
+    // ChangeWallState above would start wall coyote time — cancel it, we already jumped
+    m_inWallCoyoteTime = false;
+    m_wallCoyoteTimer.Stop();
 }
 
 void Player::ClearWallJumpTracking()
@@ -446,4 +458,6 @@ void Player::ClearJumpState()
     m_minJumpTimer.Stop();
     m_inCoyoteTime = false;
     m_coyoteTimer.Stop();
+    m_inWallCoyoteTime = false;
+    m_wallCoyoteTimer.Stop();
 }

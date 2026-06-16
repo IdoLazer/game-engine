@@ -27,6 +27,7 @@ namespace PlatformerData
             {"JumpForce", PlatformerConstants::PLAYER_JUMP_FORCE},
             {"Gravity", PlatformerConstants::PLAYER_GRAVITY},
             {"CoyoteTime", PlatformerConstants::PLAYER_COYOTE_TIME},
+            {"WallCoyoteTime", PlatformerConstants::PLAYER_WALL_COYOTE_TIME},
             {"JumpBufferTime", PlatformerConstants::PLAYER_JUMP_BUFFER_TIME},
             {"MinJumpTime", PlatformerConstants::PLAYER_MIN_JUMP_TIME},
             {"WallJumpLockTime", PlatformerConstants::PLAYER_WALL_JUMP_LOCK_TIME},
