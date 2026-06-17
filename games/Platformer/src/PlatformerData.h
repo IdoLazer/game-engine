@@ -23,6 +23,7 @@ namespace PlatformerData
             {"Speed", PlatformerConstants::PLAYER_SPEED},
             {"AccelerationCoefficient", PlatformerConstants::PLAYER_ACCELERATION_COEFFICIENT},
             {"DecelerationCoefficient", PlatformerConstants::PLAYER_DECELERATION_COEFFICIENT},
+            {"AirAccelerationCoefficient", PlatformerConstants::PLAYER_AIR_ACCELERATION_COEFFICIENT},
             {"AirDecelerationCoefficient", PlatformerConstants::PLAYER_AIR_DECELERATION_COEFFICIENT},
             {"JumpForce", PlatformerConstants::PLAYER_JUMP_FORCE},
             {"Gravity", PlatformerConstants::PLAYER_GRAVITY},
