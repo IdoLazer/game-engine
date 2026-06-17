@@ -15,8 +15,9 @@ namespace PlatformerConstants
     static const float PLAYER_WALL_JUMP_LOCK_TIME = 0.25f; // Time during which the player is locked in a wall jump
     static const float PLAYER_ACCELERATION_COEFFICIENT = 100.0f; // How quickly the player accelerates to full speed
     static const float PLAYER_DECELERATION_COEFFICIENT = 150.0f; // How quickly the player decelerates to a stop when no input is given (grounded)
-    static const float PLAYER_AIR_DECELERATION_COEFFICIENT = 100.0f; // How quickly the player decelerates when airborne (half of ground)
-    static const float PLAYER_WALL_JUMP_FORCE = 14.0f; // Diagonal force applied during a wall jump
+    static const float PLAYER_AIR_ACCELERATION_COEFFICIENT = 80.0f; // How quickly the player accelerates when airborne
+    static const float PLAYER_AIR_DECELERATION_COEFFICIENT = 80.0f; // How quickly the player decelerates when airborne
+    static const float PLAYER_WALL_JUMP_FORCE = 15.5f; // Diagonal force applied during a wall jump
     static const float PLAYER_WALL_JUMP_ANGLE = 60.0f; // Angle of wall jump in degrees (0 = pure sideways, 90 = pure up)
     static const float PLAYER_MAX_FALL_SPEED = 18.0f; // Maximum downward speed in free fall (terminal velocity)
     static const float PLAYER_WALL_SLIDE_MAX_SPEED = 5.0f; // Maximum downward speed when sliding against a wall
