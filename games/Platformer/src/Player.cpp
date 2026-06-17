@@ -10,6 +10,7 @@ BEGIN_TYPE_REGISTER(Player)
     REGISTER_PROPERTY(float, Speed, &Player::m_speed)
     REGISTER_PROPERTY(float, AccelerationCoefficient, &Player::m_accCoeff)
     REGISTER_PROPERTY(float, DecelerationCoefficient, &Player::m_decCoeff)
+    REGISTER_PROPERTY(float, AirAccelerationCoefficient, &Player::m_airAccCoeff)
     REGISTER_PROPERTY(float, AirDecelerationCoefficient, &Player::m_airDecCoeff)
     REGISTER_PROPERTY(float, JumpForce, &Player::m_jumpForce)
     REGISTER_PROPERTY(float, Gravity, &Player::m_gravity)
@@ -217,8 +218,8 @@ void Player::ApplyHorizontalMovement(float deltaTime)
     {
         // Phase 3 (or end of Phase 2): Player provides input — resume normal control
         m_wallJumpCoasting = false;
-
-        m_velocity.x += m_direction.x * m_accCoeff * deltaTime;
+        float accCoeff = m_isGrounded ? m_accCoeff : m_airAccCoeff;
+        m_velocity.x += m_direction.x * accCoeff * deltaTime;
         if (m_velocity.x > m_speed)
         {
             m_velocity.x = m_speed;
@@ -228,7 +229,7 @@ void Player::ApplyHorizontalMovement(float deltaTime)
             m_velocity.x = -m_speed;
         }
     }
-    else if (!m_wallJumpCoasting)
+    else
     {
         // Phase 3: Normal deceleration (only when not coasting)
         float decCoeff = m_isGrounded ? m_decCoeff : m_airDecCoeff;
@@ -396,7 +397,6 @@ void Player::ChangeWallState(bool onWall, int direction)
     {
         m_isOnWall = onWall;
         m_wallDirection = direction;
-        ClearJumpState();
         ClearWallJumpTracking();
 
         // Execute buffered jump immediately on wall grab
