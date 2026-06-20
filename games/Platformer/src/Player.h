@@ -59,6 +59,7 @@ private:
     float m_decCoeff{0.0f};
     float m_airAccCoeff{0.0f};
     float m_airDecCoeff{0.0f};
+    float m_wallHitDecCoeff{0.0f};
     float m_jumpForce{0.0f};
     float m_gravity{0.0f};
     float m_coyoteTime{0.0f};
@@ -82,6 +83,7 @@ private:
 // --- Wall State ---
 private:
     bool m_isOnWall{false};
+    bool m_isWallSliding{false};
     int m_wallDirection{0};      // -1 = wall on left, 1 = wall on right
     int m_lastWallDirection{0};  // remembered during wall coyote time
 
