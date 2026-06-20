@@ -12,6 +12,7 @@ BEGIN_TYPE_REGISTER(Player)
     REGISTER_PROPERTY(float, DecelerationCoefficient, &Player::m_decCoeff)
     REGISTER_PROPERTY(float, AirAccelerationCoefficient, &Player::m_airAccCoeff)
     REGISTER_PROPERTY(float, AirDecelerationCoefficient, &Player::m_airDecCoeff)
+    REGISTER_PROPERTY(float, WallHitDecelerationCoefficient, &Player::m_wallHitDecCoeff)
     REGISTER_PROPERTY(float, JumpForce, &Player::m_jumpForce)
     REGISTER_PROPERTY(float, Gravity, &Player::m_gravity)
     REGISTER_PROPERTY(float, CoyoteTime, &Player::m_coyoteTime)
@@ -92,16 +93,30 @@ void Player::Update(float deltaTime)
 
 void Player::Render() const
 {
-    Renderer2D::DrawTile(m_worldPosition, m_worldSize, m_color);
+    Vec2 center = m_worldPosition;
+    Vec2 size = m_worldSize;
+    Color color = m_color;
 
-    // Debug: Draw bounding box
-    Vec2 center = GetGridPosition();
-    Vec2 topLeft = center + m_playerBoundingBox[0];
-    Vec2 bottomRight = center + m_playerBoundingBox[1];
-    Vec2 topLeftWorld = GetGrid()->GridToWorld(topLeft);
-    Vec2 bottomRightWorld = GetGrid()->GridToWorld(bottomRight);
-    Vec2 size = bottomRightWorld - topLeftWorld;
-    Renderer2D::DrawRectOutline(m_worldPosition, size, Color(1.0f, 1.0f, 1.0f, 1.0f));
+    if (m_isWallSliding)
+    {
+        center.x += m_wallDirection * 0.025f;
+        size.x -= 0.05f;
+        size.y *= 1.0f + (0.05f / size.x); // preserve area
+    }
+    if (m_isJumping)
+    {
+        float stretchFactor = std::clamp(1.0f + (-m_velocity.y / m_jumpForce) * 0.25f, 1.0f, 1.25f);
+        size.x /= stretchFactor; // preserve area
+        size.y *= stretchFactor;
+    }
+    else if (m_velocity.y > 0.0f)
+    {
+        float shrinkFactor = std::clamp(1.0f - (m_velocity.y / m_jumpForce) * 0.15f, 0.85f, 1.0f);
+        size.x /= shrinkFactor; // preserve area
+        size.y *= shrinkFactor;
+    }
+
+    Renderer2D::DrawTile(center, size, color);
 }
 
 void Player::Destroy()
@@ -114,6 +129,12 @@ void Player::Destroy()
 void Player::SetDirection(const Vec2 &dir)
 {
     m_direction = dir;
+
+    // If we're on a wall, we want immediate detachment when pushing away
+    if (m_isOnWall && (dir.x * m_wallDirection < 0))
+    {
+        m_velocity.x = 0;
+    }
 }
 
 void Player::SetWorld(PlatformerWorld *world)
@@ -187,9 +208,9 @@ void Player::StopJump()
 
 void Player::ApplyGravity(float deltaTime)
 {
-    bool isWallSliding = m_isOnWall && m_velocity.y >= 0 && (m_direction.x * m_wallDirection > 0);
+    m_isWallSliding = m_isOnWall && (m_velocity.x * m_wallDirection > 0);
 
-    if (isWallSliding)
+    if (m_isWallSliding && m_velocity.y >= 0)
     {
         m_velocity.y += m_gravity * m_wallGravityScale * deltaTime;
         if (m_velocity.y > m_wallSlideMaxSpeed)
@@ -229,10 +250,10 @@ void Player::ApplyHorizontalMovement(float deltaTime)
             m_velocity.x = -m_speed;
         }
     }
-    else
+    else if (!m_wallJumpCoasting)
     {
         // Phase 3: Normal deceleration (only when not coasting)
-        float decCoeff = m_isGrounded ? m_decCoeff : m_airDecCoeff;
+        float decCoeff = m_isGrounded ? m_decCoeff : m_isOnWall ? m_wallHitDecCoeff : m_airDecCoeff;
         if (m_velocity.x > 0)
         {
             m_velocity.x -= decCoeff * deltaTime;
@@ -273,7 +294,6 @@ void Player::ResolveHorizontalCollisions(const Vec2 &currentPos, Vec2 &newGridPo
         Vec2 cell = GetGrid()->GetCellFromGridPosition(probePoint);
         if (m_world->IsSolid(cell))
         {
-            m_velocity.x = 0;
             newGridPos.x = (cell.x + 0.5f) - m_playerBoundingBox[0].x;
         }
     }
@@ -284,7 +304,7 @@ void Player::ResolveHorizontalCollisions(const Vec2 &currentPos, Vec2 &newGridPo
         Vec2 cell = GetGrid()->GetCellFromGridPosition(probePoint);
         if (m_world->IsSolid(cell))
         {
-            m_velocity.x = 0;
+
             newGridPos.x = (cell.x - 0.5f) - m_playerBoundingBox[1].x;
         }
     }
@@ -397,6 +417,11 @@ void Player::ChangeWallState(bool onWall, int direction)
     {
         m_isOnWall = onWall;
         m_wallDirection = direction;
+
+        // Push velocity into the wall on contact for a brief automatic wall-slide grace period
+        if (m_velocity.x != 0.0f)
+            m_velocity.x = m_wallDirection * m_speed;
+        
         ClearWallJumpTracking();
 
         // Execute buffered jump immediately on wall grab
