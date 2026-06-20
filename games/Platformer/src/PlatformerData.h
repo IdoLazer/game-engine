@@ -25,6 +25,7 @@ namespace PlatformerData
             {"DecelerationCoefficient", PlatformerConstants::PLAYER_DECELERATION_COEFFICIENT},
             {"AirAccelerationCoefficient", PlatformerConstants::PLAYER_AIR_ACCELERATION_COEFFICIENT},
             {"AirDecelerationCoefficient", PlatformerConstants::PLAYER_AIR_DECELERATION_COEFFICIENT},
+            {"WallHitDecelerationCoefficient", PlatformerConstants::PLAYER_WALL_HIT_DECELERATION_COEFFICIENT},
             {"JumpForce", PlatformerConstants::PLAYER_JUMP_FORCE},
             {"Gravity", PlatformerConstants::PLAYER_GRAVITY},
             {"CoyoteTime", PlatformerConstants::PLAYER_COYOTE_TIME},
