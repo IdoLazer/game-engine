@@ -38,10 +38,13 @@ void PlatformerInputManager::HandleKeyPress(const Engine::Key &key)
         break;
     // Debug
     case Key::N:
-        m_player.m_nextLevelEvent.Notify(0);
+        m_player.m_nextLevelEvent.Notify(-1);
         break;
     case Key::P:
-        m_player.m_previousLevelEvent.Notify(0);
+        m_player.m_previousLevelEvent.Notify(-1);
+        break;
+    case Key::R:
+        m_player.m_reloadLevelEvent.Notify();
         break;
     default:
         break;
