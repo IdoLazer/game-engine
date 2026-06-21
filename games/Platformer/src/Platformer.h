@@ -30,5 +30,6 @@ private:
     Engine::Subscription m_exitSub;
     Engine::Subscription m_nextLevelSub;
     Engine::Subscription m_previousLevelSub;
+    Engine::Subscription m_reloadLevelSub;
     Engine::Grid m_grid;
 };
