@@ -62,13 +62,15 @@ Engine::Vec2 PlatformerWorld::FindReturnSpawn(int row) const
 Engine::Vec2 PlatformerWorld::FindDefaultSpawn() const
 {
     for (int y = 0; y < m_rows; ++y)
-    {
         for (int x = 0; x < m_cols; ++x)
-        {
+            if (GetTileAt(x, y) == TileType::DefaultSpawn)
+                return Engine::Vec2(static_cast<float>(x), static_cast<float>(y));
+
+    for (int y = 0; y < m_rows; ++y)
+        for (int x = 0; x < m_cols; ++x)
             if (GetTileAt(x, y) == TileType::EntrySpawn)
                 return Engine::Vec2(static_cast<float>(x), static_cast<float>(y));
-        }
-    }
+
     return Engine::Vec2(1.0f, 1.0f);
 }
 
