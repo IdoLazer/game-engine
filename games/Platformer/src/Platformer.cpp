@@ -58,9 +58,12 @@ void Platformer::Initialize()
             m_currentLevel++;
             if (m_currentLevel < static_cast<int>(Levels::ALL.size()))
             {
-                m_hasSpawnOverride = true;
-                m_spawnType = SpawnType::Entry;
-                m_spawnRow = row;
+                if (row >= 0)
+                {
+                    m_hasSpawnOverride = true;
+                    m_spawnType = SpawnType::Entry;
+                    m_spawnRow = row;
+                }
                 ReloadScene();
             }
             else
@@ -71,13 +74,21 @@ void Platformer::Initialize()
             m_currentLevel--;
             if (m_currentLevel >= 0)
             {
-                m_hasSpawnOverride = true;
-                m_spawnType = SpawnType::Return;
-                m_spawnRow = row;
+                if (row >= 0)
+                {
+                    m_hasSpawnOverride = true;
+                    m_spawnType = SpawnType::Return;
+                    m_spawnRow = row;
+                }
                 ReloadScene();
             }
             else
                 m_currentLevel = 0;
+        });
+        m_reloadLevelSub = player->OnReloadLevel().Subscribe([this]()
+        {
+            m_spawnType = SpawnType::Entry;
+            ReloadScene();
         });
     }
     
@@ -96,6 +107,7 @@ void Platformer::Shutdown()
 {
     m_nextLevelSub.Unsubscribe();
     m_previousLevelSub.Unsubscribe();
+    m_reloadLevelSub.Unsubscribe();
     m_exitSub.Unsubscribe();
 }
 
