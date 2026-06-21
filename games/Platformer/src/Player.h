@@ -33,6 +33,7 @@ public:
     void StopJump();
     Engine::EventSubscriber<int> &OnNextLevel() { return m_nextLevelEvent; }
     Engine::EventSubscriber<int> &OnPreviousLevel() { return m_previousLevelEvent; }
+    Engine::EventSubscriber<> &OnReloadLevel() { return m_reloadLevelEvent; }
 
 // --- Physics & Collision ---
 private:
@@ -123,4 +124,5 @@ private:
     std::unique_ptr<PlatformerInputManager> m_inputManager;
     Engine::Event<int> m_nextLevelEvent;
     Engine::Event<int> m_previousLevelEvent;
+    Engine::Event<> m_reloadLevelEvent;
 };
