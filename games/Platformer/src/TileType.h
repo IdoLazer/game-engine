@@ -9,4 +9,5 @@ enum class TileType : int
     NextLevel = 4,        // Trigger: advance to next level
     PreviousLevel = 5,    // Trigger: return to previous level
     DefaultSpawn = 6,     // Spawn point used when loading a level with no row context (e.g. reload, first load)
+    Death = 7,            // Kills the player on contact (reloads the level)
 };
