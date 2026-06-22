@@ -379,6 +379,10 @@ void Player::CheckChangeLevel(const Engine::Vec2 &position)
         m_velocity.x = 0;
         m_previousLevelEvent.Notify(row);
     }
+    else if (m_world->IsDeadly(cell))
+    {
+        m_reloadLevelEvent.Notify();
+    }
 }
 
 // --- State Transitions ---
