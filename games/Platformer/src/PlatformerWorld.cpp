@@ -3,6 +3,7 @@
 BEGIN_TYPE_REGISTER(PlatformerWorld)
     REGISTER_PROPERTY(std::vector<std::vector<int>>, TileGrid, &PlatformerWorld::m_tileGrid)
     REGISTER_PROPERTY(Engine::Color, StaticTileColor, &PlatformerWorld::m_staticTileColor)
+    REGISTER_PROPERTY(Engine::Color, DeathTileColor, &PlatformerWorld::m_deathTileColor)
 END_TYPE_REGISTER()
 
 void PlatformerWorld::SetTileGrid(const std::vector<std::vector<int>> &grid)
@@ -28,6 +29,15 @@ bool PlatformerWorld::IsNextLevel(const Engine::Vec2 &cell) const
     if (cy < 0 || cy >= m_rows || cx < 0 || cx >= m_cols)
         return false;
     return GetTileAt(cx, cy) == TileType::NextLevel;
+}
+
+bool PlatformerWorld::IsDeadly(const Engine::Vec2 &cell) const
+{
+    int cx = static_cast<int>(cell.x);
+    int cy = static_cast<int>(cell.y);
+    if (cy < 0 || cy >= m_rows || cx < 0 || cx >= m_cols)
+        return false;
+    return GetTileAt(cx, cy) == TileType::Death;
 }
 
 bool PlatformerWorld::IsPreviousLevel(const Engine::Vec2 &cell) const
@@ -80,6 +90,9 @@ void PlatformerWorld::RenderTile(int x, int y, const Engine::Vec2 &worldPos, con
     {
     case TileType::Solid:
         Engine::Renderer2D::DrawTile(worldPos, worldSize, m_staticTileColor);
+        break;
+    case TileType::Death:
+        Engine::Renderer2D::DrawTile(worldPos, worldSize, m_deathTileColor);
         break;
     default:
         break;

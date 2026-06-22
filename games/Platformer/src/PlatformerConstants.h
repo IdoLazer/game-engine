@@ -28,6 +28,7 @@ namespace PlatformerConstants
     static const Engine::Color BACKGROUND_COLOR{0.5f, 0.7f, 1.0f, 1.0f};
     static const Engine::Color PLAYER_COLOR{1.0f, 0.0f, 0.0f, 1.0f};
     static const Engine::Color STATIC_TILE_COLOR{0.3f, 0.3f, 0.3f, 1.0f};
+    static const Engine::Color DEATH_TILE_COLOR{0.7f, 0.1f, 0.1f, 1.0f};
     static constexpr int GRID_COLS = 30;
     static constexpr int GRID_ROWS = 20;
     static const Engine::Vec2 GRID_WORLD_SIZE{GRID_COLS, GRID_ROWS};
