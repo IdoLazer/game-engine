@@ -4,7 +4,7 @@
 namespace Levels
 {
     // Tile legend:
-    // 0=Empty, 1=Solid, 2=EntrySpawn, 3=ReturnSpawn, 4=NextLevel, 5=PreviousLevel, 6=DefaultSpawn
+    // 0=Empty, 1=Solid, 2=EntrySpawn, 3=ReturnSpawn, 4=NextLevel, 5=PreviousLevel, 6=DefaultSpawn, 7=Death
     // Level 0: Playground — a simple level for testing mechanics and iterating on level design:
     // 3 tile vertical wall - too high to jump over
     // 2 tile vertical wall - can be jumped over (but only full jump - min jump doesn't clear it)
@@ -83,7 +83,7 @@ namespace Levels
             {5,2,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,3,4},
             {5,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1},
             {5,2,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0},
-            {5,2,6,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0},
+            {5,2,6,0,0,0,1,0,1,7,7,7,7,7,7,7,7,7,7,1,0,0,0,0,0,0,0,0,0,0},
             {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
         }
     };
@@ -245,7 +245,7 @@ namespace Levels
     };
 
     static const std::vector<const LevelData*> ALL = { 
-        &TESTING_LEVEL,
+        // &TESTING_LEVEL,
         &TRAINING_LEVEL_1,
         &TRAINING_LEVEL_2,
         &TRAINING_LEVEL_3,
