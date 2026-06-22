@@ -37,18 +37,18 @@ void Platformer::Initialize()
     {
         player->SetWorld(world);
 
-        if (m_hasSpawnOverride)
-        {
-            Engine::Vec2 spawnPos = (m_spawnType == SpawnType::Entry)
+        Engine::Vec2 spawnPos = m_hasSpawnOverride
+            ? (m_spawnType == SpawnType::Entry
                 ? world->FindEntrySpawn(m_spawnRow)
-                : world->FindReturnSpawn(m_spawnRow);
-            player->SetGridPosition(spawnPos);
-            m_hasSpawnOverride = false;
-        }
-        else
-        {
-            player->SetGridPosition(world->FindDefaultSpawn());
-        }
+                : world->FindReturnSpawn(m_spawnRow))
+            : world->FindDefaultSpawn();
+        m_hasSpawnOverride = false;
+
+        // If the tile directly below the spawn is solid, snap the player to stand on it
+        if (world->IsSolid(Engine::Vec2(spawnPos.x, spawnPos.y + 1.0f)))
+            spawnPos.y += 0.5f - player->GetGridSize().y / 2.0f;
+
+        player->SetGridPosition(spawnPos);
     }
 
     if (player)
