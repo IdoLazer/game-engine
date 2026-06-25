@@ -51,6 +51,43 @@ namespace Engine
         // Data-driven — creates by type name and sets properties from a map (e.g. from a scene file).
         Entity *Instantiate(const EntityInfo &info);
 
+    // --- Entity Retrieval ---
+    public:
+        template <typename T>
+            requires std::derived_from<T, Entity>
+        std::vector<T *> GetAllEntitiesOfType() const
+        {
+            std::vector<T *> result;
+            for (const auto &entity : m_entities)
+            {
+                if (auto *casted = dynamic_cast<T *>(entity.get()))
+                    result.push_back(casted);
+            }
+            for (const auto &entity : m_pendingEntities)
+            {
+                if (auto *casted = dynamic_cast<T *>(entity.get()))
+                    result.push_back(casted);
+            }
+            return result;
+        }
+
+        template <typename T>
+            requires std::derived_from<T, Entity>
+        T *GetFirstEntityOfType() const
+        {
+            for (const auto &entity : m_entities)
+            {
+                if (auto *casted = dynamic_cast<T *>(entity.get()))
+                    return casted;
+            }
+            for (const auto &entity : m_pendingEntities)
+            {
+                if (auto *casted = dynamic_cast<T *>(entity.get()))
+                    return casted;
+            }
+            return nullptr;
+        }
+
     // --- Lifecycle ---
     public:
         void Update(float deltaTime);
