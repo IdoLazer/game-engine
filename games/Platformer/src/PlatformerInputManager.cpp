@@ -1,50 +1,38 @@
 #include "PlatformerInputManager.h"
-#include "Player.h"
 
 using namespace Engine;
 
-PlatformerInputManager::PlatformerInputManager(Player &player)
-    : m_player(player)
+PlatformerInputManager::PlatformerInputManager()
 {
-    // Initialize horizontal input from currently held keys
-    if (Engine::Keyboard::IsKeyDown(Key::A) || Engine::Keyboard::IsKeyDown(Key::Left))
-        m_horizontalInput -= 1.0f;
-    if (Engine::Keyboard::IsKeyDown(Key::D) || Engine::Keyboard::IsKeyDown(Key::Right))
-        m_horizontalInput += 1.0f;
-    m_player.SetDirection(Vec2{m_horizontalInput, 0.0});
-
-    // Subscribe to keyboard input events
-    m_keyPressedSub = Engine::Keyboard::OnKeyPressed().Subscribe(this, &PlatformerInputManager::HandleKeyPress);
-    m_keyReleaseSub = Engine::Keyboard::OnKeyReleased().Subscribe(this, &PlatformerInputManager::HandleKeyRelease);
+    m_keyPressedSub = Keyboard::OnKeyPressed().Subscribe(this, &PlatformerInputManager::HandleKeyPress);
+    m_keyReleaseSub = Keyboard::OnKeyReleased().Subscribe(this, &PlatformerInputManager::HandleKeyRelease);
 }
 
 void PlatformerInputManager::HandleKeyPress(const Engine::Key &key)
 {
     switch (key)
-    {    
+    {
     case Key::A:
     case Key::Left:
         m_horizontalInput -= 1.0f;
-        m_player.SetDirection(Vec2{m_horizontalInput, 0.0});
+        m_onMove.Notify(Vec2{m_horizontalInput, 0.0f});
         break;
     case Key::D:
     case Key::Right:
         m_horizontalInput += 1.0f;
-        m_player.SetDirection(Vec2{m_horizontalInput, 0.0});
+        m_onMove.Notify(Vec2{m_horizontalInput, 0.0f});
         break;
     case Key::Space:
-        if (!m_player.IsJumping())
-            m_player.Jump();
+        m_onJump.Notify();
         break;
-    // Debug
     case Key::N:
-        m_player.m_nextLevelEvent.Notify(-1);
+        m_onNextLevel.Notify();
         break;
     case Key::P:
-        m_player.m_previousLevelEvent.Notify(-1);
+        m_onPreviousLevel.Notify();
         break;
     case Key::R:
-        m_player.m_reloadLevelEvent.Notify();
+        m_onReloadLevel.Notify();
         break;
     default:
         break;
@@ -58,18 +46,17 @@ void PlatformerInputManager::HandleKeyRelease(const Engine::Key &key)
     case Key::A:
     case Key::Left:
         m_horizontalInput += 1.0f;
-        m_player.SetDirection(Vec2{m_horizontalInput, 0.0});
+        m_onMove.Notify(Vec2{m_horizontalInput, 0.0f});
         break;
     case Key::D:
     case Key::Right:
         m_horizontalInput -= 1.0f;
-        m_player.SetDirection(Vec2{m_horizontalInput, 0.0});
+        m_onMove.Notify(Vec2{m_horizontalInput, 0.0f});
         break;
     case Key::Space:
-        m_player.StopJump();
+        m_onJumpStop.Notify();
         break;
     default:
         break;
     }
 }
-
