@@ -2,7 +2,9 @@
 #include "PlatformerData.h"
 #include "PlatformerWorld.h"
 #include "Player.h"
+#include "PlatformerInputManager.h"
 #include "Levels/Levels.h"
+#include "Cursor.h"
 
 using namespace Engine;
 
@@ -66,7 +68,6 @@ void Platformer::Initialize()
         m_debugPreviousLevelSub = m_inputManager->OnPreviousLevel().Subscribe([this]() { GoToPreviousLevel(-1); });
         m_debugReloadLevelSub   = m_inputManager->OnReloadLevel().Subscribe([this]()   { ReloadCurrentLevel(); });
 
-        m_inputManager->NotifyInitialState();
     }
 
     m_exitSub = Keyboard::OnKeyPressed().Subscribe([this](const Key &key)
@@ -74,6 +75,15 @@ void Platformer::Initialize()
         if (key == Key::Escape)
             Close();
     });
+    
+    m_cursor = GetScene()->GetFirstEntityOfType<Cursor>();
+    if (m_cursor)
+    {
+        Mouse::SetCursorVisibility(false);
+        m_cursorMoveSub = m_inputManager->OnCursorMove().Subscribe(m_cursor, &Cursor::SetPosition);
+    }
+
+    m_inputManager->NotifyInitialState();
 }
 
 void Platformer::Update(float deltaTime)
@@ -92,6 +102,7 @@ void Platformer::Shutdown()
     m_debugPreviousLevelSub.Unsubscribe();
     m_debugReloadLevelSub.Unsubscribe();
     m_exitSub.Unsubscribe();
+    m_cursorMoveSub.Unsubscribe();
 }
 
 // --- Level Navigation ---
