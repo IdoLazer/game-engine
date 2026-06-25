@@ -4,21 +4,23 @@ using namespace Engine;
 
 PlatformerInputManager::PlatformerInputManager()
 {
-    if (Engine::Keyboard::IsKeyDown(Key::A) || Engine::Keyboard::IsKeyDown(Key::Left))
+    if (Keyboard::IsKeyDown(Key::A) || Keyboard::IsKeyDown(Key::Left))
         m_horizontalInput -= 1.0f;
-    if (Engine::Keyboard::IsKeyDown(Key::D) || Engine::Keyboard::IsKeyDown(Key::Right))
+    if (Keyboard::IsKeyDown(Key::D) || Keyboard::IsKeyDown(Key::Right))
         m_horizontalInput += 1.0f;
 
     m_keyPressedSub = Keyboard::OnKeyPressed().Subscribe(this, &PlatformerInputManager::HandleKeyPress);
     m_keyReleaseSub = Keyboard::OnKeyReleased().Subscribe(this, &PlatformerInputManager::HandleKeyRelease);
+    m_cursorMoveSub = Mouse::OnMoved().Subscribe(this, &PlatformerInputManager::HandleCursorMove);
 }
 
 void PlatformerInputManager::NotifyInitialState()
 {
     m_onMove.Notify(Vec2{m_horizontalInput, 0.0f});
+    m_onCursorMove.Notify(Mouse::GetWorldPosition());
 }
 
-void PlatformerInputManager::HandleKeyPress(const Engine::Key &key)
+void PlatformerInputManager::HandleKeyPress(const Key &key)
 {
     switch (key)
     {
@@ -49,7 +51,7 @@ void PlatformerInputManager::HandleKeyPress(const Engine::Key &key)
     }
 }
 
-void PlatformerInputManager::HandleKeyRelease(const Engine::Key &key)
+void PlatformerInputManager::HandleKeyRelease(const Key &key)
 {
     switch (key)
     {
@@ -69,4 +71,9 @@ void PlatformerInputManager::HandleKeyRelease(const Engine::Key &key)
     default:
         break;
     }
+}
+
+void PlatformerInputManager::HandleCursorMove(const Vec2 &position)
+{
+    m_onCursorMove.Notify(position);
 }
