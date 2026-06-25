@@ -1,6 +1,5 @@
 #include "Player.h"
 #include "PlatformerWorld.h"
-#include "PlatformerInputManager.h"
 #include <cmath>
 #include <iostream>
 #include <numbers>
@@ -56,7 +55,6 @@ void Player::Initialize()
     GridEntity::Initialize();
     m_playerBoundingBox[0] = -GetGridSize() / 2.0f;
     m_playerBoundingBox[1] = GetGridSize() / 2.0f;
-    m_inputManager = std::make_unique<PlatformerInputManager>(*this);
     m_coyoteTimer = Timer(m_coyoteTime, [this]() {
         m_inCoyoteTime = false;
     }, false);
