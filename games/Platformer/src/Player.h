@@ -3,13 +3,10 @@
 #include <Engine.h>
 
 // --- Forward Declarations ---
-class PlatformerInputManager;
 class PlatformerWorld;
 
 class Player : public Engine::GridEntity
 {
-    friend class PlatformerInputManager;
-    
     DECLARE_TYPE(Player, GridEntity)
 
 // --- Constructors & Destructors ---
@@ -121,7 +118,6 @@ private:
 private:
     PlatformerWorld *m_world{nullptr};
     Engine::Vec2 m_playerBoundingBox[2]{};
-    std::unique_ptr<PlatformerInputManager> m_inputManager;
     Engine::Event<int> m_nextLevelEvent;
     Engine::Event<int> m_previousLevelEvent;
     Engine::Event<> m_reloadLevelEvent;
