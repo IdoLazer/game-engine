@@ -32,4 +32,8 @@ namespace PlatformerConstants
     static constexpr int GRID_COLS = 30;
     static constexpr int GRID_ROWS = 20;
     static const Engine::Vec2 GRID_WORLD_SIZE{GRID_COLS, GRID_ROWS};
+
+    // Cursor properties
+    static const Engine::Color CURSOR_COLOR{1.0f, 1.0f, 1.0f, 1.0f};
+    static const float CURSOR_RADIUS = 0.05f;
 }
