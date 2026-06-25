@@ -2,8 +2,11 @@
 #include <Engine.h>
 #include <Core/EntryPoint.h>
 
-#include "PlatformerInputManager.h"
+// --- Forward Declarations ---
+class PlatformerInputManager;
+class Cursor;
 
+// --- Platformer Application ---
 class Platformer : public Engine::Application
 {
 public:
@@ -40,9 +43,11 @@ private:
     Engine::Subscription m_moveSub;
     Engine::Subscription m_jumpSub;
     Engine::Subscription m_jumpStopSub;
+    Engine::Subscription m_cursorMoveSub;
     Engine::Subscription m_debugNextLevelSub;
     Engine::Subscription m_debugPreviousLevelSub;
     Engine::Subscription m_debugReloadLevelSub;
 
     Engine::Grid m_grid;
+    Cursor *m_cursor = nullptr;
 };
