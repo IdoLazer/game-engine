@@ -28,6 +28,7 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Current:** Classical OOP entity hierarchy (Entity → GridEntity → ChessPiece → Pawn). Entities own their data and behavior.  
 **Concern:** Deep inheritance hierarchies become brittle. Adding cross-cutting features (e.g., "anything with health can take damage") requires multiple inheritance or awkward mixins.  
 **Future:** Migrate to an Entity-Component-System where entities are IDs, components are plain data, and systems operate on component queries. The `Sprite` class is designed as a stepping stone toward a `SpriteComponent`.  
+**Note:** In ECS, "entity" doesn't imply a position or visual presence — it's just an ID. Manager-type objects (like `PlatformerInputManager`) could naturally become entities and get lifecycle management (`Initialize`, `Update`) for free, without the game manager manually orchestrating them. This is one of the concrete wins of ECS for non-visual systems.  
 **When:** When the current model starts causing real friction — likely when a game needs many entity types sharing partial behaviors.
 
 ### Entity lifecycle events

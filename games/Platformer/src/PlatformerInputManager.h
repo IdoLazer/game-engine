@@ -9,6 +9,9 @@ public:
     PlatformerInputManager();
     ~PlatformerInputManager() = default;
 
+    // --- Initialization ---
+    void NotifyInitialState();
+
     // --- Events ---
     Engine::EventSubscriber<Engine::Vec2>& OnMove()           { return m_onMove; }
     Engine::EventSubscriber<>&             OnJump()           { return m_onJump; }
