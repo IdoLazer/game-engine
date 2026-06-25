@@ -66,12 +66,7 @@ void Platformer::Initialize()
         m_debugPreviousLevelSub = m_inputManager->OnPreviousLevel().Subscribe([this]() { GoToPreviousLevel(-1); });
         m_debugReloadLevelSub   = m_inputManager->OnReloadLevel().Subscribe([this]()   { ReloadCurrentLevel(); });
 
-        // Sync initial direction from any keys already held (e.g. during level reload)
-        float horizontal = 0.0f;
-        if (Keyboard::IsKeyDown(Key::A) || Keyboard::IsKeyDown(Key::Left))  horizontal -= 1.0f;
-        if (Keyboard::IsKeyDown(Key::D) || Keyboard::IsKeyDown(Key::Right)) horizontal += 1.0f;
-        if (horizontal != 0.0f)
-            player->SetDirection(Vec2{horizontal, 0.0f});
+        m_inputManager->NotifyInitialState();
     }
 
     m_exitSub = Keyboard::OnKeyPressed().Subscribe([this](const Key &key)

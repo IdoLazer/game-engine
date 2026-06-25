@@ -4,8 +4,18 @@ using namespace Engine;
 
 PlatformerInputManager::PlatformerInputManager()
 {
+    if (Engine::Keyboard::IsKeyDown(Key::A) || Engine::Keyboard::IsKeyDown(Key::Left))
+        m_horizontalInput -= 1.0f;
+    if (Engine::Keyboard::IsKeyDown(Key::D) || Engine::Keyboard::IsKeyDown(Key::Right))
+        m_horizontalInput += 1.0f;
+
     m_keyPressedSub = Keyboard::OnKeyPressed().Subscribe(this, &PlatformerInputManager::HandleKeyPress);
     m_keyReleaseSub = Keyboard::OnKeyReleased().Subscribe(this, &PlatformerInputManager::HandleKeyRelease);
+}
+
+void PlatformerInputManager::NotifyInitialState()
+{
+    m_onMove.Notify(Vec2{m_horizontalInput, 0.0f});
 }
 
 void PlatformerInputManager::HandleKeyPress(const Engine::Key &key)
