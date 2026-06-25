@@ -40,5 +40,10 @@ namespace PlatformerData
             {"WallSlideMaxSpeed", PlatformerConstants::PLAYER_WALL_SLIDE_MAX_SPEED},
             {"WallGravityScale", PlatformerConstants::PLAYER_WALL_GRAVITY_SCALE}
         }},
+        // Cursor
+        {"Cursor", PropertyMap{
+            {"Radius", PlatformerConstants::CURSOR_RADIUS},
+            {"Color", PlatformerConstants::CURSOR_COLOR}
+        }}
     };
 }
