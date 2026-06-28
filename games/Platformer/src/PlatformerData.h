@@ -40,6 +40,14 @@ namespace PlatformerData
             {"WallSlideMaxSpeed", PlatformerConstants::PLAYER_WALL_SLIDE_MAX_SPEED},
             {"WallGravityScale", PlatformerConstants::PLAYER_WALL_GRAVITY_SCALE}
         }},
+        // Falcon
+        {"Falcon", PropertyMap{
+            // GridEntity properties
+            {"GridSize", PlatformerConstants::FALCON_SIZE},
+            {"Color", PlatformerConstants::FALCON_COLOR},
+            // Falcon-specific properties
+            {"OffsetFromPlayer", PlatformerConstants::FALCON_OFFSET_FROM_PLAYER}
+        }},
         // Cursor
         {"Cursor", PropertyMap{
             {"Radius", PlatformerConstants::CURSOR_RADIUS},
