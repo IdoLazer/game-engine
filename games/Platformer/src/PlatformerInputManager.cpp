@@ -12,6 +12,7 @@ PlatformerInputManager::PlatformerInputManager()
     m_keyPressedSub = Keyboard::OnKeyPressed().Subscribe(this, &PlatformerInputManager::HandleKeyPress);
     m_keyReleaseSub = Keyboard::OnKeyReleased().Subscribe(this, &PlatformerInputManager::HandleKeyRelease);
     m_cursorMoveSub = Mouse::OnMoved().Subscribe(this, &PlatformerInputManager::HandleCursorMove);
+    m_clickSub = Mouse::OnButtonPressed().Subscribe(this, &PlatformerInputManager::HandleClick);
 }
 
 void PlatformerInputManager::NotifyInitialState()
@@ -76,4 +77,16 @@ void PlatformerInputManager::HandleKeyRelease(const Key &key)
 void PlatformerInputManager::HandleCursorMove(const Vec2 &position)
 {
     m_onCursorMove.Notify(position);
+}
+
+void PlatformerInputManager::HandleClick(const Engine::MouseButton &button)
+{
+    switch (button)
+    {
+    case MouseButton::Left:
+        m_onClick.Notify();
+        break;
+    default:
+        break;
+    }
 }
