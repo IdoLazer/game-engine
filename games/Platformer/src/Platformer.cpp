@@ -5,6 +5,7 @@
 #include "PlatformerInputManager.h"
 #include "Levels/Levels.h"
 #include "Cursor.h"
+#include "Falcon.h"
 
 using namespace Engine;
 
@@ -17,6 +18,7 @@ void Platformer::Initialize()
 
     PlatformerWorld *world = nullptr;
     Player *player = nullptr;
+    Falcon *falcon = nullptr;
 
     for (const auto &entityInfo : PlatformerData::ENTITY_DATA)
     {
@@ -31,44 +33,44 @@ void Platformer::Initialize()
         }
         if (auto *p = dynamic_cast<Player *>(entity))
             player = p;
+        if (auto *f = dynamic_cast<Falcon *>(entity))
+            falcon = f;
     }
 
-    if (player && world)
-    {
-        player->SetWorld(world);
+    if (!world || !player || !falcon)
+        throw std::runtime_error("Failed to instantiate required entities (PlatformerWorld, Player, Falcon)");
 
-        Vec2 spawnPos = m_hasSpawnOverride
-            ? (m_spawnType == SpawnType::Entry
-                ? world->FindEntrySpawn(m_spawnRow)
-                : world->FindReturnSpawn(m_spawnRow))
-            : world->FindDefaultSpawn();
-        m_hasSpawnOverride = false;
+    player->SetWorld(world);
+    falcon->SetWorld(world);
+    player->SetFalcon(falcon);
+    
+    Vec2 spawnPos = m_hasSpawnOverride
+        ? (m_spawnType == SpawnType::Entry
+            ? world->FindEntrySpawn(m_spawnRow)
+            : world->FindReturnSpawn(m_spawnRow))
+        : world->FindDefaultSpawn();
+    m_hasSpawnOverride = false;
 
-        if (world->IsSolid(Vec2(spawnPos.x, spawnPos.y + 1.0f)))
-            spawnPos.y += 0.5f - player->GetGridSize().y / 2.0f;
+    if (world->IsSolid(Vec2(spawnPos.x, spawnPos.y + 1.0f)))
+        spawnPos.y += 0.5f - player->GetGridSize().y / 2.0f;
 
-        player->SetGridPosition(spawnPos);
-    }
+    player->SetGridPosition(spawnPos);
 
-    if (player)
-    {
-        // Tile-collision-driven level transitions
-        m_nextLevelSub     = player->OnNextLevel().Subscribe([this](const int &row)     { GoToNextLevel(row); });
-        m_previousLevelSub = player->OnPreviousLevel().Subscribe([this](const int &row) { GoToPreviousLevel(row); });
-        m_reloadLevelSub   = player->OnReloadLevel().Subscribe([this]()                 { ReloadCurrentLevel(); });
+    // Tile-collision-driven level transitions
+    m_nextLevelSub     = player->OnNextLevel().Subscribe([this](const int &row)     { GoToNextLevel(row); });
+    m_previousLevelSub = player->OnPreviousLevel().Subscribe([this](const int &row) { GoToPreviousLevel(row); });
+    m_reloadLevelSub   = player->OnReloadLevel().Subscribe([this]()                 { ReloadCurrentLevel(); });
 
-        // Input manager — owns all keyboard routing
-        m_inputManager = std::make_unique<PlatformerInputManager>();
+    // Input manager — owns all keyboard routing
+    m_inputManager = std::make_unique<PlatformerInputManager>();
 
-        m_moveSub     = m_inputManager->OnMove().Subscribe(player, &Player::SetDirection);
-        m_jumpSub     = m_inputManager->OnJump().Subscribe(player, &Player::Jump);
-        m_jumpStopSub = m_inputManager->OnJumpStop().Subscribe(player, &Player::StopJump);
+    m_moveSub     = m_inputManager->OnMove().Subscribe(player, &Player::SetDirection);
+    m_jumpSub     = m_inputManager->OnJump().Subscribe(player, &Player::Jump);
+    m_jumpStopSub = m_inputManager->OnJumpStop().Subscribe(player, &Player::StopJump);
 
-        m_debugNextLevelSub     = m_inputManager->OnNextLevel().Subscribe([this]()     { GoToNextLevel(-1); });
-        m_debugPreviousLevelSub = m_inputManager->OnPreviousLevel().Subscribe([this]() { GoToPreviousLevel(-1); });
-        m_debugReloadLevelSub   = m_inputManager->OnReloadLevel().Subscribe([this]()   { ReloadCurrentLevel(); });
-
-    }
+    m_debugNextLevelSub     = m_inputManager->OnNextLevel().Subscribe([this]()     { GoToNextLevel(-1); });
+    m_debugPreviousLevelSub = m_inputManager->OnPreviousLevel().Subscribe([this]() { GoToPreviousLevel(-1); });
+    m_debugReloadLevelSub   = m_inputManager->OnReloadLevel().Subscribe([this]()   { ReloadCurrentLevel(); });
 
     m_exitSub = Keyboard::OnKeyPressed().Subscribe([this](const Key &key)
     {

@@ -1,5 +1,6 @@
 #include "Player.h"
 #include "PlatformerWorld.h"
+#include "Falcon.h"
 #include <cmath>
 #include <iostream>
 #include <numbers>
@@ -138,6 +139,12 @@ void Player::SetDirection(const Vec2 &dir)
 void Player::SetWorld(PlatformerWorld *world)
 {
     m_world = world;
+}
+
+void Player::SetFalcon(Falcon *falcon)
+{
+    m_falcon = falcon;
+    m_falcon->SetPlayer(this);
 }
 
 bool Player::IsJumping() const
