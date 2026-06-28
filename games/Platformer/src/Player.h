@@ -4,6 +4,7 @@
 
 // --- Forward Declarations ---
 class PlatformerWorld;
+class Falcon;
 
 class Player : public Engine::GridEntity
 {
@@ -25,6 +26,7 @@ public:
 public:
     void SetDirection(const Engine::Vec2 &dir);
     void SetWorld(PlatformerWorld *world);
+    void SetFalcon(Falcon *falcon);
     bool IsJumping() const;
     void Jump();
     void StopJump();
@@ -117,6 +119,7 @@ private:
 // --- Other ---
 private:
     PlatformerWorld *m_world{nullptr};
+    Falcon *m_falcon{nullptr};
     Engine::Vec2 m_playerBoundingBox[2]{};
     Engine::Event<int> m_nextLevelEvent;
     Engine::Event<int> m_previousLevelEvent;

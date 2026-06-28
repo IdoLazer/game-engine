@@ -24,6 +24,11 @@ namespace PlatformerConstants
     static const float PLAYER_WALL_SLIDE_MAX_SPEED = 5.0f; // Maximum downward speed when sliding against a wall
     static constexpr float PLAYER_WALL_GRAVITY_SCALE = 0.15f; // Gravity multiplier while on a wall (1.0 = normal, 0 = no gravity)
 
+    // Falcon properties
+    static const Engine::Vec2 FALCON_SIZE{0.25f, 0.25f};
+    static const Engine::Color FALCON_COLOR{1.0f, 1.0f, 1.0f, 1.0f};
+    static const Engine::Vec2 FALCON_OFFSET_FROM_PLAYER{0.2f, -0.2f}; // Falcon's position relative to the player
+
     // World properties
     static const Engine::Color BACKGROUND_COLOR{0.5f, 0.7f, 1.0f, 1.0f};
     static const Engine::Color PLAYER_COLOR{1.0f, 0.0f, 0.0f, 1.0f};
