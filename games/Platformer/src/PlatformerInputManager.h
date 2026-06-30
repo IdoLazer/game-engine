@@ -20,7 +20,8 @@ public:
     Engine::EventSubscriber<>&             OnPreviousLevel()  { return m_onPreviousLevel; }
     Engine::EventSubscriber<>&             OnReloadLevel()    { return m_onReloadLevel; }
     Engine::EventSubscriber<Engine::Vec2>& OnCursorMove()     { return m_onCursorMove; }
-    Engine::EventSubscriber<>&             OnClick()          { return m_onClick; }
+    Engine::EventSubscriber<>&             OnAim()            { return m_onAim; }
+    Engine::EventSubscriber<>&             OnRelease()        { return m_onRelease; }
 
 private:
     // --- Input Handling ---
@@ -28,12 +29,14 @@ private:
     void HandleKeyRelease(const Engine::Key &key);
     void HandleCursorMove(const Engine::Vec2 &position);
     void HandleClick(const Engine::MouseButton &button);
+    void HandleRelease(const Engine::MouseButton &button);
 
     // --- Subscriptions ---
     Engine::Subscription m_keyPressedSub;
     Engine::Subscription m_keyReleaseSub;
     Engine::Subscription m_cursorMoveSub;
-    Engine::Subscription m_clickSub;
+    Engine::Subscription m_mouseButtonPressedSub;
+    Engine::Subscription m_mouseButtonReleasedSub;
 
     // --- State ---
     float m_horizontalInput{0.0f};
@@ -46,5 +49,6 @@ private:
     Engine::Event<>             m_onPreviousLevel;
     Engine::Event<>             m_onReloadLevel;
     Engine::Event<Engine::Vec2> m_onCursorMove;
-    Engine::Event<>             m_onClick;
+    Engine::Event<>             m_onAim;
+    Engine::Event<>             m_onRelease;
 };
