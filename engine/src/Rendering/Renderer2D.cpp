@@ -119,6 +119,91 @@ namespace Engine
         glEnd();
     }
 
+    void Renderer2D::DrawLine(const Vec2 &start, const Vec2 &end, const Color &color, float thickness, LineStyle style)
+    {
+        // Set the color for this line
+        glColor4f(color.r, color.g, color.b, color.a);
+
+        // Calculate the direction vector of the line
+        Vec2 direction = end - start;
+        float length = direction.Length();
+
+        if (length == 0.0f)
+            return; // Avoid division by zero
+
+        // Normalize the direction vector
+        Vec2 normalizedDir = direction / length;
+
+        // Calculate the perpendicular vector for thickness
+        Vec2 perp(-normalizedDir.y, normalizedDir.x);
+
+        // Scale the perpendicular vector by half the thickness
+        Vec2 offset = perp * (thickness * 0.5f);
+
+        switch (style)
+        {
+        case Solid:
+        {
+            // Draw a solid line as a thick rectangle (quad)
+            // Calculate the four corners of the thick line rectangle
+            Vec2 v1 = start + offset;
+            Vec2 v2 = start - offset;
+            Vec2 v3 = end - offset;
+            Vec2 v4 = end + offset;
+
+            // Convert corners to OpenGL coordinates
+            Vec2 glV1 = s_Camera.WorldToOpenGL(v1);
+            Vec2 glV2 = s_Camera.WorldToOpenGL(v2);
+            Vec2 glV3 = s_Camera.WorldToOpenGL(v3);
+            Vec2 glV4 = s_Camera.WorldToOpenGL(v4);
+
+            // Draw the thick line as a rectangle (quad)
+            glBegin(GL_QUADS);
+            glVertex2f(glV1.x, glV1.y);
+            glVertex2f(glV2.x, glV2.y);
+            glVertex2f(glV3.x, glV3.y);
+            glVertex2f(glV4.x, glV4.y);
+            glEnd();
+            break;
+        }
+        case Dashed:
+        {
+            // Draw a dashed line by breaking it into segments
+            const float dashLength = 0.1f; // Length of each dash
+            const float gapLength = 0.1f;  // Length of the gap between dashes
+            float totalLength = 0.0f;
+
+            while (totalLength < length)
+            {
+                float segmentLength = std::min(dashLength, length - totalLength);
+                Vec2 segmentStart = start + normalizedDir * totalLength;
+                Vec2 segmentEnd = segmentStart + normalizedDir * segmentLength;
+
+                // Draw the dash segment as a solid line
+                DrawLine(segmentStart, segmentEnd, color, thickness, Solid);
+
+                totalLength += segmentLength + gapLength;
+            }
+            break;
+        }
+        case Dotted:
+        {
+            // Draw a dotted line by placing small circles along the line
+            const float dotSpacing = 0.3f; // Spacing between dots
+            float currentLength = 0.0f;
+
+            while (currentLength < length)
+            {
+                Vec2 dotCenter = start + normalizedDir * currentLength;
+                DrawCircle(dotCenter, thickness * 0.5f, color);
+
+                currentLength += dotSpacing;
+            }
+            break;
+        }
+        }
+    }
+
     void Renderer2D::DrawRectOutline(const Vec2 &position, const Vec2 &size, const Color &color, float thickness)
     {
         // Set the color for this outline

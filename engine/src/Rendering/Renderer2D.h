@@ -11,6 +11,14 @@
 
 namespace Engine
 {
+    // --- Types ---
+    enum LineStyle
+    {
+        Solid,
+        Dashed,
+        Dotted
+    };
+
     class Renderer2D
     {
     public:
@@ -27,6 +35,7 @@ namespace Engine
         static void DrawTile(const Vec2 &position, const Vec2 &size, const Color &color);
         static void DrawCircle(const Vec2 &center, float radius, const Color &color);
         static void DrawTriangle(const Vec2 &point1, const Vec2 &point2, const Vec2 &point3, const Color &color);
+        static void DrawLine(const Vec2 &start, const Vec2 &end, const Color &color, float thickness = 0.05f, LineStyle style = Solid);
         static void DrawRectOutline(const Vec2 &position, const Vec2 &size, const Color &color, float thickness = 0.05f);
 
         // --- Textured Drawing ---
