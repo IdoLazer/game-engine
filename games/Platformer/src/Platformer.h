@@ -47,6 +47,8 @@ private:
     Engine::Subscription m_debugNextLevelSub;
     Engine::Subscription m_debugPreviousLevelSub;
     Engine::Subscription m_debugReloadLevelSub;
+    Engine::Subscription m_aimSub;
+    Engine::Subscription m_releaseSub;
 
     Engine::Grid m_grid;
     Cursor *m_cursor = nullptr;

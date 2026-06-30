@@ -68,6 +68,9 @@ void Platformer::Initialize()
     m_jumpSub     = m_inputManager->OnJump().Subscribe(player, &Player::Jump);
     m_jumpStopSub = m_inputManager->OnJumpStop().Subscribe(player, &Player::StopJump);
 
+    m_aimSub      = m_inputManager->OnAim().Subscribe(falcon, &Falcon::StartAiming);
+    m_releaseSub  = m_inputManager->OnRelease().Subscribe(falcon, &Falcon::ReleaseAiming);
+
     m_debugNextLevelSub     = m_inputManager->OnNextLevel().Subscribe([this]()     { GoToNextLevel(-1); });
     m_debugPreviousLevelSub = m_inputManager->OnPreviousLevel().Subscribe([this]() { GoToPreviousLevel(-1); });
     m_debugReloadLevelSub   = m_inputManager->OnReloadLevel().Subscribe([this]()   { ReloadCurrentLevel(); });
@@ -84,6 +87,8 @@ void Platformer::Initialize()
         Mouse::SetCursorVisibility(false);
         m_cursorMoveSub = m_inputManager->OnCursorMove().Subscribe(m_cursor, &Cursor::SetPosition);
     }
+
+    falcon->SetCursor(m_cursor);
 
     m_inputManager->NotifyInitialState();
 }
@@ -105,6 +110,8 @@ void Platformer::Shutdown()
     m_debugReloadLevelSub.Unsubscribe();
     m_exitSub.Unsubscribe();
     m_cursorMoveSub.Unsubscribe();
+    m_aimSub.Unsubscribe();
+    m_releaseSub.Unsubscribe();
 }
 
 // --- Level Navigation ---
