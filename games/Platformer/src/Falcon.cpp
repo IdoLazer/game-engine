@@ -148,70 +148,70 @@ void Falcon::SetGoal(const Engine::Vec2 &goal)
     }
 }
 
-// Walks the aim ray cell-by-cell (a grid "DDA" traversal) from `origin` along `direction` until
-// it finds the first solid tile. That tile is only a valid latch target if the ray reached it by
-// crossing a horizontal cell boundary (i.e. entering through its underside) - if the ray clips a
-// solid tile's side first, latching is rejected even if a further tile would've been hit from below.
+// DDA ray-cast from `origin` along `direction`, stopping at `m_goal`.
+// Returns true if the ray hits a solid tile through its bottom face before reaching the goal.
+// A side hit or no hit both return false — only ceiling latch is valid.
 bool Falcon::FindLatchTarget(const Engine::Vec2 &origin, const Engine::Vec2 &direction, Engine::Vec2 &latchPoint) const
 {
     if (!m_world || direction.y >= 0.0f)
-    {
-        return false; // Must be aiming at least partly upward to ever cross a tile's underside
-    }
+        return false;
 
     Vec2 cell = GetGrid()->GetCellFromGridPosition(origin);
     if (m_world->IsSolid(cell))
-    {
-        return false; // Already inside a solid tile - can't latch to it
-    }
-    
-    int stepX = direction.x > 0.0f ? 1 : (direction.x < 0.0f ? -1 : 0);
-    constexpr float infinity = std::numeric_limits<float>::infinity();
+        return false;
 
-    // tMax*: parametric distance along the ray to the *next* grid line on that axis.
-    // tDelta*: parametric distance needed to cross one full cell on that axis.
-    // (direction is normalized, so these distances are in grid units.)
-    float tMaxX = stepX == 0 ? infinity : ((cell.x + stepX * 0.5f) - origin.x) / direction.x;
-    float tMaxY = ((cell.y - 0.5f) - origin.y) / direction.y;
-    float tDeltaX = stepX == 0 ? infinity : 1.0f / std::abs(direction.x);
-    float tDeltaY = 1.0f / std::abs(direction.y);
+    constexpr float kInfinity = std::numeric_limits<float>::infinity();
+
+    // How many columns to step per iteration (+1 right, -1 left, 0 straight up)
+    int colStep = direction.x > 0.0f ? 1 : (direction.x < 0.0f ? -1 : 0);
+    // How many rows to step per iteration (-1 up, only name for clarity)
+    int rowStep = -1;
+
+    // How much t increases to cross one full cell on each axis
+    float tPerCol = colStep == 0 ? kInfinity : 1.0f / std::abs(direction.x);
+    float tPerRow = rowStep == 0 ? kInfinity : 1.0f / std::abs(direction.y);
+
+    // t at which the ray first crosses the next boundary on each axis
+    float tToNextCol = colStep == 0 ? kInfinity : ((cell.x + colStep * 0.5f) - origin.x) / direction.x;
+    float tToNextRow = rowStep == 0 ? kInfinity : ((cell.y + rowStep * 0.5f) - origin.y) / direction.y;
+
+    // Don't march past the goal
+    float tGoal = (m_goal - origin).Length();
 
     while (true)
     {
-        // Advance into whichever neighboring cell the ray reaches first
-        bool crossedSide = tMaxX < tMaxY;
-        if (crossedSide)
+        float tNextBoundary = std::min(tToNextCol, tToNextRow);
+        if (tNextBoundary > tGoal)
+            return false;
+
+        bool enteredFromSide = tToNextCol < tToNextRow;
+        if (enteredFromSide)
         {
-            cell.x += stepX;
-            tMaxX += tDeltaX;
+            cell.x += colStep;
+            tToNextCol += tPerCol;
         }
         else
         {
-            cell.y -= 1.0f;
-            tMaxY += tDeltaY;
+            cell.y += rowStep;
+            tToNextRow += tPerRow;
         }
 
         if (!GetGrid()->IsInBounds(cell))
-        {
-            return false; // Left the grid without hitting anything
-        }
+            return false;
 
         if (!m_world->IsSolid(cell))
-        {
             continue;
-        }
 
-        if (crossedSide)
-        {
-            return false; // First solid tile was clipped from the side - not a valid latch
-        }
+        // We've hit a solid tile. Determine if it was a side hit or a bottom hit.
+        
+        if (enteredFromSide)
+            return false; // Side hit — not a valid ceiling latch
 
-        // latch point is the intersection of the ray with the underside of the solid tile
-        Vec2 cellBottom = cell + Vec2(0.0f, 0.5f);
-        float t = (cellBottom.y - origin.y) / direction.y;
-        latchPoint = origin + direction * t;
-
-        return true; // First solid tile was entered through its underside
+        // Bottom hit — compute the exact point on the tile's underside
+        float tileUndersideY = cell.y + 0.5f;
+        float tHit           = (tileUndersideY - origin.y) / direction.y;
+        latchPoint           = origin + direction * tHit;
+        return true;
     }
 }
 
