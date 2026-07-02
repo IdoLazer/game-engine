@@ -70,6 +70,7 @@ void Platformer::Initialize()
 
     m_aimSub      = m_inputManager->OnAim().Subscribe(falcon, &Falcon::StartAiming);
     m_releaseSub  = m_inputManager->OnRelease().Subscribe(falcon, &Falcon::ReleaseAiming);
+    m_retrieveSub = m_inputManager->OnRetrieve().Subscribe(falcon, &Falcon::Retrieve);
 
     m_debugNextLevelSub     = m_inputManager->OnNextLevel().Subscribe([this]()     { GoToNextLevel(-1); });
     m_debugPreviousLevelSub = m_inputManager->OnPreviousLevel().Subscribe([this]() { GoToPreviousLevel(-1); });
@@ -112,6 +113,7 @@ void Platformer::Shutdown()
     m_cursorMoveSub.Unsubscribe();
     m_aimSub.Unsubscribe();
     m_releaseSub.Unsubscribe();
+    m_retrieveSub.Unsubscribe();
 }
 
 // --- Level Navigation ---
