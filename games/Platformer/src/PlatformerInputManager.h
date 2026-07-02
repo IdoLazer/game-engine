@@ -22,6 +22,7 @@ public:
     Engine::EventSubscriber<Engine::Vec2>& OnCursorMove()     { return m_onCursorMove; }
     Engine::EventSubscriber<>&             OnAim()            { return m_onAim; }
     Engine::EventSubscriber<>&             OnRelease()        { return m_onRelease; }
+    Engine::EventSubscriber<>&             OnRetrieve()       { return m_onRetrieve; }
 
 private:
     // --- Input Handling ---
@@ -51,4 +52,5 @@ private:
     Engine::Event<Engine::Vec2> m_onCursorMove;
     Engine::Event<>             m_onAim;
     Engine::Event<>             m_onRelease;
+    Engine::Event<>             m_onRetrieve;
 };
