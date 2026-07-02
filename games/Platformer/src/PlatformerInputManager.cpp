@@ -87,6 +87,9 @@ void PlatformerInputManager::HandleClick(const Engine::MouseButton &button)
     case MouseButton::Left:
         m_onAim.Notify();
         break;
+    case MouseButton::Right:
+        m_onRetrieve.Notify();
+        break;
     default:
         break;
     }
