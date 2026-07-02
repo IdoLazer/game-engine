@@ -46,7 +46,8 @@ namespace PlatformerData
             {"GridSize", PlatformerConstants::FALCON_SIZE},
             {"Color", PlatformerConstants::FALCON_COLOR},
             // Falcon-specific properties
-            {"OffsetFromPlayer", PlatformerConstants::FALCON_OFFSET_FROM_PLAYER}
+            {"OffsetFromPlayer", PlatformerConstants::FALCON_OFFSET_FROM_PLAYER},
+            {"Speed", PlatformerConstants::FALCON_SPEED}
         }},
         // Cursor
         {"Cursor", PropertyMap{
