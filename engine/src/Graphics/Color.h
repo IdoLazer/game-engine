@@ -28,6 +28,7 @@ namespace Engine
         static const Color Blue;
         static const Color White;
         static const Color Black;
+        static const Color Grey;
         static const Color Transparent;
     };
 
@@ -36,5 +37,6 @@ namespace Engine
     inline constexpr Color Color::Blue{0.0f, 0.0f, 1.0f, 1.0f};
     inline constexpr Color Color::White{1.0f, 1.0f, 1.0f, 1.0f};
     inline constexpr Color Color::Black{0.0f, 0.0f, 0.0f, 1.0f};
+    inline constexpr Color Color::Grey{0.5f, 0.5f, 0.5f, 1.0f};
     inline constexpr Color Color::Transparent{0.0f, 0.0f, 0.0f, 0.0f};
 }
