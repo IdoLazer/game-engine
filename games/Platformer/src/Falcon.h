@@ -35,8 +35,7 @@ public:
 private:
     void SetGoal(const Engine::Vec2 &goal);
     void MoveToGoal(float deltaTime);
-    bool TryLatchToCeiling(Engine::Vec2 &newPos);
-    bool FindLatchTarget(const Engine::Vec2 &origin, const Engine::Vec2 &direction, Engine::Vec2 &outCell) const;
+    void LatchToCeiling();
     void ReturnToPlayer(float deltaTime);
 
 // --- Configuration (data-driven via type registry) ---
