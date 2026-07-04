@@ -30,7 +30,7 @@ engine/
     │   ├── GridCoordinateSystem.h      # Pure coordinate math (grid ↔ world)
     │   └── TileMap.h                   # Abstract tile map with per-cell rendering
     ├── Input/                          # Keyboard and Mouse (static API)
-    ├── Math/                           # Vec2
+    ├── Math/                           # Vec2, Rect
     ├── Graphics/                       # Color
     ├── Rendering/                      # Window, Renderer2D, Camera2D, Texture2D, Sprite, BitmapFont
     ├── Resources/                      # Resource base class, ResourceManager (static API)
@@ -52,6 +52,7 @@ games/
     └── assets/                         # Game-specific assets (copied to build dir)
 tests/                                  # Google Test suite
 ├── Vec2Test.cpp                        # Vec2 math tests
+├── RectTest.cpp                        # Rect math tests
 ├── EventTest.cpp                       # Event system tests
 └── GridCoordinateSystemTest.cpp        # Grid coordinate system tests
 ```
