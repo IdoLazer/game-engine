@@ -39,8 +39,8 @@ private:
     void ApplyGravity(float deltaTime);
     void ApplyHorizontalMovement(float deltaTime);
     void HandleCollisions(float deltaTime);
-    void ResolveHorizontalCollisions(const Engine::Vec2 &currentPos, Engine::Vec2 &newGridPos);
-    void ResolveVerticalCollisions(const Engine::Vec2 &currentPos, Engine::Vec2 &newGridPos);
+    void MoveAndSlide(Engine::Vec2 &position, float deltaTime);
+    void UpdateGroundedState(const Engine::Vec2 &position);
     void UpdateWallContact(const Engine::Vec2 &position);
     void CheckChangeLevel(const Engine::Vec2 &position);
 
@@ -120,7 +120,7 @@ private:
 private:
     PlatformerWorld *m_world{nullptr};
     Falcon *m_falcon{nullptr};
-    Engine::Vec2 m_playerBoundingBox[2]{};
+    Engine::Vec2 m_halfExtents{};
     Engine::Event<int> m_nextLevelEvent;
     Engine::Event<int> m_previousLevelEvent;
     Engine::Event<> m_reloadLevelEvent;
