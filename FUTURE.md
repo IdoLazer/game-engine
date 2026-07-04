@@ -56,6 +56,13 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Extend `PlatformerWorld` (or a small sibling holding `std::vector<Rect>`) with manually-placed static colliders, and extend the candidate-gathering step in `SweepSolid`/`RaycastSolid`/`OverlapsSolid` to test both sources. The narrow-phase math (`Rect`, `SweepRectVsRect`) already supports this with zero changes - only broad-phase candidate-gathering needs extending.  
 **When:** When the first non-tile collider entity is actually designed.
 
+### Falcon flight collision
+
+**Current:** Neither flight collides per-frame. `Falcon::ReturnToPlayer` flies straight back to the player with no check at all. `MoveToGoal` (outbound) flies straight to `m_latchPoint`, a point validated once by `SetGoal`'s aim-time raycast - not re-checked while flying, so it can't stop partway on incidental geometry a per-frame sweep would catch.  
+**Concern:** Inconsistent with how solid the rest of the world behaves - nothing stops the falcon mid-flight in either direction, only the outbound aim itself is validated.  
+**Future:** If flying through walls (return trip) or through geometry that appeared after aiming (outbound) actually causes a problem, give both flights a per-frame check - once there's a clear answer for what it should do when blocked (stop and wait, slide along the obstacle, something else).  
+**When:** When flying through walls on retrieval, or through changed geometry mid-flight outbound, actually causes a problem in practice, or when we want a consistently physical world.
+
 ---
 
 ## Build System
@@ -83,6 +90,20 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Current:** `ResourceManager::Load<T>()` loads on first access and caches. There's no way to pre-load resources before they're needed (e.g., during a loading screen).  
 **Future:** Add a `Preload()` or batch-load API that populates the cache upfront.  
 **When:** When load hitches become noticeable (unlikely for small 2D games, more relevant with large textures or audio).
+
+### Refresh is manual - no file watching
+
+**Current:** `ResourceManager::Load<T>(path, CacheMode::Refresh)` re-reads a resource only when a caller explicitly asks. Nothing notices that a file on disk changed.
+**Concern:** Every iteration loop has to route through something that knows to pass `Refresh`. Editing an asset while the game runs does nothing until that code path happens to run again.
+**Future:** Watch the asset directory (`ReadDirectoryChangesW` on Windows, or poll `last_write_time`) and refresh the affected resources automatically. The `Reload()` contract already preserves object identity, so nothing holding a resource pointer needs to know it happened.
+**When:** When manually triggering a refresh becomes the annoying part of iterating on art or level data.
+
+### Asset paths are relative to the executable
+
+**Current:** `ResourceManager` resolves asset paths against an explicit asset root - the executable's directory, or the game's source directory in Debug. Assets are loose files copied next to the exe.
+**Concern:** Loose files mean a shipped game's assets are readable and editable, and every load is a separate file open. There is also no way to load an asset from anywhere but the one root.
+**Future:** A virtual file system: mount several roots (a pack file, a patch directory, the loose source tree) and resolve through them in order. `ResourceManager::SetAssetRoot` is the single seam this would replace.
+**When:** When we ship a build to someone else, or need to override assets without replacing them.
 
 ---
 
