@@ -2,8 +2,6 @@
 #include "Player.h"
 #include "Cursor.h"
 #include "PlatformerWorld.h"
-#include <cmath>
-#include <limits>
 
 using namespace Engine;
 
@@ -45,11 +43,6 @@ void Falcon::Update(float deltaTime)
     else if (m_isMovingToGoal)
     {
         MoveToGoal(deltaTime);
-        Vec2 newPos = GetGridPosition();
-        if (TryLatchToCeiling(newPos))
-        {
-            SetGridPosition(newPos);
-        }
     }
     // State 3: Returning to Player
     else if (m_isReturningToPlayer)
@@ -137,81 +130,24 @@ void Falcon::SetGoal(const Engine::Vec2 &goal)
     Vec2 origin = GetGridPosition();
     m_direction = (goal - origin).Normalized();
 
-    // The aimed-at cursor position doesn't necessarily matter - what matters is the first
-    // solid tile the ray actually crosses. If that tile is a valid latch target, treat it as
-    // the goal instead; otherwise fall back to the raw cursor position for the aim preview.
-    Vec2 latchPoint;
-    m_isGoalLatchable = FindLatchTarget(origin, m_direction, latchPoint);
+    if (!m_world || !m_player)
+    {
+        m_isGoalLatchable = false;
+        return;
+    }
+
+    // Cast from the player's position - the falcon can be embedded in a wall it's offset from.
+    Vec2 playerOrigin = m_player->GetGridPosition();
+    Vec2 toGoal = goal - playerOrigin;
+    float maxDistance = toGoal.Length();
+    Vec2 rayDirection = toGoal.Normalized();
+    SweepHit hit = m_world->RaycastSolid(playerOrigin, rayDirection, maxDistance);
+
+    // Only a bottom-face hit is a valid ceiling latch - side hits don't count.
+    m_isGoalLatchable = hit.hit && hit.normal.y > 0.0f;
     if (m_isGoalLatchable)
     {
-        m_latchPoint = latchPoint;
-    }
-}
-
-// DDA ray-cast from `origin` along `direction`, stopping at `m_goal`.
-// Returns true if the ray hits a solid tile through its bottom face before reaching the goal.
-// A side hit or no hit both return false — only ceiling latch is valid.
-bool Falcon::FindLatchTarget(const Engine::Vec2 &origin, const Engine::Vec2 &direction, Engine::Vec2 &latchPoint) const
-{
-    if (!m_world || direction.y >= 0.0f)
-        return false;
-
-    Vec2 cell = GetGrid()->GetCellFromGridPosition(origin);
-    if (m_world->IsSolid(cell))
-        return false;
-
-    constexpr float kInfinity = std::numeric_limits<float>::infinity();
-
-    // How many columns to step per iteration (+1 right, -1 left, 0 straight up)
-    int colStep = direction.x > 0.0f ? 1 : (direction.x < 0.0f ? -1 : 0);
-    // How many rows to step per iteration (-1 up, only name for clarity)
-    int rowStep = -1;
-
-    // How much t increases to cross one full cell on each axis
-    float tPerCol = colStep == 0 ? kInfinity : 1.0f / std::abs(direction.x);
-    float tPerRow = rowStep == 0 ? kInfinity : 1.0f / std::abs(direction.y);
-
-    // t at which the ray first crosses the next boundary on each axis
-    float tToNextCol = colStep == 0 ? kInfinity : ((cell.x + colStep * 0.5f) - origin.x) / direction.x;
-    float tToNextRow = rowStep == 0 ? kInfinity : ((cell.y + rowStep * 0.5f) - origin.y) / direction.y;
-
-    // Don't march past the goal
-    float tGoal = (m_goal - origin).Length();
-
-    while (true)
-    {
-        float tNextBoundary = std::min(tToNextCol, tToNextRow);
-        if (tNextBoundary > tGoal)
-            return false;
-
-        bool enteredFromSide = tToNextCol < tToNextRow;
-        if (enteredFromSide)
-        {
-            cell.x += colStep;
-            tToNextCol += tPerCol;
-        }
-        else
-        {
-            cell.y += rowStep;
-            tToNextRow += tPerRow;
-        }
-
-        if (!GetGrid()->IsInBounds(cell))
-            return false;
-
-        if (!m_world->IsSolid(cell))
-            continue;
-
-        // We've hit a solid tile. Determine if it was a side hit or a bottom hit.
-        
-        if (enteredFromSide)
-            return false; // Side hit — not a valid ceiling latch
-
-        // Bottom hit — compute the exact point on the tile's underside
-        float tileUndersideY = cell.y + 0.5f;
-        float tHit           = (tileUndersideY - origin.y) / direction.y;
-        latchPoint           = origin + direction * tHit;
-        return true;
+        m_latchPoint = playerOrigin + rayDirection * (hit.t * maxDistance);
     }
 }
 
@@ -224,7 +160,8 @@ void Falcon::ReturnToPlayer(float deltaTime)
 
     m_goal = m_player->GetGridPosition() + m_offsetFromPlayer;
     m_direction = (m_goal - GetGridPosition()).Normalized();
-    MoveToGoal(deltaTime);
+    // Deliberately uncollided - see FUTURE.md.
+    SetGridPosition(GetGridPosition() + m_direction * m_speed * deltaTime);
 
     // Check if the falcon has reached the player
     if ((GetGridPosition() - m_goal).Length() < 0.1f)
@@ -235,30 +172,23 @@ void Falcon::ReturnToPlayer(float deltaTime)
     }
 }
 
+// Uncollided - SetGoal already validated the path via raycast at aim time.
 void Falcon::MoveToGoal(float deltaTime)
 {
-    Vec2 currentPos = GetGridPosition();
-    Vec2 newPos = currentPos + m_direction * m_speed * deltaTime;
-    SetGridPosition(newPos);
+    m_direction = (m_latchPoint - GetGridPosition()).Normalized();
+    SetGridPosition(GetGridPosition() + m_direction * m_speed * deltaTime);
+
+    if ((GetGridPosition() - m_latchPoint).Length() < 0.1f)
+    {
+        SetGridPosition(m_latchPoint);
+        LatchToCeiling();
+    }
 }
 
-// Checks whether the falcon's leading (top) edge has plunged into a solid tile from below.
-// If so, it stops there and its "pointy end" sticks straight up into the tile - becoming a
-// vertical hinge point instead of arriving exactly at the aimed goal position.
-bool Falcon::TryLatchToCeiling(Engine::Vec2 &newPos)
+// Falcon becomes a fixed hinge point, pointy end stuck straight up into the tile.
+void Falcon::LatchToCeiling()
 {
-    float halfHeight = GetGridSize().y / 2.0f;
-    Vec2 topEdgeProbe(newPos.x, newPos.y - halfHeight);
-    Vec2 cell = GetGrid()->GetCellFromGridPosition(topEdgeProbe);
-
-    if (!m_world || !m_world->IsSolid(cell))
-    {
-        return false;
-    }
-
-    newPos.y = (cell.y + 0.5f) + halfHeight; // Rest the top edge against the tile's underside
     m_direction = Vec2(0.0f, -1.0f); // Snap to vertical - stuck pointing straight up
     m_isMovingToGoal = false;
     m_isLatched = true;
-    return true;
 }

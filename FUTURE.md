@@ -56,6 +56,13 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Extend `PlatformerWorld` (or a small sibling holding `std::vector<Rect>`) with manually-placed static colliders, and extend the candidate-gathering step in `SweepSolid`/`RaycastSolid`/`OverlapsSolid` to test both sources. The narrow-phase math (`Rect`, `SweepRectVsRect`) already supports this with zero changes - only broad-phase candidate-gathering needs extending.  
 **When:** When the first non-tile collider entity is actually designed.
 
+### Falcon flight collision
+
+**Current:** Neither flight collides per-frame. `Falcon::ReturnToPlayer` flies straight back to the player with no check at all. `MoveToGoal` (outbound) flies straight to `m_latchPoint`, a point validated once by `SetGoal`'s aim-time raycast - not re-checked while flying, so it can't stop partway on incidental geometry a per-frame sweep would catch.  
+**Concern:** Inconsistent with how solid the rest of the world behaves - nothing stops the falcon mid-flight in either direction, only the outbound aim itself is validated.  
+**Future:** If flying through walls (return trip) or through geometry that appeared after aiming (outbound) actually causes a problem, give both flights a per-frame check - once there's a clear answer for what it should do when blocked (stop and wait, slide along the obstacle, something else).  
+**When:** When flying through walls on retrieval, or through changed geometry mid-flight outbound, actually causes a problem in practice, or when we want a consistently physical world.
+
 ---
 
 ## Build System
@@ -76,6 +83,13 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Current:** `ResourceManager::Load<T>()` loads on first access and caches. There's no way to pre-load resources before they're needed (e.g., during a loading screen).  
 **Future:** Add a `Preload()` or batch-load API that populates the cache upfront.  
 **When:** When load hitches become noticeable (unlikely for small 2D games, more relevant with large textures or audio).
+
+### Asset paths are relative to the executable
+
+**Current:** CMake copies game assets next to the exe via `POST_BUILD`. Games use paths like `"assets/Pawn.png"`.  
+**Concern:** This assumes the working directory is the exe's directory. Running from a different CWD would break.  
+**Future:** Resolve asset paths relative to the executable's location (using platform APIs like `GetModuleFileName` on Windows), or introduce a virtual file system.  
+**When:** If anyone runs a game from a non-standard working directory, or if we support multiple platforms.
 
 ---
 
@@ -112,14 +126,3 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Concern:** Designers can't iterate on levels without a C++ toolchain. The data-in-code pattern won't scale to dozens of levels.  
 **Future:** Load level data from files (JSON, CSV, or a custom text format). This requires choosing a format, adding a file-parsing module to the engine, and integrating with the resource system. Could pair with an editor that exports levels directly.  
 **When:** When level count grows beyond what's comfortable in code, or when we build editor tooling.
-
----
-
-## Resource System
-
-### Asset paths are relative to the executable
-
-**Current:** CMake copies game assets next to the exe via `POST_BUILD`. Games use paths like `"assets/Pawn.png"`.  
-**Concern:** This assumes the working directory is the exe's directory. Running from a different CWD would break.  
-**Future:** Resolve asset paths relative to the executable's location (using platform APIs like `GetModuleFileName` on Windows), or introduce a virtual file system.  
-**When:** If anyone runs a game from a non-standard working directory, or if we support multiple platforms.
