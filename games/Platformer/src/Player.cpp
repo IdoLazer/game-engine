@@ -54,8 +54,7 @@ private:
 void Player::Initialize()
 {
     GridEntity::Initialize();
-    m_playerBoundingBox[0] = -GetGridSize() / 2.0f;
-    m_playerBoundingBox[1] = GetGridSize() / 2.0f;
+    m_halfExtents = GetGridSize() / 2.0f;
     m_coyoteTimer = Timer(m_coyoteTime, [this]() {
         m_inCoyoteTime = false;
     }, false);
@@ -274,76 +273,63 @@ void Player::ApplyHorizontalMovement(float deltaTime)
 }
 
 // --- Collision ---
-// Collision resolution order: horizontal → vertical → wall adjacency probe.
-// Horizontal first so wall sliding works correctly with vertical checks.
 
 void Player::HandleCollisions(float deltaTime)
 {
-    Vec2 currentPos = GetGridPosition();
-    Vec2 newGridPos = currentPos + m_velocity * deltaTime;
+    Vec2 position = GetGridPosition();
+    MoveAndSlide(position, deltaTime);
+    SetGridPosition(position);
 
-    ResolveHorizontalCollisions(currentPos, newGridPos);
-    ResolveVerticalCollisions(currentPos, newGridPos);
-
-    SetGridPosition(newGridPos);
-    UpdateWallContact(newGridPos);
-    CheckChangeLevel(newGridPos);
+    // Must run before UpdateWallContact - it reads m_isGrounded.
+    UpdateGroundedState(position);
+    UpdateWallContact(position);
+    CheckChangeLevel(position);
 }
 
-void Player::ResolveHorizontalCollisions(const Vec2 &currentPos, Vec2 &newGridPos)
+// Sweeps the full combined velocity for this frame in one pass, clipping and sliding along
+// whatever it hits rather than resolving X and Y as two independent 1D sweeps - a separated
+// sweep can let a diagonal approach slip into a corner before either axis, checked against the
+// other's stale position, ever sees it coming.
+void Player::MoveAndSlide(Vec2 &position, float deltaTime)
 {
-    // Left collision
-    if (m_velocity.x < 0)
-    {
-        Vec2 probePoint = Vec2(newGridPos.x + m_playerBoundingBox[0].x, currentPos.y);
-        Vec2 cell = GetGrid()->GetCellFromGridPosition(probePoint);
-        if (m_world->IsSolid(cell))
-        {
-            newGridPos.x = (cell.x + 0.5f) - m_playerBoundingBox[0].x;
-        }
-    }
-    // Right collision
-    if (m_velocity.x > 0)
-    {
-        Vec2 probePoint = Vec2(newGridPos.x + m_playerBoundingBox[1].x, currentPos.y);
-        Vec2 cell = GetGrid()->GetCellFromGridPosition(probePoint);
-        if (m_world->IsSolid(cell))
-        {
+    Vec2 remaining = m_velocity * deltaTime;
 
-            newGridPos.x = (cell.x - 0.5f) - m_playerBoundingBox[1].x;
-        }
+    constexpr int kMaxSlideIterations = 4;
+    for (int i = 0; i < kMaxSlideIterations && remaining != Vec2::Zero; ++i)
+    {
+        Rect box(position, m_halfExtents);
+        SweepHit hit = m_world->SweepSolid(box, remaining);
+        position += remaining * hit.t;
+
+        if (!hit.hit)
+            break;
+
+        // Vertical hits stop outright (floor/ceiling). Horizontal hits deliberately leave
+        // velocity.x untouched - m_wallHitDecCoeff handles the slowdown next frame instead of
+        // an instant stop.
+        if (hit.normal.y != 0.0f)
+            m_velocity.y = 0.0f;
+
+        // Slide: keep only the leftover movement perpendicular to what was hit.
+        Vec2 leftover = remaining * (1.0f - hit.t);
+        remaining = leftover - hit.normal * leftover.Dot(hit.normal);
     }
 }
 
-void Player::ResolveVerticalCollisions(const Vec2 &currentPos, Vec2 &newGridPos)
+// Grounded is its own explicit query - not inferred from which direction the player happened
+// to be moving - so it correctly persists as long as any part of the body still overlaps solid
+// ground below, not just the center point.
+void Player::UpdateGroundedState(const Vec2 &position)
 {
-    // Upward collision
-    if (m_velocity.y < 0)
-    {
-        Vec2 probePoint = Vec2(currentPos.x, newGridPos.y + m_playerBoundingBox[0].y);
-        Vec2 cell = GetGrid()->GetCellFromGridPosition(probePoint);
-        if (m_world->IsSolid(cell))
-        {
-            m_velocity.y = 0;
-            newGridPos.y = (cell.y + 0.5f) - m_playerBoundingBox[0].y;
-        }
-    }
-    // Downward collision — also manages grounded state
-    else if (m_velocity.y >= 0)
-    {
-        Vec2 probePoint = Vec2(currentPos.x, newGridPos.y + m_playerBoundingBox[1].y);
-        Vec2 cell = GetGrid()->GetCellFromGridPosition(probePoint);
-        if (m_world->IsSolid(cell))
-        {
-            m_velocity.y = 0;
-            newGridPos.y = (cell.y - 0.5f) - m_playerBoundingBox[1].y;
-            ChangeGroundedState(true);
-        }
-        else
-        {
-            ChangeGroundedState(false);
-        }
-    }
+    // Never touched while ascending. Without this, a jump that resolves within an unusually
+    // short frame - before the player has moved meaningfully away from the ground - could still
+    // find contact via TouchesSolid and immediately clear the jump state that was just set.
+    if (m_velocity.y < 0.0f)
+        return;
+
+    Rect box(position, m_halfExtents);
+    bool grounded = m_world->TouchesSolid(box, Vec2(0.0f, 1.0f));
+    ChangeGroundedState(grounded);
 }
 
 void Player::UpdateWallContact(const Vec2 &position)
@@ -352,15 +338,14 @@ void Player::UpdateWallContact(const Vec2 &position)
     // the wall yet and the probe would prematurely end the lock.
     if (m_inWallJumpLock) return;
 
-    // Probe slightly beyond edges to detect wall contact even at zero velocity
-    const float probeOffset = 0.01f;
+    Rect box(position, m_halfExtents);
+    bool leftSolid = m_world->TouchesSolid(box, Vec2(-1.0f, 0.0f));
+    bool rightSolid = m_world->TouchesSolid(box, Vec2(1.0f, 0.0f));
 
-    Vec2 leftProbe = Vec2(position.x + m_playerBoundingBox[0].x - probeOffset, position.y);
-    bool leftSolid = m_world->IsSolid(GetGrid()->GetCellFromGridPosition(leftProbe));
-
-    Vec2 rightProbe = Vec2(position.x + m_playerBoundingBox[1].x + probeOffset, position.y);
-    bool rightSolid = m_world->IsSolid(GetGrid()->GetCellFromGridPosition(rightProbe));
-
+    // Touching a wall while airborne is enough to count as "on wall" regardless of input
+    // direction - this is what lets you wall-jump off a wall you're merely touching, not just
+    // one you're actively sliding down. ChangeWallState is what guards against a ledge corner
+    // hijacking your momentum on contact (see its comment).
     if (leftSolid && !m_isGrounded)
         ChangeWallState(true, -1);
     else if (rightSolid && !m_isGrounded)
@@ -427,10 +412,14 @@ void Player::ChangeWallState(bool onWall, int direction)
         m_isOnWall = onWall;
         m_wallDirection = direction;
 
-        // Push velocity into the wall on contact for a brief automatic wall-slide grace period
-        if (m_velocity.x != 0.0f)
+        // Push velocity into the wall on contact for a brief automatic wall-slide grace period -
+        // but only if velocity is already carrying the player toward the wall (or is already
+        // zero). Touching a wall while moving away from it - e.g. brushing a ledge corner while
+        // walking off it - must not reverse that momentum; it still counts as "on wall" for
+        // wall-jump purposes (above), just without hijacking existing motion.
+        if (m_velocity.x != 0.0f && m_velocity.x * direction >= 0.0f)
             m_velocity.x = m_wallDirection * m_speed;
-        
+
         ClearWallJumpTracking();
 
         // Execute buffered jump immediately on wall grab
