@@ -29,6 +29,8 @@ engine/
     │   ├── Grid.h                      # Spatial index over grid cells
     │   ├── GridCoordinateSystem.h      # Pure coordinate math (grid ↔ world)
     │   └── TileMap.h                   # Abstract tile map with per-cell rendering
+    ├── Collision/                      # Shape-vs-shape sweep queries
+    │   └── Sweep.h                     # SweepRectVsRect (swept-AABB)
     ├── Input/                          # Keyboard and Mouse (static API)
     ├── Math/                           # Vec2, Rect
     ├── Graphics/                       # Color
@@ -53,6 +55,7 @@ games/
 tests/                                  # Google Test suite
 ├── Vec2Test.cpp                        # Vec2 math tests
 ├── RectTest.cpp                        # Rect math tests
+├── SweepTest.cpp                       # Swept-AABB collision tests
 ├── EventTest.cpp                       # Event system tests
 └── GridCoordinateSystemTest.cpp        # Grid coordinate system tests
 ```
