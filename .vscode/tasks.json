@@ -123,6 +123,9 @@
       "type": "shell",
       "command": "ctest",
       "args": ["--test-dir", "build/windows-x64-debug", "--output-on-failure"],
+      "osx": {
+        "args": ["--test-dir", "build/macos-arm64-debug", "--output-on-failure"]
+      },
       "group": "test",
       "dependsOn": "Build Tests (Debug)",
       "problemMatcher": [],
@@ -133,6 +136,9 @@
       "type": "shell",
       "command": "cmake",
       "args": ["--build", "build/windows-x64-debug", "--target", "Tests"],
+      "osx": {
+        "args": ["--build", "build/macos-arm64-debug", "--target", "Tests"]
+      },
       "group": "build",
       "problemMatcher": ["$gcc"],
       "detail": "Build the Tests target (debug)"
@@ -246,7 +252,11 @@
       "label": "Build + Test (Release)",
       "type": "shell",
       "command": "ctest",
-      "args": ["--test-dir", "build/windows-x64-release", "--output-on-failure"],
+      "args": [
+        "--test-dir",
+        "build/windows-x64-release",
+        "--output-on-failure"
+      ],
       "group": "test",
       "dependsOn": "Build Tests (Release)",
       "problemMatcher": [],
