@@ -47,7 +47,8 @@ namespace PlatformerData
             {"Color", PlatformerConstants::FALCON_COLOR},
             // Falcon-specific properties
             {"OffsetFromPlayer", PlatformerConstants::FALCON_OFFSET_FROM_PLAYER},
-            {"Speed", PlatformerConstants::FALCON_SPEED}
+            {"Speed", PlatformerConstants::FALCON_SPEED},
+            {"SnapRadius", PlatformerConstants::FALCON_SNAP_RADIUS}
         }},
         // Cursor
         {"Cursor", PropertyMap{

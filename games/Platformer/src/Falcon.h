@@ -1,11 +1,20 @@
 #pragma once
 
 #include <Engine.h>
+#include <optional>
 
 // --- Forward Declarations ---
 class Player;
 class PlatformerWorld;
 class Cursor;
+
+enum class FalconState
+{
+    OnShoulder,  // Resting on the player's shoulder, following them
+    Flying,      // Moving out towards a latch point after being released
+    Returning,   // Flying back to the player after Retrieve()
+    Latched      // Stuck to a ceiling tile, acting as a fixed hinge point
+};
 
 class Falcon : public Engine::GridEntity
 {
@@ -33,15 +42,15 @@ public:
 
 // --- Falcon Behavior ---
 private:
-    void SetGoal(const Engine::Vec2 &goal);
-    void MoveToGoal(float deltaTime);
+    void SetAimPoint(const Engine::Vec2 &aimPoint);
+    bool FlyTowards(const Engine::Vec2 &target, float deltaTime);
     void LatchToCeiling();
-    void ReturnToPlayer(float deltaTime);
 
 // --- Configuration (data-driven via type registry) ---
 private:
     Engine::Vec2 m_offsetFromPlayer{0.0f, 0.0f}; // Falcon's position relative to the player
     float m_speed{0.0f}; // Falcon's movement speed
+    float m_snapRadius{0.0f}; // Distance to a flight target within which it's considered reached
 
 // --- Private Fields ---
 private:
@@ -49,12 +58,8 @@ private:
     PlatformerWorld *m_world{nullptr};
     Cursor *m_cursor{nullptr};
     Engine::Vec2 m_direction{1.0f, 0.0f}; // Direction the falcon is facing
-    bool m_isFollowingPlayer{true}; // Whether the falcon is following the player or acting independently
-    bool m_isMovingToGoal{false}; // Whether the falcon is currently moving towards a goal position
-    bool m_isReturningToPlayer{false}; // Whether the falcon is returning to the player after reaching a goal
-    Engine::Vec2 m_goal{0.0f, 0.0f}; // The goal position the falcon should move towards
-    Engine::Vec2 m_latchPoint{0.0f, 0.0f}; // The point where the falcon has latched onto a ceiling tile
+    FalconState m_state{FalconState::OnShoulder}; // The falcon's current behavior state
+    Engine::Vec2 m_aimPoint{0.0f, 0.0f}; // The point the falcon is currently aiming at
+    std::optional<Engine::Vec2> m_latchPoint; // The ceiling point to fly to, if the current aim point is a valid latch target
     bool m_isAiming{false}; // Whether the falcon is currently aiming at the cursor
-    bool m_isGoalLatchable{false}; // Whether the goal is a solid tile being aimed at from below (a valid ceiling-latch target)
-    bool m_isLatched{false}; // Whether the falcon has latched onto a ceiling tile and become a hinge point
 };
