@@ -43,7 +43,7 @@ void Falcon::Update(float deltaTime)
     case FalconState::Flying:
         if (m_latchPoint && FlyTowards(*m_latchPoint, deltaTime))
         {
-            LatchToCeiling();
+            Latch();
         }
         break;
     case FalconState::Returning:
@@ -146,10 +146,12 @@ void Falcon::SetAimPoint(const Engine::Vec2 &aimPoint)
     Vec2 rayDirection = toAimPoint.Normalized();
     SweepHit hit = m_world->RaycastSolid(playerOrigin, rayDirection, maxDistance);
 
-    // Only a bottom-face hit is a valid ceiling latch - side hits don't count.
-    if (hit.hit && hit.normal.y > 0.0f)
+    if (hit.hit)
     {
         m_latchPoint = playerOrigin + rayDirection * (hit.t * maxDistance);
+        // hit.normal is one of the four cardinal directions (tiles are grid-aligned) and
+        // points back the way we came, so its negation is the direction to embed into the surface.
+        m_latchDirection = -hit.normal;
     }
     else
     {
@@ -172,9 +174,9 @@ bool Falcon::FlyTowards(const Engine::Vec2 &target, float deltaTime)
     return false;
 }
 
-// Falcon becomes a fixed hinge point, pointy end stuck straight up into the tile.
-void Falcon::LatchToCeiling()
+// Falcon becomes a fixed hinge point, pointy end stuck into whichever surface it hit.
+void Falcon::Latch()
 {
-    m_direction = Vec2(0.0f, -1.0f); // Snap to vertical - stuck pointing straight up
+    m_direction = m_latchDirection;
     m_state = FalconState::Latched;
 }
