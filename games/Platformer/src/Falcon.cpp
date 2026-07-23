@@ -8,6 +8,7 @@ using namespace Engine;
 BEGIN_TYPE_REGISTER(Falcon)
     REGISTER_PROPERTY(Engine::Vec2, OffsetFromPlayer, &Falcon::m_offsetFromPlayer)
     REGISTER_PROPERTY(float, Speed, &Falcon::m_speed)
+    REGISTER_PROPERTY(float, SnapRadius, &Falcon::m_snapRadius)
 END_TYPE_REGISTER()
 
 // --- Lifecycle ---
@@ -25,9 +26,9 @@ void Falcon::Initialize()
 
 void Falcon::Update(float deltaTime)
 {
-    // State 1: On Player's Shoulder (following the player)
-    if (m_isFollowingPlayer)
+    switch (m_state)
     {
+    case FalconState::OnShoulder:
         // Update the falcon's position to follow the player with the specified offset
         if (m_player)
         {
@@ -35,19 +36,24 @@ void Falcon::Update(float deltaTime)
         }
         if (m_isAiming)
         {
-            // If aiming, set the goal to the cursor's position
-            SetGoal(m_grid->WorldToGrid(m_cursor ? m_cursor->GetWorldPosition() : GetWorldPosition()));
+            // If aiming, set the aim point to the cursor's position
+            SetAimPoint(m_grid->WorldToGrid(m_cursor ? m_cursor->GetWorldPosition() : GetWorldPosition()));
         }
-    }
-    // State 2: Moving to Goal Position
-    else if (m_isMovingToGoal)
-    {
-        MoveToGoal(deltaTime);
-    }
-    // State 3: Returning to Player
-    else if (m_isReturningToPlayer)
-    {
-        ReturnToPlayer(deltaTime);
+        break;
+    case FalconState::Flying:
+        if (m_latchPoint && FlyTowards(*m_latchPoint, deltaTime))
+        {
+            LatchToCeiling();
+        }
+        break;
+    case FalconState::Returning:
+        if (m_player && FlyTowards(m_player->GetGridPosition() + m_offsetFromPlayer, deltaTime))
+        {
+            m_state = FalconState::OnShoulder;
+        }
+        break;
+    case FalconState::Latched:
+        break;
     }
 }
 
@@ -56,7 +62,7 @@ void Falcon::Render() const
     // Convert the falcon's grid position and size to world coordinates for rendering
     Vec2 worldCenter = GetWorldPosition();
     Vec2 worldSize = GetWorldSize();
-    Vec2 worldGoal = m_grid->GridToWorld(m_goal);
+    Vec2 worldAimPoint = m_grid->GridToWorld(m_aimPoint);
     Vec2 worldDirection = Vec2(m_direction.x, -m_direction.y).Normalized(); // Invert y for rendering
     
     // Draw falcon as a white triangle pointing in the direction it's facing
@@ -73,21 +79,21 @@ void Falcon::Render() const
 
     if (m_isAiming)
     {
-        // Draw a line from the falcon to its goal position for debugging purposes
-        if (m_isGoalLatchable)
+        // Draw a line from the falcon to its aim point for debugging purposes
+        if (m_latchPoint)
         {
-            Vec2 latchWorldPos = m_grid->GridToWorld(m_latchPoint);
+            Vec2 latchWorldPos = m_grid->GridToWorld(*m_latchPoint);
             Renderer2D::DrawLine(worldCenter, latchWorldPos, Color::White, 0.02f, LineStyle::Dashed);
-            Renderer2D::DrawLine(latchWorldPos, worldGoal, Color::Grey, 0.02f, LineStyle::Dashed);
+            Renderer2D::DrawLine(latchWorldPos, worldAimPoint, Color::Grey, 0.02f, LineStyle::Dashed);
 
-            // Draw the latch point as a white x if the goal is latchable
+            // Draw the latch point as a white x if the aim point is latchable
             float latchSize = 0.06f;
             Renderer2D::DrawLine(latchWorldPos - Vec2(latchSize, latchSize), latchWorldPos + Vec2(latchSize, latchSize), Color::White, 0.05f);
             Renderer2D::DrawLine(latchWorldPos - Vec2(-latchSize, latchSize), latchWorldPos + Vec2(-latchSize, latchSize), Color::White, 0.05f);
         }
         else
         {
-            Renderer2D::DrawLine(worldCenter, worldGoal, Color::Grey, 0.02f, LineStyle::Dashed);
+            Renderer2D::DrawLine(worldCenter, worldAimPoint, Color::Grey, 0.02f, LineStyle::Dashed);
         }
     }
 }
@@ -96,99 +102,79 @@ void Falcon::Render() const
 
 void Falcon::StartAiming()
 {
-    if (!m_isFollowingPlayer) return;
+    if (m_state != FalconState::OnShoulder) return;
 
     m_isAiming = true;
 }
 
 void Falcon::ReleaseAiming()
 {
-    if (!m_isFollowingPlayer) return;
+    if (m_state != FalconState::OnShoulder) return;
 
     m_isAiming = false;
-    if (m_isGoalLatchable)
+    if (m_latchPoint)
     {
-        m_isMovingToGoal = true;
-        m_isFollowingPlayer = false;
+        m_state = FalconState::Flying;
     }
 }
 
 void Falcon::Retrieve()
 {
-    if (m_isFollowingPlayer) return;
-    m_isReturningToPlayer = true;
-    m_isMovingToGoal = false;
-    m_isGoalLatchable = false;
-    m_isLatched = false;
+    if (m_state == FalconState::OnShoulder) return;
+    m_state = FalconState::Returning;
+    m_latchPoint.reset();
 }
 
 // --- Falcon Behavior ---
 
-void Falcon::SetGoal(const Engine::Vec2 &goal)
+void Falcon::SetAimPoint(const Engine::Vec2 &aimPoint)
 {
-    m_goal = goal;
+    m_aimPoint = aimPoint;
     Vec2 origin = GetGridPosition();
-    m_direction = (goal - origin).Normalized();
+    m_direction = (aimPoint - origin).Normalized();
 
     if (!m_world || !m_player)
     {
-        m_isGoalLatchable = false;
+        m_latchPoint.reset();
         return;
     }
 
     // Cast from the player's position - the falcon can be embedded in a wall it's offset from.
     Vec2 playerOrigin = m_player->GetGridPosition();
-    Vec2 toGoal = goal - playerOrigin;
-    float maxDistance = toGoal.Length();
-    Vec2 rayDirection = toGoal.Normalized();
+    Vec2 toAimPoint = aimPoint - playerOrigin;
+    float maxDistance = toAimPoint.Length();
+    Vec2 rayDirection = toAimPoint.Normalized();
     SweepHit hit = m_world->RaycastSolid(playerOrigin, rayDirection, maxDistance);
 
     // Only a bottom-face hit is a valid ceiling latch - side hits don't count.
-    m_isGoalLatchable = hit.hit && hit.normal.y > 0.0f;
-    if (m_isGoalLatchable)
+    if (hit.hit && hit.normal.y > 0.0f)
     {
         m_latchPoint = playerOrigin + rayDirection * (hit.t * maxDistance);
     }
-}
-
-void Falcon::ReturnToPlayer(float deltaTime)
-{
-    if (!m_player)
+    else
     {
-        return;
-    }
-
-    m_goal = m_player->GetGridPosition() + m_offsetFromPlayer;
-    m_direction = (m_goal - GetGridPosition()).Normalized();
-    // Deliberately uncollided - see FUTURE.md.
-    SetGridPosition(GetGridPosition() + m_direction * m_speed * deltaTime);
-
-    // Check if the falcon has reached the player
-    if ((GetGridPosition() - m_goal).Length() < 0.1f)
-    {
-        m_isReturningToPlayer = false;
-        m_isFollowingPlayer = true;
-        SetGridPosition(m_goal); // Snap to the player's position
+        m_latchPoint.reset();
     }
 }
 
-// Uncollided - SetGoal already validated the path via raycast at aim time.
-void Falcon::MoveToGoal(float deltaTime)
+// Steers towards target, moves, and snaps on arrival. Returns true once arrived.
+// Deliberately uncollided in both directions - see FUTURE.md.
+bool Falcon::FlyTowards(const Engine::Vec2 &target, float deltaTime)
 {
-    m_direction = (m_latchPoint - GetGridPosition()).Normalized();
+    m_direction = (target - GetGridPosition()).Normalized();
     SetGridPosition(GetGridPosition() + m_direction * m_speed * deltaTime);
 
-    if ((GetGridPosition() - m_latchPoint).Length() < 0.1f)
+    if ((GetGridPosition() - target).Length() < m_snapRadius)
     {
-        SetGridPosition(m_latchPoint);
-        LatchToCeiling();
+        SetGridPosition(target); // Snap to the target
+        return true;
     }
+    return false;
 }
 
 // Falcon becomes a fixed hinge point, pointy end stuck straight up into the tile.
 void Falcon::LatchToCeiling()
 {
     m_direction = Vec2(0.0f, -1.0f); // Snap to vertical - stuck pointing straight up
-    m_isMovingToGoal = false;
-    m_isLatched = true;
+    m_state = FalconState::Latched;
 }
