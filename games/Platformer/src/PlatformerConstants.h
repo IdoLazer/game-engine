@@ -29,6 +29,7 @@ namespace PlatformerConstants
     static const Engine::Color FALCON_COLOR{1.0f, 1.0f, 1.0f, 1.0f};
     static const Engine::Vec2 FALCON_OFFSET_FROM_PLAYER{0.2f, -0.2f}; // Falcon's position relative to the player
     static const float FALCON_SPEED = 12.0f; // Falcon's movement speed
+    static const float FALCON_SNAP_RADIUS = 0.1f; // Distance to a flight target within which it's considered reached
 
     // World properties
     static const Engine::Color BACKGROUND_COLOR{0.5f, 0.7f, 1.0f, 1.0f};
