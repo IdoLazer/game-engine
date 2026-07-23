@@ -45,13 +45,6 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Add an earlier lifecycle hook (similar to Unity's `Awake()`) that runs immediately after `Instantiate()` + property assignment, before the first frame. `Initialize()` would then only contain logic that's safe to depend on all other entities being awake.  
 **When:** When the implicit initialization order causes bugs or when cross-entity setup becomes too complex to reason about.
 
-### Falcon state management → explicit state machine
-
-**Current:** `Falcon` tracks behavior via independent booleans (`m_isFollowingPlayer`, `m_isMovingToGoal`, `m_isReturningToPlayer`, plus `m_isLatched`, which is set but never read anywhere). `m_goal` means two different things depending on state (raw aim point vs. return-to-player target), direction-toward-target is recomputed with near-identical logic in three separate places, and the two flight legs (`MoveToGoal`, `ReturnToPlayer`) duplicate the same "steer, arrive, snap" movement code against different targets.  
-**Concern:** Valid state combinations are maintained by convention, not enforced - a future transition that forgets to reset the right flags could produce an invalid combination silently. The duplicated movement/direction logic means a tuning change or bug fix has to be applied in multiple places to stay consistent.  
-**Future:** Replace the booleans with a single `enum class FalconState { OnShoulder, Flying, Returning, Latched }` (making `Latched` explicit instead of inferred from "none of the above"), unify the two flight legs into one `FlyTowards(target, deltaTime)` helper, and use `std::optional<Vec2>` for `m_latchPoint` to fold in `m_isGoalLatchable`. Rename `m_goal` to something aim-specific (e.g. `m_aimPoint`) so it's never repurposed for the return target. Public API (`StartAiming`/`ReleaseAiming`/`Retrieve`) stays unchanged.  
-**When:** Next time Falcon behavior needs touching, or when the duplicated flight logic causes an actual bug rather than just being harder to read than necessary.
-
 ---
 
 ## Collision
