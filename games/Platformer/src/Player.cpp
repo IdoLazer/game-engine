@@ -183,6 +183,13 @@ void Player::Jump()
             m_jumpCommandQueue.EnqueueCommand(std::make_unique<JumpCommand>(*this));
             m_jumpBufferTimer.Reset();
         }
+        return;
+    }
+
+    // Clear any pending jump stop commands — we just initiated a jump
+    if (m_jumpStopCommandQueue.HasCommands())
+    {
+        m_jumpStopCommandQueue.Clear();
     }
 }
 
