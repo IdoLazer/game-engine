@@ -44,7 +44,7 @@ public:
 private:
     void SetAimPoint(const Engine::Vec2 &aimPoint);
     bool FlyTowards(const Engine::Vec2 &target, float deltaTime);
-    void LatchToCeiling();
+    void Latch();
 
 // --- Configuration (data-driven via type registry) ---
 private:
@@ -60,6 +60,7 @@ private:
     Engine::Vec2 m_direction{1.0f, 0.0f}; // Direction the falcon is facing
     FalconState m_state{FalconState::OnShoulder}; // The falcon's current behavior state
     Engine::Vec2 m_aimPoint{0.0f, 0.0f}; // The point the falcon is currently aiming at
-    std::optional<Engine::Vec2> m_latchPoint; // The ceiling point to fly to, if the current aim point is a valid latch target
+    std::optional<Engine::Vec2> m_latchPoint; // The point to fly to, if the current aim point is a valid latch target
+    Engine::Vec2 m_latchDirection{1.0f, 0.0f}; // Direction to face once latched - embeds into the surface, opposite its hit normal
     bool m_isAiming{false}; // Whether the falcon is currently aiming at the cursor
 };
