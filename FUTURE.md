@@ -65,6 +65,34 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 
 ---
 
+## Falcon Gameplay Systems
+
+Four traversal mechanics tied to the Falcon's state, designed together so each one expresses "what does the falcon's body do from this angle" rather than an arbitrary elemental effect per direction. None of these are implemented yet - logged here before starting so the reasoning behind their shape isn't lost.
+
+### Shoulder glide
+**Concept:** While the falcon rests on the player's shoulder (`FalconState::OnShoulder`), the player can hold onto its legs mid-air and glide instead of free-falling after a jump.  
+**Why:** The most literal reading of "boy has a magical falcon companion" - carrying it turns a fall into flight.
+
+### Stoop dash
+**Concept:** While gliding, the player can aim the falcon (the same aim used for latching) and trigger a fast dash towards the aim point, ending the glide.  
+**Why:** Riffs on the peregrine falcon's stoop - the fastest dive in nature - giving the glide state a second, more aggressive option instead of only ever being a slow-fall.
+
+### Perch platform
+**Concept:** When the falcon is latched into a wall (`m_latchDirection` horizontal), its body becomes a small horizontal platform the player can stand on.  
+**Why:** A perched falcon is literally a perch - furniture, not magic.
+
+### Rope swing
+**Concept:** When the falcon is latched into a ceiling (`m_latchDirection` pointing up), the player can grab on below it and swing like a pendulum to cross gaps.  
+**Why:** A falcon hanging from a ceiling reads naturally as something to swing from.
+
+### Updraft dash
+**Concept:** When the falcon is latched into the floor (`m_latchDirection` pointing down), it flaps its wings to give a nearby player an upward dash of momentum - an area effect near the falcon rather than a stand-on-it platform, so it's usable off a run-up instead of requiring a precise landing on its body.  
+**Why:** Reframed from an earlier "magic air vortex" idea into a physical wing-flap, so all four latch states stay in the same "physical consequence of the falcon's pose" register instead of one of them being an arbitrary elemental effect.
+
+**Open questions for implementation:** exact glide/dash speed and duration tuning; how the updraft's trigger area is detected (radius check? a `Rect` near the falcon?); whether Perch/Rope/Updraft need real collision registration in `PlatformerWorld` (see "Non-tile static colliders" above) or can be handled bespoke in `Player`/`Falcon` since they're tied to a single entity rather than level geometry.
+
+---
+
 ## Build System
 
 ### `GLOB_RECURSE` for sources
