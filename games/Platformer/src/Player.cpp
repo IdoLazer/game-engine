@@ -25,6 +25,8 @@ BEGIN_TYPE_REGISTER(Player)
     REGISTER_PROPERTY(float, MaxFallSpeed, &Player::m_maxFallSpeed)
     REGISTER_PROPERTY(float, WallSlideMaxSpeed, &Player::m_wallSlideMaxSpeed)
     REGISTER_PROPERTY(float, WallGravityScale, &Player::m_wallGravityScale)
+    REGISTER_PROPERTY(float, GlideMaxSpeed, &Player::m_glideMaxSpeed)
+    REGISTER_PROPERTY(float, GlideGravityScale, &Player::m_glideGravityScale)
 END_TYPE_REGISTER()
 
 using namespace Engine;
@@ -175,6 +177,12 @@ void Player::Jump()
     {
         EnterWallJump();
     }
+    // Case 3: Glide - the player is in the air and the falcon is on his shoulder, so we can glide. This is a special case for the falcon, and it doesn't count as a jump.
+    else if (m_falcon && m_falcon->IsOnShoulder())
+    {
+        m_isGliding = true;
+        m_falcon->StartGlide();
+    }
     // Case 3: Can't jump now — buffer input for later
     else
     {
@@ -208,6 +216,11 @@ void Player::StopJump()
             m_isJumping = false;
         }
     }
+    if (m_isGliding)
+    {
+        m_isGliding = false;
+        m_falcon->StopGlide();
+    }
     if (m_jumpCommandQueue.HasCommands())
     {
         m_jumpCommandQueue.Clear();
@@ -226,6 +239,12 @@ void Player::ApplyGravity(float deltaTime)
         m_velocity.y += m_gravity * m_wallGravityScale * deltaTime;
         if (m_velocity.y > m_wallSlideMaxSpeed)
             m_velocity.y = m_wallSlideMaxSpeed;
+    }
+    else if (m_isGliding && m_velocity.y >= 0)
+    {
+        m_velocity.y += m_gravity * m_glideGravityScale * deltaTime;
+        if (m_velocity.y > m_glideMaxSpeed)
+            m_velocity.y = m_glideMaxSpeed;
     }
     else
     {
@@ -393,6 +412,8 @@ void Player::ChangeGroundedState(bool grounded)
     {
         ClearJumpState();
         ClearWallJumpTracking();
+        m_isGliding = false;
+        m_falcon->StopGlide();
 
         // Execute buffered jump immediately on landing
         if (m_jumpCommandQueue.HasCommands())
@@ -428,6 +449,8 @@ void Player::ChangeWallState(bool onWall, int direction)
             m_velocity.x = m_wallDirection * m_speed;
 
         ClearWallJumpTracking();
+        m_isGliding = false;
+        m_falcon->StopGlide();
 
         // Execute buffered jump immediately on wall grab
         if (m_jumpCommandQueue.HasCommands())
