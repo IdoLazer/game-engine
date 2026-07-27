@@ -38,7 +38,9 @@ namespace PlatformerData
             {"WallJumpAngle", PlatformerConstants::PLAYER_WALL_JUMP_ANGLE},
             {"MaxFallSpeed", PlatformerConstants::PLAYER_MAX_FALL_SPEED},
             {"WallSlideMaxSpeed", PlatformerConstants::PLAYER_WALL_SLIDE_MAX_SPEED},
-            {"WallGravityScale", PlatformerConstants::PLAYER_WALL_GRAVITY_SCALE}
+            {"WallGravityScale", PlatformerConstants::PLAYER_WALL_GRAVITY_SCALE},
+            {"GlideMaxSpeed", PlatformerConstants::PLAYER_GLIDE_MAX_SPEED},
+            {"GlideGravityScale", PlatformerConstants::PLAYER_GLIDE_GRAVITY_SCALE}
         }},
         // Falcon
         {"Falcon", PropertyMap{
@@ -48,7 +50,8 @@ namespace PlatformerData
             // Falcon-specific properties
             {"OffsetFromPlayer", PlatformerConstants::FALCON_OFFSET_FROM_PLAYER},
             {"Speed", PlatformerConstants::FALCON_SPEED},
-            {"SnapRadius", PlatformerConstants::FALCON_SNAP_RADIUS}
+            {"SnapRadius", PlatformerConstants::FALCON_SNAP_RADIUS},
+            {"GlideOffsetFromPlayer", PlatformerConstants::FALCON_GLIDE_OFFSET_FROM_PLAYER}
         }},
         // Cursor
         {"Cursor", PropertyMap{

@@ -72,6 +72,8 @@ private:
     float m_maxFallSpeed{0.0f};
     float m_wallSlideMaxSpeed{0.0f};
     float m_wallGravityScale{1.0f};
+    float m_glideMaxSpeed{0.0f};
+    float m_glideGravityScale{1.0f};
 
 // --- Movement State ---
 private:
@@ -79,6 +81,7 @@ private:
     Engine::Vec2 m_direction{};  // Current input direction from player
     bool m_isGrounded{false};
     bool m_isJumping{false};     // True from jump initiation until apex or landing
+    bool m_isGliding{false};     // True when holding jump after apex, false when releasing or landing
 
 // --- Wall State ---
 private:
