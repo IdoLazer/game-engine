@@ -13,7 +13,8 @@ enum class FalconState
     OnShoulder,  // Resting on the player's shoulder, following them
     Flying,      // Moving out towards a latch point after being released
     Returning,   // Flying back to the player after Retrieve()
-    Latched      // Stuck to a ceiling tile, acting as a fixed hinge point
+    Latched,     // Stuck to a ceiling tile, acting as a fixed hinge point
+    Gliding      // Gliding with the player, reducing fall speed
 };
 
 class Falcon : public Engine::GridEntity
@@ -39,6 +40,9 @@ public:
     void StartAiming();
     void ReleaseAiming();
     void Retrieve();
+    bool IsOnShoulder() const { return m_state == FalconState::OnShoulder; }
+    void StartGlide();
+    void StopGlide();
 
 // --- Falcon Behavior ---
 private:
@@ -49,6 +53,7 @@ private:
 // --- Configuration (data-driven via type registry) ---
 private:
     Engine::Vec2 m_offsetFromPlayer{0.0f, 0.0f}; // Falcon's position relative to the player
+    Engine::Vec2 m_glideOffsetFromPlayer{0.0f, 0.0f}; // Falcon's position relative to the player while gliding
     float m_speed{0.0f}; // Falcon's movement speed
     float m_snapRadius{0.0f}; // Distance to a flight target within which it's considered reached
 

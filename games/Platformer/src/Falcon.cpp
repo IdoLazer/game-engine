@@ -7,6 +7,7 @@ using namespace Engine;
 
 BEGIN_TYPE_REGISTER(Falcon)
     REGISTER_PROPERTY(Engine::Vec2, OffsetFromPlayer, &Falcon::m_offsetFromPlayer)
+    REGISTER_PROPERTY(Engine::Vec2, GlideOffsetFromPlayer, &Falcon::m_glideOffsetFromPlayer)
     REGISTER_PROPERTY(float, Speed, &Falcon::m_speed)
     REGISTER_PROPERTY(float, SnapRadius, &Falcon::m_snapRadius)
 END_TYPE_REGISTER()
@@ -54,6 +55,12 @@ void Falcon::Update(float deltaTime)
         break;
     case FalconState::Latched:
         break;
+    case FalconState::Gliding:
+        // Update the falcon's position to follow the player with the specified offset
+        if (m_player)
+        {
+            SetGridPosition(m_player->GetGridPosition() + m_glideOffsetFromPlayer);
+        }
     }
 }
 
@@ -65,17 +72,35 @@ void Falcon::Render() const
     Vec2 worldAimPoint = m_grid->GridToWorld(m_aimPoint);
     Vec2 worldDirection = Vec2(m_direction.x, -m_direction.y).Normalized(); // Invert y for rendering
     
-    // Draw falcon as a white triangle pointing in the direction it's facing
+    if (m_state == FalconState::Gliding)
+    {
+        // If gliding, the falcon's wings are spread out, so we draw it as 2 triangles in a fixed rotation
+        
+        // Triangle 1 (left wing)
+        Vec2 p1 = worldCenter + Vec2(-3.0f, 0.5f) * (worldSize.x / 2.0f);
+        Vec2 p2 = worldCenter + Vec2(0.0f, 1.0f) * (worldSize.y / 2.0f);
+        Vec2 p3 = worldCenter + Vec2(0.0f, -1.0f) * (worldSize.y / 2.0f);
+        Renderer2D::DrawTriangle(p1, p2, p3, m_color);
 
-    // Falcon's "face" - the point in the direction it's facing
-    Vec2 p1 = worldCenter + worldDirection * (worldSize.x / 2.0f);
+        // Triangle 2 (right wing)
+        p1 = worldCenter + Vec2(3.0f, 0.5f) * (worldSize.x / 2.0f);
+        Renderer2D::DrawTriangle(p1, p2, p3, m_color);
+
+    }
+    else
+    {
+        // Draw falcon as a white triangle pointing in the direction it's facing
     
-    // The two other points are in the opposite direction, forming a triangle
-    Vec2 perp = Vec2(-worldDirection.y, worldDirection.x).Normalized(); // Perpendicular vector to the direction
-    Vec2 p2 = worldCenter - worldDirection * (worldSize.x / 2.0f) + perp * (worldSize.y / 2.0f);
-    Vec2 p3 = worldCenter - worldDirection * (worldSize.x / 2.0f) - perp * (worldSize.y / 2.0f);
-
-    Renderer2D::DrawTriangle(p1, p2, p3, m_color);
+        // Falcon's "face" - the point in the direction it's facing
+        Vec2 p1 = worldCenter + worldDirection * (worldSize.x / 2.0f);
+        
+        // The two other points are in the opposite direction, forming a triangle
+        Vec2 perp = Vec2(-worldDirection.y, worldDirection.x).Normalized(); // Perpendicular vector to the direction
+        Vec2 p2 = worldCenter - worldDirection * (worldSize.x / 2.0f) + perp * (worldSize.y / 2.0f);
+        Vec2 p3 = worldCenter - worldDirection * (worldSize.x / 2.0f) - perp * (worldSize.y / 2.0f);
+    
+        Renderer2D::DrawTriangle(p1, p2, p3, m_color);
+    }
 
     if (m_isAiming)
     {
@@ -123,6 +148,22 @@ void Falcon::Retrieve()
     if (m_state == FalconState::OnShoulder) return;
     m_state = FalconState::Returning;
     m_latchPoint.reset();
+}
+
+void Falcon::StartGlide()
+{
+    if (m_state == FalconState::OnShoulder)
+    {
+        m_state = FalconState::Gliding;
+    }
+}
+
+void Falcon::StopGlide()
+{
+    if (m_state == FalconState::Gliding)
+    {
+        m_state = FalconState::OnShoulder;
+    }
 }
 
 // --- Falcon Behavior ---
