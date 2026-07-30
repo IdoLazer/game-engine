@@ -29,16 +29,18 @@ void Falcon::Update(float deltaTime)
 {
     switch (m_state)
     {
+    case FalconState::Aiming:
+        // If aiming, set the aim point to the cursor's position
+        if (m_cursor && m_grid)
+        {
+            SetAimPoint(m_grid->WorldToGrid(m_cursor->GetWorldPosition()));
+        }
+        // No break here since aiming falcon should also follow the player
     case FalconState::OnShoulder:
         // Update the falcon's position to follow the player with the specified offset
         if (m_player)
         {
             SetGridPosition(m_player->GetGridPosition() + m_offsetFromPlayer);
-        }
-        if (m_isAiming)
-        {
-            // If aiming, set the aim point to the cursor's position
-            SetAimPoint(m_grid->WorldToGrid(m_cursor ? m_cursor->GetWorldPosition() : GetWorldPosition()));
         }
         break;
     case FalconState::Flying:
@@ -102,13 +104,13 @@ void Falcon::Render() const
         Renderer2D::DrawTriangle(p1, p2, p3, m_color);
     }
 
-    if (m_isAiming)
+    if (m_state == FalconState::Aiming)
     {
-        // Draw a line from the falcon to its aim point for debugging purposes
+        // Draw a line from the player to the aim point for debugging purposes
         if (m_latchPoint)
         {
             Vec2 latchWorldPos = m_grid->GridToWorld(*m_latchPoint);
-            Renderer2D::DrawLine(worldCenter, latchWorldPos, Color::White, 0.02f, LineStyle::Dashed);
+            Renderer2D::DrawLine(m_player->GetWorldPosition(), latchWorldPos, Color::White, 0.02f, LineStyle::Dashed);
             Renderer2D::DrawLine(latchWorldPos, worldAimPoint, Color::Grey, 0.02f, LineStyle::Dashed);
 
             // Draw the latch point as a white x if the aim point is latchable
@@ -118,7 +120,7 @@ void Falcon::Render() const
         }
         else
         {
-            Renderer2D::DrawLine(worldCenter, worldAimPoint, Color::Grey, 0.02f, LineStyle::Dashed);
+            Renderer2D::DrawLine(m_player->GetWorldPosition(), worldAimPoint, Color::Grey, 0.02f, LineStyle::Dashed);
         }
     }
 }
@@ -129,17 +131,20 @@ void Falcon::StartAiming()
 {
     if (m_state != FalconState::OnShoulder) return;
 
-    m_isAiming = true;
+    m_state = FalconState::Aiming;
 }
 
 void Falcon::ReleaseAiming()
 {
-    if (m_state != FalconState::OnShoulder) return;
+    if (m_state != FalconState::Aiming) return;
 
-    m_isAiming = false;
     if (m_latchPoint)
     {
         m_state = FalconState::Flying;
+    }
+    else
+    {
+        m_state = FalconState::Returning;
     }
 }
 
@@ -150,9 +155,14 @@ void Falcon::Retrieve()
     m_latchPoint.reset();
 }
 
+bool Falcon::IsOnShoulder() const
+{
+    return m_state == FalconState::OnShoulder || m_state == FalconState::Aiming;
+}
+
 void Falcon::StartGlide()
 {
-    if (m_state == FalconState::OnShoulder)
+    if (m_state == FalconState::OnShoulder || m_state == FalconState::Aiming)
     {
         m_state = FalconState::Gliding;
     }

@@ -11,6 +11,7 @@ class Cursor;
 enum class FalconState
 {
     OnShoulder,  // Resting on the player's shoulder, following them
+    Aiming,      // While on the shoulder, aiming at the cursor but not yet released
     Flying,      // Moving out towards a latch point after being released
     Returning,   // Flying back to the player after Retrieve()
     Latched,     // Stuck to a ceiling tile, acting as a fixed hinge point
@@ -40,7 +41,7 @@ public:
     void StartAiming();
     void ReleaseAiming();
     void Retrieve();
-    bool IsOnShoulder() const { return m_state == FalconState::OnShoulder; }
+    bool IsOnShoulder() const;
     void StartGlide();
     void StopGlide();
 
@@ -67,5 +68,4 @@ private:
     Engine::Vec2 m_aimPoint{0.0f, 0.0f}; // The point the falcon is currently aiming at
     std::optional<Engine::Vec2> m_latchPoint; // The point to fly to, if the current aim point is a valid latch target
     Engine::Vec2 m_latchDirection{1.0f, 0.0f}; // Direction to face once latched - embeds into the surface, opposite its hit normal
-    bool m_isAiming{false}; // Whether the falcon is currently aiming at the cursor
 };
