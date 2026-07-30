@@ -47,6 +47,17 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 
 ---
 
+## Collision
+
+### Non-tile static colliders
+
+**Current:** `PlatformerWorld`'s collision broad phase (`SweepSolid`/`RaycastSolid`/`OverlapsSolid`) only enumerates candidate `Rect`s derived from the tile grid.  
+**Concern:** A hand-placed `Rect` that isn't cell-aligned or cell-sized (e.g. a narrow platform or a switch) has no way to participate in Player/Falcon collision sweeps today.  
+**Future:** Extend `PlatformerWorld` (or a small sibling holding `std::vector<Rect>`) with manually-placed static colliders, and extend the candidate-gathering step in `SweepSolid`/`RaycastSolid`/`OverlapsSolid` to test both sources. The narrow-phase math (`Rect`, `SweepRectVsRect`) already supports this with zero changes - only broad-phase candidate-gathering needs extending.  
+**When:** When the first non-tile collider entity is actually designed.
+
+---
+
 ## Build System
 
 ### `GLOB_RECURSE` for sources
