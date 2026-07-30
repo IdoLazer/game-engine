@@ -50,6 +50,8 @@ private:
     Engine::Subscription m_aimSub;
     Engine::Subscription m_releaseSub;
     Engine::Subscription m_retrieveSub;
+    Engine::Subscription m_glideSub;
+    Engine::Subscription m_stopGlideSub;
 
     Engine::Grid m_grid;
     Cursor *m_cursor = nullptr;

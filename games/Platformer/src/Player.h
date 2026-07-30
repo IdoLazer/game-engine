@@ -30,6 +30,8 @@ public:
     bool IsJumping() const;
     void Jump();
     void StopJump();
+    void Glide();
+    void StopGlide();
     Engine::EventSubscriber<int> &OnNextLevel() { return m_nextLevelEvent; }
     Engine::EventSubscriber<int> &OnPreviousLevel() { return m_previousLevelEvent; }
     Engine::EventSubscriber<> &OnReloadLevel() { return m_reloadLevelEvent; }

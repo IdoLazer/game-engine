@@ -67,6 +67,8 @@ void Platformer::Initialize()
     m_moveSub     = m_inputManager->OnMove().Subscribe(player, &Player::SetDirection);
     m_jumpSub     = m_inputManager->OnJump().Subscribe(player, &Player::Jump);
     m_jumpStopSub = m_inputManager->OnJumpStop().Subscribe(player, &Player::StopJump);
+    m_glideSub    = m_inputManager->OnGlide().Subscribe(player, &Player::Glide);
+    m_stopGlideSub = m_inputManager->OnStopGlide().Subscribe(player, &Player::StopGlide);
 
     m_aimSub      = m_inputManager->OnAim().Subscribe(falcon, &Falcon::StartAiming);
     m_releaseSub  = m_inputManager->OnRelease().Subscribe(falcon, &Falcon::ReleaseAiming);
@@ -114,6 +116,8 @@ void Platformer::Shutdown()
     m_aimSub.Unsubscribe();
     m_releaseSub.Unsubscribe();
     m_retrieveSub.Unsubscribe();
+    m_glideSub.Unsubscribe();
+    m_stopGlideSub.Unsubscribe();
 }
 
 // --- Level Navigation ---
