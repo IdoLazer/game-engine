@@ -132,6 +132,46 @@ TEST_F(GridCoordTest, BeyondGridCountOutOfBounds)
     EXPECT_FALSE(grid.IsInBounds(Vec2{0.0f, 8.0f}));
 }
 
+// --- GetCellRect ---
+
+TEST_F(GridCoordTest, CellRectIsCenteredOnCellWithHalfUnitExtents)
+{
+    Rect rect = grid.GetCellRect(Vec2{3, 4});
+    EXPECT_EQ(rect.center, Vec2(3.0f, 4.0f));
+    EXPECT_EQ(rect.halfExtents, Vec2(0.5f, 0.5f));
+}
+
+TEST_F(GridCoordTest, CellRectContainsItsOwnCellCenter)
+{
+    Vec2 cell = grid.GetCellFromGridPosition(Vec2{2.4f, 3.4f});
+    Rect rect = grid.GetCellRect(cell);
+    EXPECT_TRUE(rect.Contains(Vec2{2.4f, 3.4f}));
+}
+
+// --- GetSweptCellRange ---
+
+TEST(GetSweptCellRangeTest, StationaryBoxCoversItsOwnCells)
+{
+    GridCoordinateSystem coordSystem(1.0f, Vec2(30.0f, 20.0f));
+    Rect box(Vec2(5.0f, 5.0f), Vec2(0.2f, 0.2f));
+
+    CellRange range = coordSystem.GetSweptCellRange(box, Vec2(2.0f, 0.0f));
+
+    EXPECT_EQ(range.minCell, Vec2(5.0f, 5.0f));
+    EXPECT_EQ(range.maxCell, Vec2(7.0f, 5.0f));
+}
+
+TEST(GetSweptCellRangeTest, DiagonalMovementCoversBothAxes)
+{
+    GridCoordinateSystem coordSystem(1.0f, Vec2(30.0f, 20.0f));
+    Rect box(Vec2(2.0f, 2.0f), Vec2(0.3f, 0.3f));
+
+    CellRange range = coordSystem.GetSweptCellRange(box, Vec2(-1.0f, 3.0f));
+
+    EXPECT_EQ(range.minCell, Vec2(1.0f, 2.0f));
+    EXPECT_EQ(range.maxCell, Vec2(2.0f, 5.0f));
+}
+
 // --- Non-origin grid ---
 
 TEST(GridCoordOffsetTest, OffsetGridRoundTrips)

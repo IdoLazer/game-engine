@@ -1,4 +1,5 @@
 #include "GridCoordinateSystem.h"
+#include <algorithm>
 #include <cmath>
 
 namespace Engine
@@ -40,6 +41,25 @@ bool GridCoordinateSystem::IsInBounds(Vec2 gridPos) const
 {
     return gridPos.x >= -0.5f && gridPos.x < m_cellCount.x - 0.5f &&
            gridPos.y >= -0.5f && gridPos.y < m_cellCount.y - 0.5f;
+}
+
+Rect GridCoordinateSystem::GetCellRect(const Vec2 &cell) const
+{
+    return Rect(cell, Vec2(0.5f, 0.5f));
+}
+
+CellRange GridCoordinateSystem::GetSweptCellRange(const Rect &movingRect, const Vec2 &delta) const
+{
+    Vec2 startCenter = movingRect.center;
+    Vec2 endCenter = movingRect.center + delta;
+
+    Vec2 sweptMin = Vec2(std::min(startCenter.x, endCenter.x), std::min(startCenter.y, endCenter.y)) - movingRect.halfExtents;
+    Vec2 sweptMax = Vec2(std::max(startCenter.x, endCenter.x), std::max(startCenter.y, endCenter.y)) + movingRect.halfExtents;
+
+    CellRange range;
+    range.minCell = GetCellFromGridPosition(sweptMin);
+    range.maxCell = GetCellFromGridPosition(sweptMax);
+    return range;
 }
 
 // --- Accessors ---

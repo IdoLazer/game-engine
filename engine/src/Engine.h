@@ -27,6 +27,7 @@
 
 // Math
 #include "Math/Vec2.h"
+#include "Math/Rect.h"
 
 // Patterns
 #include "Patterns/Command/Command.h"
@@ -50,6 +51,9 @@
 #include "World/GridCoordinateSystem.h"
 #include "World/Grid.h"
 #include "World/TileMap.h"
+
+// Collision
+#include "Collision/Sweep.h"
 
 // Utilities
 #include "Utilities/Timer.h"
