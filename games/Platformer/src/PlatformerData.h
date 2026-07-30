@@ -1,11 +1,14 @@
 #pragma once
 #include <Engine.h>
 #include "PlatformerConstants.h"
+#include "Levels/Levels.h"
 
 namespace PlatformerData
 {
     using EntityInfo = Engine::Scene::EntityInfo;
     using PropertyMap = Engine::PropertyMap;
+
+    static const std::vector<const LevelData*> LEVELS_DATA = Levels::ALL_FALCON_MOVEMENT_LEVELS;
 
     static const std::vector<EntityInfo> ENTITY_DATA = {
         // Background

@@ -11,7 +11,7 @@ using namespace Engine;
 
 void Platformer::Initialize()
 {
-    const LevelData &level = *Levels::ALL[m_currentLevel];
+    const LevelData &level = *PlatformerData::LEVELS_DATA[m_currentLevel];
 
     float cellSize = Renderer2D::GetCamera().GetWorldWidth() / PlatformerConstants::GRID_WORLD_SIZE.x;
     m_grid = Grid(cellSize, PlatformerConstants::GRID_WORLD_SIZE);
@@ -121,7 +121,7 @@ void Platformer::Shutdown()
 void Platformer::GoToNextLevel(int row)
 {
     m_currentLevel++;
-    if (m_currentLevel < static_cast<int>(Levels::ALL.size()))
+    if (m_currentLevel < static_cast<int>(PlatformerData::LEVELS_DATA.size()))
     {
         if (row >= 0)
         {
