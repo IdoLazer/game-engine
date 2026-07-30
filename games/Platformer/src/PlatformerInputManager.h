@@ -23,6 +23,8 @@ public:
     Engine::EventSubscriber<>&             OnAim()            { return m_onAim; }
     Engine::EventSubscriber<>&             OnRelease()        { return m_onRelease; }
     Engine::EventSubscriber<>&             OnRetrieve()       { return m_onRetrieve; }
+    Engine::EventSubscriber<>&             OnGlide()          { return m_onGlide; }
+    Engine::EventSubscriber<>&             OnStopGlide()          { return m_onStopGlide; }
 
 private:
     // --- Input Handling ---
@@ -53,4 +55,6 @@ private:
     Engine::Event<>             m_onAim;
     Engine::Event<>             m_onRelease;
     Engine::Event<>             m_onRetrieve;
+    Engine::Event<>             m_onGlide;
+    Engine::Event<>             m_onStopGlide;
 };

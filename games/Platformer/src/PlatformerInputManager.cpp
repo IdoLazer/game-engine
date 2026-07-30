@@ -48,6 +48,9 @@ void PlatformerInputManager::HandleKeyPress(const Key &key)
     case Key::R:
         m_onReloadLevel.Notify();
         break;
+    case Key::LeftShift:
+        m_onGlide.Notify();
+        break;
     default:
         break;
     }
@@ -69,6 +72,9 @@ void PlatformerInputManager::HandleKeyRelease(const Key &key)
         break;
     case Key::Space:
         m_onJumpStop.Notify();
+        break;
+    case Key::LeftShift:
+        m_onStopGlide.Notify();
         break;
     default:
         break;

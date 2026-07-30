@@ -177,12 +177,6 @@ void Player::Jump()
     {
         EnterWallJump();
     }
-    // Case 3: Glide - the player is in the air and the falcon is on his shoulder, so we can glide. This is a special case for the falcon, and it doesn't count as a jump.
-    else if (m_falcon && m_falcon->IsOnShoulder())
-    {
-        m_isGliding = true;
-        m_falcon->StartGlide();
-    }
     // Case 3: Can't jump now — buffer input for later
     else
     {
@@ -216,15 +210,28 @@ void Player::StopJump()
             m_isJumping = false;
         }
     }
-    if (m_isGliding)
-    {
-        m_isGliding = false;
-        m_falcon->StopGlide();
-    }
     if (m_jumpCommandQueue.HasCommands())
     {
         m_jumpCommandQueue.Clear();
         m_jumpBufferTimer.Stop();
+    }
+}
+
+void Player::Glide()
+{
+    if (!m_isGrounded && m_falcon && m_falcon->IsOnShoulder())
+    {
+        m_isGliding = true;
+        m_falcon->StartGlide();
+    }
+}
+
+void Player::StopGlide()
+{
+    if (m_isGliding)
+    {
+        m_isGliding = false;
+        m_falcon->StopGlide();
     }
 }
 
@@ -364,6 +371,13 @@ void Player::UpdateWallContact(const Vec2 &position)
     // the wall yet and the probe would prematurely end the lock.
     if (m_inWallJumpLock) return;
 
+    // If grounded or gliding, wall contact should be false
+    if (m_isGrounded || m_isGliding)
+    {
+        ChangeWallState(false, 0);
+        return;
+    }
+
     Rect box(position, m_halfExtents);
     bool leftSolid = m_world->TouchesSolid(box, Vec2(-1.0f, 0.0f));
     bool rightSolid = m_world->TouchesSolid(box, Vec2(1.0f, 0.0f));
@@ -449,7 +463,6 @@ void Player::ChangeWallState(bool onWall, int direction)
             m_velocity.x = m_wallDirection * m_speed;
 
         ClearWallJumpTracking();
-        m_isGliding = false;
         m_falcon->StopGlide();
 
         // Execute buffered jump immediately on wall grab
