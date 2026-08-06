@@ -144,13 +144,13 @@ void Falcon::ReleaseAiming()
     }
     else
     {
-        m_state = FalconState::Returning;
+        m_state = FalconState::OnShoulder;
     }
 }
 
 void Falcon::Retrieve()
 {
-    if (m_state == FalconState::OnShoulder) return;
+    if (m_state == FalconState::OnShoulder || m_state == FalconState::Aiming) return;
     m_state = FalconState::Returning;
     m_latchPoint.reset();
 }
