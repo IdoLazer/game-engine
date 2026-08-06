@@ -12,6 +12,8 @@ BEGIN_TYPE_REGISTER(Player)
     REGISTER_PROPERTY(float, DecelerationCoefficient, &Player::m_decCoeff)
     REGISTER_PROPERTY(float, AirAccelerationCoefficient, &Player::m_airAccCoeff)
     REGISTER_PROPERTY(float, AirDecelerationCoefficient, &Player::m_airDecCoeff)
+    REGISTER_PROPERTY(float, GlideAccelerationCoefficient, &Player::m_glideAccCoeff)
+    REGISTER_PROPERTY(float, GlideDecelerationCoefficient, &Player::m_glideDecCoeff)
     REGISTER_PROPERTY(float, WallHitDecelerationCoefficient, &Player::m_wallHitDecCoeff)
     REGISTER_PROPERTY(float, JumpForce, &Player::m_jumpForce)
     REGISTER_PROPERTY(float, Gravity, &Player::m_gravity)
@@ -306,7 +308,13 @@ void Player::ApplyHorizontalMovement(float deltaTime)
     {
         // Phase 3 (or end of Phase 2): Player provides input — resume normal control
         m_wallJumpCoasting = false;
-        float accCoeff = m_isGrounded ? m_accCoeff : m_airAccCoeff;
+        float accCoeff;
+        if (m_isGrounded)
+            accCoeff = m_accCoeff;
+        else if (m_isGliding)
+            accCoeff = m_glideAccCoeff;
+        else
+            accCoeff = m_airAccCoeff;
         m_velocity.x += m_direction.x * accCoeff * deltaTime;
         if (m_velocity.x > m_speed)
         {
@@ -320,7 +328,16 @@ void Player::ApplyHorizontalMovement(float deltaTime)
     else if (!m_wallJumpCoasting)
     {
         // Phase 3: Normal deceleration (only when not coasting)
-        float decCoeff = m_isGrounded ? m_decCoeff : m_isOnWall ? m_wallHitDecCoeff : m_airDecCoeff;
+        float decCoeff;
+        if (m_isGrounded)
+            decCoeff = m_decCoeff;
+        else if (m_isGliding)
+            decCoeff = m_glideDecCoeff;
+        else if (m_isOnWall)
+            decCoeff = m_wallHitDecCoeff;
+        else
+            decCoeff = m_airDecCoeff;
+        
         if (m_velocity.x > 0)
         {
             m_velocity.x -= decCoeff * deltaTime;
