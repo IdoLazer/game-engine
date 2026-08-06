@@ -52,6 +52,16 @@ private:
     Player &m_player;
 };
 
+class GlideCommand : public Engine::Command
+{
+public:
+    GlideCommand(Player &player) : m_player(player) {}
+    void Execute() override { m_player.Glide(); }
+    const char* GetName() const override { return "GlideCommand"; }
+private:
+    Player &m_player;
+};
+
 // --- Lifecycle ---
 void Player::Initialize()
 {
@@ -75,6 +85,10 @@ void Player::Initialize()
     }, false);
     m_wallJumpLockTimer = Timer(m_wallJumpLockTime, [this]() {
         m_inWallJumpLock = false;
+        if (m_startGlideCommandQueue.HasCommands())
+        {
+            m_startGlideCommandQueue.DequeueCommand()->Execute();
+        }
     }, false);
 }
 
@@ -161,6 +175,8 @@ bool Player::IsJumping() const
 
 void Player::Jump()
 {
+    if (m_isGliding) return; // Can't jump while gliding
+
     // Case 1: Ground jump (includes coyote time window)
     if (m_isGrounded || m_inCoyoteTime)
     {
@@ -219,15 +235,29 @@ void Player::StopJump()
 
 void Player::Glide()
 {
+    if (m_inWallJumpLock)
+    {
+        // If we're in wall jump lock, we can't glide yet — queue the glide command for execution after the lock expires
+        if (!m_startGlideCommandQueue.HasCommands())
+        {
+            m_startGlideCommandQueue.EnqueueCommand(std::make_unique<GlideCommand>(*this));
+        }
+        return;
+    }
     if (!m_isGrounded && m_falcon && m_falcon->IsOnShoulder())
     {
         m_isGliding = true;
+        m_wallJumpCoasting = false; // Cancel wall jump coasting if we start gliding
         m_falcon->StartGlide();
     }
 }
 
 void Player::StopGlide()
 {
+    if (m_startGlideCommandQueue.HasCommands())
+    {
+        m_startGlideCommandQueue.Clear();
+    }
     if (m_isGliding)
     {
         m_isGliding = false;
