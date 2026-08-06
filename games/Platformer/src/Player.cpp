@@ -401,13 +401,6 @@ void Player::UpdateWallContact(const Vec2 &position)
     // the wall yet and the probe would prematurely end the lock.
     if (m_inWallJumpLock) return;
 
-    // If grounded or gliding, wall contact should be false
-    if (m_isGrounded || m_isGliding)
-    {
-        ChangeWallState(false, 0);
-        return;
-    }
-
     Rect box(position, m_halfExtents);
     bool leftSolid = m_world->TouchesSolid(box, Vec2(-1.0f, 0.0f));
     bool rightSolid = m_world->TouchesSolid(box, Vec2(1.0f, 0.0f));
@@ -416,9 +409,9 @@ void Player::UpdateWallContact(const Vec2 &position)
     // direction - this is what lets you wall-jump off a wall you're merely touching, not just
     // one you're actively sliding down. ChangeWallState is what guards against a ledge corner
     // hijacking your momentum on contact (see its comment).
-    if (leftSolid && !m_isGrounded)
+    if (leftSolid)
         ChangeWallState(true, -1);
-    else if (rightSolid && !m_isGrounded)
+    else if (rightSolid)
         ChangeWallState(true, 1);
     else
         ChangeWallState(false, 0);
@@ -456,6 +449,8 @@ void Player::ChangeGroundedState(bool grounded)
     {
         ClearJumpState();
         ClearWallJumpTracking();
+        m_lastWallJumpDirection = 0;
+        m_lastWallJumpHeight = 0.0f;
         m_isGliding = false;
         m_falcon->StopGlide();
 
@@ -477,6 +472,23 @@ void Player::ChangeGroundedState(bool grounded)
 
 void Player::ChangeWallState(bool onWall, int direction)
 {
+    // If grounded or gliding, don't register wall contact
+    if (onWall && (m_isGrounded || m_isGliding))
+    {
+        // If the player is moving toward the wall, stop them from sliding into it while grounded or gliding
+        if (m_velocity.x != 0.0f && m_velocity.x * direction >= 0.0f)
+            m_velocity.x = 0.0f;
+        // If the player touches an opposite wall while gliding, stop tracking the previous wall jump
+        if (m_lastWallJumpDirection != direction)
+        {
+            m_lastWallJumpDirection = 0;
+            m_lastWallJumpHeight = 0.0f;
+        }
+        onWall = false;
+        direction = 0;
+        ClearWallJumpTracking();
+    }
+
     if (m_isOnWall == onWall && m_wallDirection == direction) return;
 
     if (onWall)
@@ -520,6 +532,12 @@ void Player::EnterWallJump()
     // During coyote time m_wallDirection is 0, so use the remembered direction
     int jumpDirection = m_isOnWall ? m_wallDirection : m_lastWallDirection;
 
+    if (jumpDirection == m_lastWallJumpDirection && GetGridPosition().y <= m_lastWallJumpHeight)
+    {
+        // Prevent consecutive wall jumps from the same wall to climb it
+        SetGridPosition(Vec2(GetGridPosition().x, m_lastWallJumpHeight + 0.01f));
+    }
+
     float angleRad = m_wallJumpAngle * (std::numbers::pi_v<float> / 180.0f);
     m_velocity.x = -jumpDirection * m_wallJumpForce * std::cos(angleRad);
     m_velocity.y = -m_wallJumpForce * std::sin(angleRad);
@@ -532,6 +550,10 @@ void Player::EnterWallJump()
     m_inWallJumpLock = true;
     m_wallJumpCoasting = true;
     m_wallJumpLockTimer.Reset();
+
+    // Remember the direction and height of this jump to prevent consecutive wall jumps from the same wall
+    m_lastWallJumpDirection = jumpDirection;
+    m_lastWallJumpHeight = GetGridPosition().y;
 
     ChangeWallState(false, 0);
 

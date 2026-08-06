@@ -99,6 +99,10 @@ private:
     bool m_inWallJumpLock{false};
     bool m_wallJumpCoasting{false};
 
+    // Used to prevent consecutive wall jumps from the same wall to climb it
+    int m_lastWallJumpDirection{0};
+    float m_lastWallJumpHeight{0.0f};
+
 // --- Jump Assist State ---
     // Coyote time: brief window after leaving a ledge/wall where jump is still allowed.
     // Jump buffer: if jump is pressed just before landing, it fires on contact.
