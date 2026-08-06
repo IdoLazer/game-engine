@@ -15,8 +15,10 @@ namespace PlatformerConstants
     static constexpr float PLAYER_WALL_JUMP_LOCK_TIME = 0.33f; // Time during which the player is locked in a wall jump
     static constexpr float PLAYER_ACCELERATION_COEFFICIENT = 80.0f; // How quickly the player accelerates to full speed
     static constexpr float PLAYER_DECELERATION_COEFFICIENT = 180.0f; // How quickly the player decelerates to a stop when no input is given (grounded)
-    static constexpr float PLAYER_AIR_ACCELERATION_COEFFICIENT = 50.0f; // How quickly the player accelerates when airborne
-    static constexpr float PLAYER_AIR_DECELERATION_COEFFICIENT = 80.0f; // How quickly the player decelerates when airborne
+    static constexpr float PLAYER_AIR_ACCELERATION_COEFFICIENT = 35.0f; // How quickly the player accelerates when airborne
+    static constexpr float PLAYER_AIR_DECELERATION_COEFFICIENT = 35.0f; // How quickly the player decelerates when airborne
+    static constexpr float PLAYER_GLIDE_ACCELERATION_COEFFICIENT = 20.0f; // How quickly the player accelerates when gliding
+    static constexpr float PLAYER_GLIDE_DECELERATION_COEFFICIENT = 20.0f; // How quickly the player decelerates when gliding
     static constexpr float PLAYER_WALL_HIT_DECELERATION_COEFFICIENT = 30.0f; // How quickly the player's horizontal velocity is reduced when on a wall (instead of instantaneous loss of momentum, the deceleration creates a feel of forceful impact)
     static constexpr float PLAYER_WALL_JUMP_FORCE = 13.5f; // Diagonal force applied during a wall jump
     static constexpr float PLAYER_WALL_JUMP_ANGLE = 55.0f; // Angle of wall jump in degrees (0 = pure sideways, 90 = pure up)

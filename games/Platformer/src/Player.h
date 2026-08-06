@@ -61,6 +61,8 @@ private:
     float m_decCoeff{0.0f};
     float m_airAccCoeff{0.0f};
     float m_airDecCoeff{0.0f};
+    float m_glideAccCoeff{0.0f};
+    float m_glideDecCoeff{0.0f};
     float m_wallHitDecCoeff{0.0f};
     float m_jumpForce{0.0f};
     float m_gravity{0.0f};
