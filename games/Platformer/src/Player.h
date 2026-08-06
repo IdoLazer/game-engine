@@ -120,6 +120,7 @@ private:
 private:
     Engine::CommandQueue m_jumpCommandQueue;
     Engine::CommandQueue m_jumpStopCommandQueue;
+    Engine::CommandQueue m_startGlideCommandQueue;
 
 // --- Other ---
 private:
