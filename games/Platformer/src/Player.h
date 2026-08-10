@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine.h>
+#include "StateMachine/PlayerStateMachine.h"
 
 // --- Forward Declarations ---
 class PlatformerWorld;
@@ -53,6 +54,60 @@ private:
     void EnterWallJump();
     void ClearWallJumpTracking();
     void ClearJumpState();
+
+// --- Movement States ---
+    // Not yet driving behavior - registered and updated as a no-op alongside
+    // the existing Apply*/Change* logic until that logic is migrated in.
+private:
+    class GroundedState : public PlayerState
+    {
+    public:
+        explicit GroundedState(Player &player) : m_player(player) {}
+        void Enter() override;
+        void Exit() override;
+        void Update(float deltaTime) override;
+        const char *GetName() const override { return "Grounded"; }
+    private:
+        Player &m_player;
+    };
+
+    class AirborneState : public PlayerState
+    {
+    public:
+        explicit AirborneState(Player &player) : m_player(player) {}
+        void Enter() override;
+        void Exit() override;
+        void Update(float deltaTime) override;
+        const char *GetName() const override { return "Airborne"; }
+    private:
+        Player &m_player;
+    };
+
+    class OnWallState : public PlayerState
+    {
+    public:
+        explicit OnWallState(Player &player) : m_player(player) {}
+        void Enter() override;
+        void Exit() override;
+        void Update(float deltaTime) override;
+        const char *GetName() const override { return "OnWall"; }
+    private:
+        Player &m_player;
+    };
+
+    class GlidingState : public PlayerState
+    {
+    public:
+        explicit GlidingState(Player &player) : m_player(player) {}
+        void Enter() override;
+        void Exit() override;
+        void Update(float deltaTime) override;
+        const char *GetName() const override { return "Gliding"; }
+    private:
+        Player &m_player;
+    };
+
+    PlayerStateMachine m_stateMachine;
 
 // --- Configuration (data-driven via type registry) ---
 private:
