@@ -6,7 +6,8 @@ enum class PlayerStateId
     Grounded,
     Airborne,
     OnWall,
-    Gliding
+    Gliding,
+    WallJumpLock
 };
 
 // Base interface for a single mode of Player's movement behavior.

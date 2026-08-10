@@ -38,9 +38,11 @@ public:
     Engine::EventSubscriber<> &OnReloadLevel() { return m_reloadLevelEvent; }
 
 // --- Physics & Collision ---
+    // Shared primitives the movement states compose - the math is the same
+    // regardless of mode, only which coefficients apply differs per state.
 private:
-    void ApplyGravity(float deltaTime);
-    void ApplyHorizontalMovement(float deltaTime);
+    void ApplyGravity(float deltaTime, float maxSpeed, float scale = 1.0f);
+    void ApplyHorizontalAcceleration(float deltaTime, float accCoeff, float decCoeff);
     void HandleCollisions(float deltaTime);
     void MoveAndSlide(Engine::Vec2 &position, float deltaTime);
     void UpdateGroundedState(const Engine::Vec2 &position);
@@ -56,8 +58,9 @@ private:
     void ClearJumpState();
 
 // --- Movement States ---
-    // Not yet driving behavior - registered and updated as a no-op alongside
-    // the existing Apply*/Change* logic until that logic is migrated in.
+    // Enter/Exit are still mostly stubs - see FUTURE.md / the next migration
+    // step, which replaces ChangeGroundedState/ChangeWallState/etc.'s direct
+    // bool mutation with real TransitionTo calls.
 private:
     class GroundedState : public PlayerState
     {
@@ -103,6 +106,22 @@ private:
         void Exit() override;
         void Update(float deltaTime) override;
         const char *GetName() const override { return "Gliding"; }
+    private:
+        Player &m_player;
+    };
+
+    // Ballistic, no-horizontal-control phase right after a wall jump. Ends by
+    // timer, by landing (ClearWallJumpTracking already clears the lock when
+    // ChangeGroundedState(true) fires), or - once wired in a later step - by
+    // touching the opposite wall.
+    class WallJumpLockState : public PlayerState
+    {
+    public:
+        explicit WallJumpLockState(Player &player) : m_player(player) {}
+        void Enter() override;
+        void Exit() override;
+        void Update(float deltaTime) override;
+        const char *GetName() const override { return "WallJumpLock"; }
     private:
         Player &m_player;
     };
