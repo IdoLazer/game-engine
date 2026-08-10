@@ -38,6 +38,13 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Add lifecycle events using the existing `Event<>` system.  
 **When:** When something actually needs to observe entity lifecycle changes. Not worth adding speculatively.
 
+### `PlayerStateMachine` → `Engine::StateMachine<TStateId>`
+
+**Current:** `Player`'s movement modes (Grounded/Airborne/OnWall/Gliding) are driven by `PlayerState`/`PlayerStateMachine` in `games/Platformer/src/` — a concrete, non-templated State-pattern implementation scoped to `Player`.
+**Concern:** Falcon (`FalconState` + a plain `enum`+`switch` in `Falcon::Update`) has the same shape of problem and would benefit from the same pattern, but `PlayerStateMachine` is hardcoded to `PlayerState`/`PlayerStateId` and can't be reused as-is.
+**Future:** Once the local version has proven itself in Player, promote it to `Engine::State`/`Engine::StateMachine<TStateId>` (templated on the state-id type) in `engine/src/Patterns/State/`, mirroring the existing `Command`/`CommandQueue` pattern. Migrate Player, then optionally Falcon, onto the generic version. Add a `StateMachineTest.cpp` covering transition ordering and reentrant `TransitionTo` calls from within `Enter()`.
+**When:** After `PlayerStateMachine` has been live through the wall-jump/glide migration and held up in play-testing, or when Falcon's states need a rework anyway.
+
 ### Pre-initialization hook (e.g. `Awake()` or `OnCreated()`)
 
 **Current:** `Initialize()` is deferred — it runs during `FlushPending()` on the first `Update()` frame, not immediately after `Instantiate()`. There is no hook that runs right after an entity is created and its properties are set.  

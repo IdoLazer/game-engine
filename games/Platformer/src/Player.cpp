@@ -3,6 +3,7 @@
 #include "Falcon.h"
 #include <cmath>
 #include <iostream>
+#include <memory>
 #include <numbers>
 
 // --- Type Registration ---
@@ -92,6 +93,12 @@ void Player::Initialize()
             m_startGlideCommandQueue.DequeueCommand()->Execute();
         }
     }, false);
+
+    m_stateMachine.RegisterState(PlayerStateId::Grounded, std::make_unique<GroundedState>(*this));
+    m_stateMachine.RegisterState(PlayerStateId::Airborne, std::make_unique<AirborneState>(*this));
+    m_stateMachine.RegisterState(PlayerStateId::OnWall, std::make_unique<OnWallState>(*this));
+    m_stateMachine.RegisterState(PlayerStateId::Gliding, std::make_unique<GlidingState>(*this));
+    m_stateMachine.TransitionTo(PlayerStateId::Grounded);
 }
 
 void Player::Update(float deltaTime)
@@ -101,6 +108,10 @@ void Player::Update(float deltaTime)
     m_jumpBufferTimer.Update(deltaTime);
     m_minJumpTimer.Update(deltaTime);
     m_wallJumpLockTimer.Update(deltaTime);
+    // No-op for now - states don't do anything yet. Will replace the
+    // ApplyGravity/ApplyHorizontalMovement calls below once their per-mode
+    // logic is migrated into the states.
+    m_stateMachine.Update(deltaTime);
     ApplyGravity(deltaTime);
     ApplyHorizontalMovement(deltaTime);
     if (m_isJumping && m_velocity.y > 0) m_isJumping = false; // If we start falling, we're no longer in the jump state
@@ -596,3 +607,22 @@ void Player::ClearJumpState()
     m_inWallCoyoteTime = false;
     m_wallCoyoteTimer.Stop();
 }
+
+// --- Movement States ---
+// Stubs for now - see the m_stateMachine.Update() comment in Update().
+
+void Player::GroundedState::Enter() {}
+void Player::GroundedState::Exit() {}
+void Player::GroundedState::Update(float deltaTime) {}
+
+void Player::AirborneState::Enter() {}
+void Player::AirborneState::Exit() {}
+void Player::AirborneState::Update(float deltaTime) {}
+
+void Player::OnWallState::Enter() {}
+void Player::OnWallState::Exit() {}
+void Player::OnWallState::Update(float deltaTime) {}
+
+void Player::GlidingState::Enter() {}
+void Player::GlidingState::Exit() {}
+void Player::GlidingState::Update(float deltaTime) {}
