@@ -98,6 +98,7 @@ void Player::Initialize()
     m_stateMachine.RegisterState(PlayerStateId::Airborne, std::make_unique<AirborneState>(*this));
     m_stateMachine.RegisterState(PlayerStateId::OnWall, std::make_unique<OnWallState>(*this));
     m_stateMachine.RegisterState(PlayerStateId::Gliding, std::make_unique<GlidingState>(*this));
+    m_stateMachine.RegisterState(PlayerStateId::WallJumpLock, std::make_unique<WallJumpLockState>(*this));
     m_stateMachine.TransitionTo(PlayerStateId::Grounded);
 }
 
@@ -108,12 +109,25 @@ void Player::Update(float deltaTime)
     m_jumpBufferTimer.Update(deltaTime);
     m_minJumpTimer.Update(deltaTime);
     m_wallJumpLockTimer.Update(deltaTime);
-    // No-op for now - states don't do anything yet. Will replace the
-    // ApplyGravity/ApplyHorizontalMovement calls below once their per-mode
-    // logic is migrated into the states.
+
+    // Temporary: mirrors the existing bools onto the state machine so each
+    // state's Update() runs for the right mode this frame. Removed once
+    // ChangeGroundedState/ChangeWallState/Glide/StopGlide/EnterWallJump call
+    // TransitionTo directly instead of setting these bools (next step).
+    // Wall-jump lock takes priority over everything else - it's possible
+    // (if rare) to be grounded while still locked, see WallJumpLockState.
+    if (m_inWallJumpLock)
+        m_stateMachine.TransitionTo(PlayerStateId::WallJumpLock);
+    else if (m_isGrounded)
+        m_stateMachine.TransitionTo(PlayerStateId::Grounded);
+    else if (m_isGliding)
+        m_stateMachine.TransitionTo(PlayerStateId::Gliding);
+    else if (m_isOnWall)
+        m_stateMachine.TransitionTo(PlayerStateId::OnWall);
+    else
+        m_stateMachine.TransitionTo(PlayerStateId::Airborne);
+
     m_stateMachine.Update(deltaTime);
-    ApplyGravity(deltaTime);
-    ApplyHorizontalMovement(deltaTime);
     if (m_isJumping && m_velocity.y > 0) m_isJumping = false; // If we start falling, we're no longer in the jump state
     HandleCollisions(deltaTime);
 }
@@ -280,52 +294,23 @@ void Player::StopGlide()
 
 // --- Physics ---
 
-void Player::ApplyGravity(float deltaTime)
+void Player::ApplyGravity(float deltaTime, float maxSpeed, float scale)
 {
-    m_isWallSliding = m_isOnWall && (m_velocity.x * m_wallDirection > 0);
-
-    if (m_isWallSliding && m_velocity.y >= 0)
-    {
-        m_velocity.y += m_gravity * m_wallGravityScale * deltaTime;
-        if (m_velocity.y > m_wallSlideMaxSpeed)
-            m_velocity.y = m_wallSlideMaxSpeed;
-    }
-    else if (m_isGliding && m_velocity.y >= 0)
-    {
-        m_velocity.y += m_gravity * m_glideGravityScale * deltaTime;
-        if (m_velocity.y > m_glideMaxSpeed)
-            m_velocity.y = m_glideMaxSpeed;
-    }
-    else
-    {
-        m_velocity.y += m_gravity * deltaTime;
-        if (m_velocity.y > m_maxFallSpeed)
-            m_velocity.y = m_maxFallSpeed;
-    }
+    m_velocity.y += m_gravity * scale * deltaTime;
+    if (m_velocity.y > maxSpeed)
+        m_velocity.y = maxSpeed;
 }
 
 // Horizontal movement flow:
-//   Wall jump lock active → no input at all (ballistic arc)
-//   Wall jump coasting    → no deceleration, but input can override
-//   Normal                → accelerate toward input, decelerate when idle
-void Player::ApplyHorizontalMovement(float deltaTime)
+//   Wall jump coasting → no deceleration, but input can override
+//   Normal             → accelerate toward input, decelerate when idle
+// (Wall jump lock's "no input at all" phase is handled by callers skipping
+// this entirely - see the states that guard on m_inWallJumpLock.)
+void Player::ApplyHorizontalAcceleration(float deltaTime, float accCoeff, float decCoeff)
 {
-    // Phase 1: Lock — pure ballistic, player has no control
-    if (m_inWallJumpLock) {
-        return;
-    }
-
     if (m_direction.x != 0)
     {
-        // Phase 3 (or end of Phase 2): Player provides input — resume normal control
         m_wallJumpCoasting = false;
-        float accCoeff;
-        if (m_isGrounded)
-            accCoeff = m_accCoeff;
-        else if (m_isGliding)
-            accCoeff = m_glideAccCoeff;
-        else
-            accCoeff = m_airAccCoeff;
         m_velocity.x += m_direction.x * accCoeff * deltaTime;
         if (m_velocity.x > m_speed)
         {
@@ -338,17 +323,6 @@ void Player::ApplyHorizontalMovement(float deltaTime)
     }
     else if (!m_wallJumpCoasting)
     {
-        // Phase 3: Normal deceleration (only when not coasting)
-        float decCoeff;
-        if (m_isGrounded)
-            decCoeff = m_decCoeff;
-        else if (m_isGliding)
-            decCoeff = m_glideDecCoeff;
-        else if (m_isOnWall)
-            decCoeff = m_wallHitDecCoeff;
-        else
-            decCoeff = m_airDecCoeff;
-        
         if (m_velocity.x > 0)
         {
             m_velocity.x -= decCoeff * deltaTime;
@@ -360,7 +334,6 @@ void Player::ApplyHorizontalMovement(float deltaTime)
             if (m_velocity.x > 0) m_velocity.x = 0;
         }
     }
-    // Phase 2: Coasting — no input and coasting flag set, velocity preserved as-is
 }
 
 // --- Collision ---
@@ -609,20 +582,85 @@ void Player::ClearJumpState()
 }
 
 // --- Movement States ---
-// Stubs for now - see the m_stateMachine.Update() comment in Update().
+// Enter/Exit are still mostly stubs - see FUTURE.md / the next migration step.
 
 void Player::GroundedState::Enter() {}
 void Player::GroundedState::Exit() {}
-void Player::GroundedState::Update(float deltaTime) {}
+
+void Player::GroundedState::Update(float deltaTime)
+{
+    m_player.ApplyGravity(deltaTime, m_player.m_maxFallSpeed);
+
+    // Suppressed during wall-jump lock, for the rare case a wall jump's arc
+    // lands before the lock timer expires (see m_inWallJumpLock).
+    if (m_player.m_inWallJumpLock) return;
+    m_player.ApplyHorizontalAcceleration(deltaTime, m_player.m_accCoeff, m_player.m_decCoeff);
+}
 
 void Player::AirborneState::Enter() {}
 void Player::AirborneState::Exit() {}
-void Player::AirborneState::Update(float deltaTime) {}
+
+void Player::AirborneState::Update(float deltaTime)
+{
+    m_player.ApplyGravity(deltaTime, m_player.m_maxFallSpeed);
+
+    // Fully suppressed during wall-jump lock (ballistic arc, no control).
+    if (m_player.m_inWallJumpLock) return;
+    m_player.ApplyHorizontalAcceleration(deltaTime, m_player.m_airAccCoeff, m_player.m_airDecCoeff);
+}
 
 void Player::OnWallState::Enter() {}
-void Player::OnWallState::Exit() {}
-void Player::OnWallState::Update(float deltaTime) {}
+
+void Player::OnWallState::Exit()
+{
+    // Only meaningful while this state is current - reset it on the way out
+    // rather than every other state having to do it defensively.
+    m_player.m_isWallSliding = false;
+}
+
+void Player::OnWallState::Update(float deltaTime)
+{
+    m_player.m_isWallSliding = (m_player.m_velocity.x * m_player.m_wallDirection > 0);
+
+    if (m_player.m_isWallSliding && m_player.m_velocity.y >= 0)
+        m_player.ApplyGravity(deltaTime, m_player.m_wallSlideMaxSpeed, m_player.m_wallGravityScale);
+    else
+        m_player.ApplyGravity(deltaTime, m_player.m_maxFallSpeed);
+
+    // Reuses air acceleration - there's no dedicated wall-accel coefficient,
+    // only a dedicated deceleration one (m_wallHitDecCoeff). Wall contact
+    // detection is itself suppressed during wall-jump lock (UpdateWallContact),
+    // so this state can never be current while locked - no guard needed here.
+    m_player.ApplyHorizontalAcceleration(deltaTime, m_player.m_airAccCoeff, m_player.m_wallHitDecCoeff);
+}
 
 void Player::GlidingState::Enter() {}
 void Player::GlidingState::Exit() {}
-void Player::GlidingState::Update(float deltaTime) {}
+
+void Player::GlidingState::Update(float deltaTime)
+{
+    // Glide gravity only applies once already falling; still-ascending (e.g.
+    // gliding triggered right at a jump's apex) keeps normal gravity until
+    // velocity.y turns non-negative.
+    if (m_player.m_velocity.y >= 0)
+        m_player.ApplyGravity(deltaTime, m_player.m_glideMaxSpeed, m_player.m_glideGravityScale);
+    else
+        m_player.ApplyGravity(deltaTime, m_player.m_maxFallSpeed);
+
+    // Glide() itself refuses to start while wall-jump-locked (queues instead),
+    // so this state can never be current while locked - no guard needed here.
+    m_player.ApplyHorizontalAcceleration(deltaTime, m_player.m_glideAccCoeff, m_player.m_glideDecCoeff);
+}
+
+void Player::WallJumpLockState::Enter() {}
+void Player::WallJumpLockState::Exit() {}
+
+void Player::WallJumpLockState::Update(float deltaTime)
+{
+    // Ballistic - gravity applies normally, no horizontal control at all.
+    // Ending on ground contact already works today (ChangeGroundedState(true)
+    // clears m_inWallJumpLock via ClearWallJumpTracking); ending on contact
+    // with the opposite wall isn't wired yet - UpdateWallContact still
+    // suppresses all wall detection during the lock (see its comment).
+    m_player.ApplyGravity(deltaTime, m_player.m_maxFallSpeed);
+}
