@@ -87,7 +87,9 @@ void Player::Initialize()
         }
     }, false);
     m_wallJumpLockTimer = Timer(m_wallJumpLockTime, [this]() {
-        m_inWallJumpLock = false;
+        // Guaranteed to still be WallJumpLock here - any earlier exit (ground
+        // or opposite-wall contact) would have stopped this timer already.
+        m_stateMachine.TransitionTo(PlayerStateId::Airborne);
         if (m_startGlideCommandQueue.HasCommands())
         {
             m_startGlideCommandQueue.DequeueCommand()->Execute();
@@ -109,23 +111,6 @@ void Player::Update(float deltaTime)
     m_jumpBufferTimer.Update(deltaTime);
     m_minJumpTimer.Update(deltaTime);
     m_wallJumpLockTimer.Update(deltaTime);
-
-    // Temporary: mirrors the existing bools onto the state machine so each
-    // state's Update() runs for the right mode this frame. Removed once
-    // ChangeGroundedState/ChangeWallState/Glide/StopGlide/EnterWallJump call
-    // TransitionTo directly instead of setting these bools (next step).
-    // Wall-jump lock takes priority over everything else - it's possible
-    // (if rare) to be grounded while still locked, see WallJumpLockState.
-    if (m_inWallJumpLock)
-        m_stateMachine.TransitionTo(PlayerStateId::WallJumpLock);
-    else if (m_isGrounded)
-        m_stateMachine.TransitionTo(PlayerStateId::Grounded);
-    else if (m_isGliding)
-        m_stateMachine.TransitionTo(PlayerStateId::Gliding);
-    else if (m_isOnWall)
-        m_stateMachine.TransitionTo(PlayerStateId::OnWall);
-    else
-        m_stateMachine.TransitionTo(PlayerStateId::Airborne);
 
     m_stateMachine.Update(deltaTime);
     if (m_isJumping && m_velocity.y > 0) m_isJumping = false; // If we start falling, we're no longer in the jump state
@@ -172,7 +157,7 @@ void Player::SetDirection(const Vec2 &dir)
     m_direction = dir;
 
     // If we're on a wall, we want immediate detachment when pushing away
-    if (m_isOnWall && (dir.x * m_wallDirection < 0))
+    if (m_stateMachine.Is(PlayerStateId::OnWall) && (dir.x * m_wallDirection < 0))
     {
         m_velocity.x = 0;
     }
@@ -202,21 +187,24 @@ bool Player::IsJumping() const
 
 void Player::Jump()
 {
-    if (m_isGliding) return; // Can't jump while gliding
+    if (m_stateMachine.Is(PlayerStateId::Gliding)) return; // Can't jump while gliding
 
     // Case 1: Ground jump (includes coyote time window)
-    if (m_isGrounded || m_inCoyoteTime)
+    if (m_stateMachine.Is(PlayerStateId::Grounded) || m_inCoyoteTime)
     {
         m_velocity.y = -m_jumpForce;
         m_isJumping = true;
         m_inMinJump = true;
         m_minJumpTimer.Reset();
-        m_isGrounded = false;
+        // GroundedState::Exit() doesn't start coyote time (only
+        // UpdateGroundedState's own leave-the-ground detection does) - so
+        // transitioning here doesn't grant a free extra coyote window.
+        m_stateMachine.TransitionTo(PlayerStateId::Airborne);
         m_inCoyoteTime = false;
         m_coyoteTimer.Stop();
     }
     // Case 2: Wall jump — launch on ballistic arc away from wall (includes coyote window)
-    else if (m_isOnWall || m_inWallCoyoteTime)
+    else if (m_stateMachine.Is(PlayerStateId::OnWall) || m_inWallCoyoteTime)
     {
         EnterWallJump();
     }
@@ -262,7 +250,7 @@ void Player::StopJump()
 
 void Player::Glide()
 {
-    if (m_inWallJumpLock)
+    if (m_stateMachine.Is(PlayerStateId::WallJumpLock))
     {
         // If we're in wall jump lock, we can't glide yet — queue the glide command for execution after the lock expires
         if (!m_startGlideCommandQueue.HasCommands())
@@ -271,11 +259,9 @@ void Player::Glide()
         }
         return;
     }
-    if (!m_isGrounded && m_falcon && m_falcon->IsOnShoulder())
+    if (!m_stateMachine.Is(PlayerStateId::Grounded) && m_falcon && m_falcon->IsOnShoulder())
     {
-        m_isGliding = true;
-        m_wallJumpCoasting = false; // Cancel wall jump coasting if we start gliding
-        m_falcon->StartGlide();
+        m_stateMachine.TransitionTo(PlayerStateId::Gliding);
     }
 }
 
@@ -285,10 +271,9 @@ void Player::StopGlide()
     {
         m_startGlideCommandQueue.Clear();
     }
-    if (m_isGliding)
+    if (m_stateMachine.Is(PlayerStateId::Gliding))
     {
-        m_isGliding = false;
-        m_falcon->StopGlide();
+        m_stateMachine.TransitionTo(PlayerStateId::Airborne);
     }
 }
 
@@ -304,8 +289,8 @@ void Player::ApplyGravity(float deltaTime, float maxSpeed, float scale)
 // Horizontal movement flow:
 //   Wall jump coasting → no deceleration, but input can override
 //   Normal             → accelerate toward input, decelerate when idle
-// (Wall jump lock's "no input at all" phase is handled by callers skipping
-// this entirely - see the states that guard on m_inWallJumpLock.)
+// (Wall jump lock's "no input at all" phase is its own state - WallJumpLockState
+// simply never calls this.)
 void Player::ApplyHorizontalAcceleration(float deltaTime, float accCoeff, float decCoeff)
 {
     if (m_direction.x != 0)
@@ -344,7 +329,7 @@ void Player::HandleCollisions(float deltaTime)
     MoveAndSlide(position, deltaTime);
     SetGridPosition(position);
 
-    // Must run before UpdateWallContact - it reads m_isGrounded.
+    // Must run before UpdateWallContact - it reads whether we're Grounded.
     UpdateGroundedState(position);
     UpdateWallContact(position);
     CheckChangeLevel(position);
@@ -392,30 +377,75 @@ void Player::UpdateGroundedState(const Vec2 &position)
         return;
 
     Rect box(position, m_halfExtents);
-    bool grounded = m_world->TouchesSolid(box, Vec2(0.0f, 1.0f));
-    ChangeGroundedState(grounded);
+    if (m_world->TouchesSolid(box, Vec2(0.0f, 1.0f)))
+    {
+        // Landing always wins, regardless of what was current - including
+        // cutting a wall-jump lock short (WallJumpLockState::Exit() stops
+        // its timer) instead of the two coexisting.
+        m_stateMachine.TransitionTo(PlayerStateId::Grounded);
+    }
+    else if (m_stateMachine.Is(PlayerStateId::Grounded))
+    {
+        // Just walked off a ledge - not an explicit jump, Jump() transitions
+        // straight to Airborne itself and skips this - so start coyote time.
+        m_inCoyoteTime = true;
+        m_coyoteTimer.Reset();
+        m_stateMachine.TransitionTo(PlayerStateId::Airborne);
+    }
+    // Otherwise (not grounded, and wasn't a moment ago) leave whatever state
+    // is current alone - it's OnWall/Gliding/WallJumpLock/Airborne for its
+    // own reasons, none of which this probe should override.
 }
 
 void Player::UpdateWallContact(const Vec2 &position)
 {
-    // Don't detect wall contact during wall jump lock — we haven't cleared
-    // the wall yet and the probe would prematurely end the lock.
-    if (m_inWallJumpLock) return;
-
     Rect box(position, m_halfExtents);
     bool leftSolid = m_world->TouchesSolid(box, Vec2(-1.0f, 0.0f));
     bool rightSolid = m_world->TouchesSolid(box, Vec2(1.0f, 0.0f));
+    int direction = leftSolid ? -1 : (rightSolid ? 1 : 0);
 
-    // Touching a wall while airborne is enough to count as "on wall" regardless of input
-    // direction - this is what lets you wall-jump off a wall you're merely touching, not just
-    // one you're actively sliding down. ChangeWallState is what guards against a ledge corner
-    // hijacking your momentum on contact (see its comment).
-    if (leftSolid)
-        ChangeWallState(true, -1);
-    else if (rightSolid)
-        ChangeWallState(true, 1);
-    else
-        ChangeWallState(false, 0);
+    if (m_stateMachine.Is(PlayerStateId::WallJumpLock))
+    {
+        // Ignore the wall we just launched from - we're still physically
+        // adjacent to it until we've moved away, and re-grabbing it would
+        // cancel the jump outright. Only the opposite wall (a wall jump
+        // straight into another wall) ends the lock early.
+        if (direction != 0 && direction != m_lastWallJumpDirection)
+        {
+            m_wallDirection = direction;
+            m_stateMachine.TransitionTo(PlayerStateId::OnWall);
+        }
+        return;
+    }
+
+    bool suppressed = m_stateMachine.Is(PlayerStateId::Grounded) || m_stateMachine.Is(PlayerStateId::Gliding);
+
+    if (direction != 0 && suppressed)
+    {
+        // Grounded/gliding suppresses wall-grab, but still stops the player
+        // sliding into the wall and resets stale wall-jump-climb tracking if
+        // it's now a different wall than the one last jumped from.
+        if (m_velocity.x != 0.0f && m_velocity.x * direction >= 0.0f)
+            m_velocity.x = 0.0f;
+        if (m_lastWallJumpDirection != direction)
+        {
+            m_lastWallJumpDirection = 0;
+            m_lastWallJumpHeight = 0.0f;
+        }
+    }
+    else if (direction != 0)
+    {
+        // Touching a wall while airborne is enough to count as "on wall"
+        // regardless of input direction - this is what lets you wall-jump
+        // off a wall you're merely touching, not just one you're actively
+        // sliding down.
+        m_wallDirection = direction;
+        m_stateMachine.TransitionTo(PlayerStateId::OnWall);
+    }
+    else if (m_stateMachine.Is(PlayerStateId::OnWall))
+    {
+        m_stateMachine.TransitionTo(PlayerStateId::Airborne);
+    }
 }
 
 void Player::CheckChangeLevel(const Engine::Vec2 &position)
@@ -441,97 +471,12 @@ void Player::CheckChangeLevel(const Engine::Vec2 &position)
 
 // --- State Transitions ---
 
-void Player::ChangeGroundedState(bool grounded)
-{
-    if (m_isGrounded == grounded) return;
-    m_isGrounded = grounded;
-
-    if (grounded)
-    {
-        ClearJumpState();
-        ClearWallJumpTracking();
-        m_lastWallJumpDirection = 0;
-        m_lastWallJumpHeight = 0.0f;
-        m_isGliding = false;
-        m_falcon->StopGlide();
-
-        // Execute buffered jump immediately on landing
-        if (m_jumpCommandQueue.HasCommands())
-        {
-            auto cmd = m_jumpCommandQueue.DequeueCommand();
-            if (cmd) cmd->Execute();
-            m_jumpBufferTimer.Stop();
-        }
-    }
-    else
-    {
-        // Just left a ledge — start coyote time window
-        m_inCoyoteTime = true;
-        m_coyoteTimer.Reset();
-    }
-}
-
-void Player::ChangeWallState(bool onWall, int direction)
-{
-    // If grounded or gliding, don't register wall contact
-    if (onWall && (m_isGrounded || m_isGliding))
-    {
-        // If the player is moving toward the wall, stop them from sliding into it while grounded or gliding
-        if (m_velocity.x != 0.0f && m_velocity.x * direction >= 0.0f)
-            m_velocity.x = 0.0f;
-        // If the player touches an opposite wall while gliding, stop tracking the previous wall jump
-        if (m_lastWallJumpDirection != direction)
-        {
-            m_lastWallJumpDirection = 0;
-            m_lastWallJumpHeight = 0.0f;
-        }
-        onWall = false;
-        direction = 0;
-        ClearWallJumpTracking();
-    }
-
-    if (m_isOnWall == onWall && m_wallDirection == direction) return;
-
-    if (onWall)
-    {
-        m_isOnWall = onWall;
-        m_wallDirection = direction;
-
-        // Push velocity into the wall on contact for a brief automatic wall-slide grace period -
-        // but only if velocity is already carrying the player toward the wall (or is already
-        // zero). Touching a wall while moving away from it - e.g. brushing a ledge corner while
-        // walking off it - must not reverse that momentum; it still counts as "on wall" for
-        // wall-jump purposes (above), just without hijacking existing motion.
-        if (m_velocity.x != 0.0f && m_velocity.x * direction >= 0.0f)
-            m_velocity.x = m_wallDirection * m_speed;
-
-        ClearWallJumpTracking();
-        m_falcon->StopGlide();
-
-        // Execute buffered jump immediately on wall grab
-        if (m_jumpCommandQueue.HasCommands())
-        {
-            auto cmd = m_jumpCommandQueue.DequeueCommand();
-            if (cmd) cmd->Execute();
-            m_jumpBufferTimer.Stop();
-        }
-    }
-    else
-    {
-        // Save direction before resetting — needed by EnterWallJump during coyote time
-        m_lastWallDirection = m_wallDirection;
-        m_isOnWall = onWall;
-        m_wallDirection = direction;
-
-        m_inWallCoyoteTime = true;
-        m_wallCoyoteTimer.Reset();
-    }
-}
-
+// Wall jumps can launch from an actual wall contact or from the remembered
+// direction during wall coyote time, in which case m_wallDirection is
+// already 0 - hence the ternary.
 void Player::EnterWallJump()
 {
-    // During coyote time m_wallDirection is 0, so use the remembered direction
-    int jumpDirection = m_isOnWall ? m_wallDirection : m_lastWallDirection;
+    int jumpDirection = m_stateMachine.Is(PlayerStateId::OnWall) ? m_wallDirection : m_lastWallDirection;
 
     if (jumpDirection == m_lastWallJumpDirection && GetGridPosition().y <= m_lastWallJumpHeight)
     {
@@ -547,27 +492,32 @@ void Player::EnterWallJump()
     m_inMinJump = true;
     m_minJumpTimer.Reset();
 
-    // Lock phase: no player input for the duration of the timer
-    m_inWallJumpLock = true;
-    m_wallJumpCoasting = true;
-    m_wallJumpLockTimer.Reset();
-
     // Remember the direction and height of this jump to prevent consecutive wall jumps from the same wall
     m_lastWallJumpDirection = jumpDirection;
     m_lastWallJumpHeight = GetGridPosition().y;
 
-    ChangeWallState(false, 0);
-
-    // ChangeWallState above would start wall coyote time — cancel it, we already jumped
-    m_inWallCoyoteTime = false;
-    m_wallCoyoteTimer.Stop();
+    // If we were on a wall, this fires OnWallState::Exit() (which would
+    // start wall coyote time) immediately followed by WallJumpLockState::
+    // Enter() (which cancels it right back out) - same net effect as
+    // deliberately jumping consuming any coyote grace, just driven by the
+    // ordinary transition machinery instead of a special-cased call.
+    m_stateMachine.TransitionTo(PlayerStateId::WallJumpLock);
 }
 
 void Player::ClearWallJumpTracking()
 {
-    m_inWallJumpLock = false;
     m_wallJumpCoasting = false;
     m_wallJumpLockTimer.Stop();
+}
+
+void Player::ExecuteBufferedJump()
+{
+    if (m_jumpCommandQueue.HasCommands())
+    {
+        auto cmd = m_jumpCommandQueue.DequeueCommand();
+        if (cmd) cmd->Execute();
+        m_jumpBufferTimer.Stop();
+    }
 }
 
 void Player::ClearJumpState()
@@ -582,40 +532,56 @@ void Player::ClearJumpState()
 }
 
 // --- Movement States ---
-// Enter/Exit are still mostly stubs - see FUTURE.md / the next migration step.
 
-void Player::GroundedState::Enter() {}
-void Player::GroundedState::Exit() {}
+void Player::GroundedState::Enter()
+{
+    m_player.ClearJumpState();
+    m_player.ClearWallJumpTracking();
+    m_player.m_lastWallJumpDirection = 0;
+    m_player.m_lastWallJumpHeight = 0.0f;
+    m_player.m_falcon->StopGlide();
+    m_player.ExecuteBufferedJump();
+}
 
 void Player::GroundedState::Update(float deltaTime)
 {
+    // Wall-jump lock is its own state now, so there's nothing to guard
+    // against here - GroundedState can only be current when it isn't.
     m_player.ApplyGravity(deltaTime, m_player.m_maxFallSpeed);
-
-    // Suppressed during wall-jump lock, for the rare case a wall jump's arc
-    // lands before the lock timer expires (see m_inWallJumpLock).
-    if (m_player.m_inWallJumpLock) return;
     m_player.ApplyHorizontalAcceleration(deltaTime, m_player.m_accCoeff, m_player.m_decCoeff);
 }
-
-void Player::AirborneState::Enter() {}
-void Player::AirborneState::Exit() {}
 
 void Player::AirborneState::Update(float deltaTime)
 {
     m_player.ApplyGravity(deltaTime, m_player.m_maxFallSpeed);
-
-    // Fully suppressed during wall-jump lock (ballistic arc, no control).
-    if (m_player.m_inWallJumpLock) return;
     m_player.ApplyHorizontalAcceleration(deltaTime, m_player.m_airAccCoeff, m_player.m_airDecCoeff);
 }
 
-void Player::OnWallState::Enter() {}
+void Player::OnWallState::Enter()
+{
+    // Push velocity into the wall on contact for a brief automatic wall-slide
+    // grace period - but only if velocity is already carrying the player
+    // toward the wall (or is already zero). Touching a wall while moving
+    // away from it - e.g. brushing a ledge corner while walking off it -
+    // must not reverse that momentum.
+    if (m_player.m_velocity.x != 0.0f && m_player.m_velocity.x * m_player.m_wallDirection >= 0.0f)
+        m_player.m_velocity.x = m_player.m_wallDirection * m_player.m_speed;
+
+    m_player.ClearWallJumpTracking();
+    m_player.m_falcon->StopGlide();
+    m_player.ExecuteBufferedJump();
+}
 
 void Player::OnWallState::Exit()
 {
-    // Only meaningful while this state is current - reset it on the way out
-    // rather than every other state having to do it defensively.
     m_player.m_isWallSliding = false;
+
+    // Save direction before resetting — needed by EnterWallJump during coyote time
+    m_player.m_lastWallDirection = m_player.m_wallDirection;
+    m_player.m_wallDirection = 0;
+
+    m_player.m_inWallCoyoteTime = true;
+    m_player.m_wallCoyoteTimer.Reset();
 }
 
 void Player::OnWallState::Update(float deltaTime)
@@ -628,14 +594,20 @@ void Player::OnWallState::Update(float deltaTime)
         m_player.ApplyGravity(deltaTime, m_player.m_maxFallSpeed);
 
     // Reuses air acceleration - there's no dedicated wall-accel coefficient,
-    // only a dedicated deceleration one (m_wallHitDecCoeff). Wall contact
-    // detection is itself suppressed during wall-jump lock (UpdateWallContact),
-    // so this state can never be current while locked - no guard needed here.
+    // only a dedicated deceleration one (m_wallHitDecCoeff).
     m_player.ApplyHorizontalAcceleration(deltaTime, m_player.m_airAccCoeff, m_player.m_wallHitDecCoeff);
 }
 
-void Player::GlidingState::Enter() {}
-void Player::GlidingState::Exit() {}
+void Player::GlidingState::Enter()
+{
+    m_player.m_wallJumpCoasting = false;
+    m_player.m_falcon->StartGlide();
+}
+
+void Player::GlidingState::Exit()
+{
+    m_player.m_falcon->StopGlide();
+}
 
 void Player::GlidingState::Update(float deltaTime)
 {
@@ -647,20 +619,30 @@ void Player::GlidingState::Update(float deltaTime)
     else
         m_player.ApplyGravity(deltaTime, m_player.m_maxFallSpeed);
 
-    // Glide() itself refuses to start while wall-jump-locked (queues instead),
-    // so this state can never be current while locked - no guard needed here.
     m_player.ApplyHorizontalAcceleration(deltaTime, m_player.m_glideAccCoeff, m_player.m_glideDecCoeff);
 }
 
-void Player::WallJumpLockState::Enter() {}
-void Player::WallJumpLockState::Exit() {}
+void Player::WallJumpLockState::Enter()
+{
+    m_player.m_wallJumpCoasting = true;
+    m_player.m_wallJumpLockTimer.Reset();
+
+    // Entering a wall jump always consumes any pending wall-coyote grace -
+    // OnWallState::Exit() (if we were on a wall) may have just started one.
+    m_player.m_inWallCoyoteTime = false;
+    m_player.m_wallCoyoteTimer.Stop();
+}
+
+void Player::WallJumpLockState::Exit()
+{
+    // Covers both the natural timer expiry and being cut short by ground or
+    // opposite-wall contact - safe to call even mid-callback (Timer::Stop()
+    // is just a flag write).
+    m_player.m_wallJumpLockTimer.Stop();
+}
 
 void Player::WallJumpLockState::Update(float deltaTime)
 {
     // Ballistic - gravity applies normally, no horizontal control at all.
-    // Ending on ground contact already works today (ChangeGroundedState(true)
-    // clears m_inWallJumpLock via ClearWallJumpTracking); ending on contact
-    // with the opposite wall isn't wired yet - UpdateWallContact still
-    // suppresses all wall detection during the lock (see its comment).
     m_player.ApplyGravity(deltaTime, m_player.m_maxFallSpeed);
 }

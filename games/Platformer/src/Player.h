@@ -51,23 +51,18 @@ private:
 
 // --- State Transitions ---
 private:
-    void ChangeGroundedState(bool grounded);
-    void ChangeWallState(bool onWall, int direction);
     void EnterWallJump();
     void ClearWallJumpTracking();
     void ClearJumpState();
+    void ExecuteBufferedJump();
 
 // --- Movement States ---
-    // Enter/Exit are still mostly stubs - see FUTURE.md / the next migration
-    // step, which replaces ChangeGroundedState/ChangeWallState/etc.'s direct
-    // bool mutation with real TransitionTo calls.
 private:
     class GroundedState : public PlayerState
     {
     public:
         explicit GroundedState(Player &player) : m_player(player) {}
         void Enter() override;
-        void Exit() override;
         void Update(float deltaTime) override;
         const char *GetName() const override { return "Grounded"; }
     private:
@@ -78,8 +73,6 @@ private:
     {
     public:
         explicit AirborneState(Player &player) : m_player(player) {}
-        void Enter() override;
-        void Exit() override;
         void Update(float deltaTime) override;
         const char *GetName() const override { return "Airborne"; }
     private:
@@ -111,9 +104,8 @@ private:
     };
 
     // Ballistic, no-horizontal-control phase right after a wall jump. Ends by
-    // timer, by landing (ClearWallJumpTracking already clears the lock when
-    // ChangeGroundedState(true) fires), or - once wired in a later step - by
-    // touching the opposite wall.
+    // timer, by landing, or by touching the opposite wall - see
+    // UpdateGroundedState/UpdateWallContact for how each triggers a transition.
     class WallJumpLockState : public PlayerState
     {
     public:
@@ -154,25 +146,28 @@ private:
     float m_glideGravityScale{1.0f};
 
 // --- Movement State ---
+    // Grounded/OnWall/Gliding/WallJumpLock/Airborne identity lives in
+    // m_stateMachine now - query it with m_stateMachine.Is(...) instead of a
+    // dedicated bool. m_isJumping isn't state identity - it's a modifier
+    // (variable jump height, render squish) that can be true across several
+    // states, not a mode of its own.
 private:
     Engine::Vec2 m_velocity{};
     Engine::Vec2 m_direction{};  // Current input direction from player
-    bool m_isGrounded{false};
     bool m_isJumping{false};     // True from jump initiation until apex or landing
-    bool m_isGliding{false};     // True when holding jump after apex, false when releasing or landing
 
 // --- Wall State ---
 private:
-    bool m_isOnWall{false};
     bool m_isWallSliding{false};
     int m_wallDirection{0};      // -1 = wall on left, 1 = wall on right
     int m_lastWallDirection{0};  // remembered during wall coyote time
 
 // --- Wall Jump State ---
-    // After a wall jump, the player enters a "lock" phase (ballistic arc, no input),
-    // followed by a "coasting" phase (maintains velocity, no deceleration until input).
+    // After a wall jump, the player enters a "lock" phase (ballistic arc, no
+    // input - see WallJumpLockState), followed by a "coasting" phase
+    // (maintains velocity, no deceleration until input) that isn't tied to
+    // any one state's boundary, hence still a plain flag here.
 private:
-    bool m_inWallJumpLock{false};
     bool m_wallJumpCoasting{false};
 
     // Used to prevent consecutive wall jumps from the same wall to climb it
