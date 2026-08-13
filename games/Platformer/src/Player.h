@@ -7,6 +7,9 @@
 class PlatformerWorld;
 class Falcon;
 
+// The body: velocity, collision, and the physics primitives that act on them.
+// Every decision about which of those to apply, and when, belongs to the
+// movement states in StateMachine/PlayerStates.h.
 class Player : public Engine::GridEntity
 {
     DECLARE_TYPE(Player, GridEntity)
@@ -28,7 +31,6 @@ public:
     void SetDirection(const Engine::Vec2 &dir);
     void SetWorld(PlatformerWorld *world);
     void SetFalcon(Falcon *falcon);
-    bool IsJumping() const;
     void Jump();
     void StopJump();
     void Glide();
@@ -37,88 +39,48 @@ public:
     Engine::EventSubscriber<int> &OnPreviousLevel() { return m_previousLevelEvent; }
     Engine::EventSubscriber<> &OnReloadLevel() { return m_reloadLevelEvent; }
 
+// --- Movement States ---
+    // Defined in StateMachine/PlayerStates.h. Nested so they can reach the
+    // physics below without any of it becoming public.
+private:
+    class GroundedState;
+    class OnWallState;
+    class AirborneState;
+    class AirborneSubState;
+    class JumpingState;
+    class FallingState;
+    class GlidingState;
+
+    template <typename TState>
+    void RegisterState(std::optional<PlayerStateId> parent = std::nullopt)
+    {
+        m_stateMachine.RegisterState(TState::Id, std::make_unique<TState>(*this, m_stateMachine), parent);
+    }
+
+    PlayerStateMachine m_stateMachine;
+
 // --- Physics & Collision ---
-    // Shared primitives the movement states compose - the math is the same
-    // regardless of mode, only which coefficients apply differs per state.
+    // Primitives the states compose - the math is the same whichever state is
+    // active, only the coefficients handed to it differ.
 private:
     void ApplyGravity(float deltaTime, float maxSpeed, float scale = 1.0f);
     void ApplyHorizontalAcceleration(float deltaTime, float accCoeff, float decCoeff);
+    void LaunchJump();
+    void LaunchWallJump(int wallDirection);
+    void StopAgainstWall(int wallDirection);
+    void ForgetWallJumpHistory();
     void HandleCollisions(float deltaTime);
     void MoveAndSlide(Engine::Vec2 &position, float deltaTime);
-    void UpdateGroundedState(const Engine::Vec2 &position);
-    void UpdateWallContact(const Engine::Vec2 &position);
+    PlayerContacts ProbeContacts(const Engine::Vec2 &position) const;
     void CheckChangeLevel(const Engine::Vec2 &position);
+    bool CanGlide() const;
 
-// --- State Transitions ---
+// --- Jump Buffer ---
+    // A jump pressed too early to act on, replayed on the next landing or wall grab.
 private:
-    void EnterWallJump();
-    void ClearWallJumpTracking();
-    void ClearJumpState();
-    void ExecuteBufferedJump();
-
-// --- Movement States ---
-private:
-    class GroundedState : public PlayerState
-    {
-    public:
-        explicit GroundedState(Player &player) : m_player(player) {}
-        void Enter() override;
-        void Update(float deltaTime) override;
-        const char *GetName() const override { return "Grounded"; }
-    private:
-        Player &m_player;
-    };
-
-    class AirborneState : public PlayerState
-    {
-    public:
-        explicit AirborneState(Player &player) : m_player(player) {}
-        void Update(float deltaTime) override;
-        const char *GetName() const override { return "Airborne"; }
-    private:
-        Player &m_player;
-    };
-
-    class OnWallState : public PlayerState
-    {
-    public:
-        explicit OnWallState(Player &player) : m_player(player) {}
-        void Enter() override;
-        void Exit() override;
-        void Update(float deltaTime) override;
-        const char *GetName() const override { return "OnWall"; }
-    private:
-        Player &m_player;
-    };
-
-    class GlidingState : public PlayerState
-    {
-    public:
-        explicit GlidingState(Player &player) : m_player(player) {}
-        void Enter() override;
-        void Exit() override;
-        void Update(float deltaTime) override;
-        const char *GetName() const override { return "Gliding"; }
-    private:
-        Player &m_player;
-    };
-
-    // Ballistic, no-horizontal-control phase right after a wall jump. Ends by
-    // timer, by landing, or by touching the opposite wall - see
-    // UpdateGroundedState/UpdateWallContact for how each triggers a transition.
-    class WallJumpLockState : public PlayerState
-    {
-    public:
-        explicit WallJumpLockState(Player &player) : m_player(player) {}
-        void Enter() override;
-        void Exit() override;
-        void Update(float deltaTime) override;
-        const char *GetName() const override { return "WallJumpLock"; }
-    private:
-        Player &m_player;
-    };
-
-    PlayerStateMachine m_stateMachine;
+    void BufferJump();
+    void ConsumeBufferedJump();
+    void ClearBufferedJump();
 
 // --- Configuration (data-driven via type registry) ---
 private:
@@ -145,60 +107,23 @@ private:
     float m_glideMaxSpeed{0.0f};
     float m_glideGravityScale{1.0f};
 
-// --- Movement State ---
-    // Grounded/OnWall/Gliding/WallJumpLock/Airborne identity lives in
-    // m_stateMachine now - query it with m_stateMachine.Is(...) instead of a
-    // dedicated bool. m_isJumping isn't state identity - it's a modifier
-    // (variable jump height, render squish) that can be true across several
-    // states, not a mode of its own.
+// --- Movement ---
 private:
     Engine::Vec2 m_velocity{};
-    Engine::Vec2 m_direction{};  // Current input direction from player
-    bool m_isJumping{false};     // True from jump initiation until apex or landing
+    Engine::Vec2 m_direction{}; // Current input direction from player
 
-// --- Wall State ---
+// --- Wall Jump History ---
+    // Where the last wall jump launched from, cleared on landing. Outlives the
+    // states involved, which is what stops the same wall being climbed by
+    // jumping off it over and over.
 private:
-    bool m_isWallSliding{false};
-    int m_wallDirection{0};      // -1 = wall on left, 1 = wall on right
-    int m_lastWallDirection{0};  // remembered during wall coyote time
-
-// --- Wall Jump State ---
-    // After a wall jump, the player enters a "lock" phase (ballistic arc, no
-    // input - see WallJumpLockState), followed by a "coasting" phase
-    // (maintains velocity, no deceleration until input) that isn't tied to
-    // any one state's boundary, hence still a plain flag here.
-private:
-    bool m_wallJumpCoasting{false};
-
-    // Used to prevent consecutive wall jumps from the same wall to climb it
     int m_lastWallJumpDirection{0};
     float m_lastWallJumpHeight{0.0f};
 
-// --- Jump Assist State ---
-    // Coyote time: brief window after leaving a ledge/wall where jump is still allowed.
-    // Jump buffer: if jump is pressed just before landing, it fires on contact.
-    // Min jump: ensures a minimum arc height even on quick tap.
-private:
-    bool m_inCoyoteTime{false};
-    bool m_inWallCoyoteTime{false};
-    bool m_inMinJump{false};
-
-// --- Timers ---
-private:
-    Engine::Timer m_coyoteTimer;
-    Engine::Timer m_wallCoyoteTimer;
-    Engine::Timer m_jumpBufferTimer;
-    Engine::Timer m_minJumpTimer;
-    Engine::Timer m_wallJumpLockTimer;
-
-// --- Command Queues ---
-private:
-    Engine::CommandQueue m_jumpCommandQueue;
-    Engine::CommandQueue m_jumpStopCommandQueue;
-    Engine::CommandQueue m_startGlideCommandQueue;
-
 // --- Other ---
 private:
+    Engine::CommandQueue m_jumpCommandQueue;
+    Engine::Timer m_jumpBufferTimer;
     PlatformerWorld *m_world{nullptr};
     Falcon *m_falcon{nullptr};
     Engine::Vec2 m_halfExtents{};
