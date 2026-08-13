@@ -45,13 +45,30 @@ games/
 │   │   ├── Player.h/cpp               # Snake player (GridEntity + movement + tail)
 │   │   └── Commands/                   # Input → Command pattern wiring
 │   └── assets/                         # Game-specific assets (copied to build dir)
-└── Chess/                              # Chess game
-    ├── src/
-    │   ├── Chess.h/cpp                 # Application subclass + CreateApplication()
-    │   ├── ChessBoard.h/cpp            # Board with tile and piece management
-    │   ├── ChessTile.h/cpp             # Clickable board tile
-    │   └── Pieces/                     # Piece hierarchy (Pawn, Rook, Bishop, Knight, Queen, King)
-    └── assets/                         # Game-specific assets (copied to build dir)
+├── Chess/                              # Chess game
+│   ├── src/
+│   │   ├── Chess.h/cpp                 # Application subclass + CreateApplication()
+│   │   ├── ChessBoard.h/cpp            # Board with tile and piece management
+│   │   ├── ChessTile.h/cpp             # Clickable board tile
+│   │   └── Pieces/                     # Piece hierarchy (Pawn, Rook, Bishop, Knight, Queen, King)
+│   └── assets/                         # Game-specific assets (copied to build dir)
+└── Platformer/                         # Platformer game
+    └── src/
+        ├── Platformer.h/cpp            # Application subclass + level navigation
+        ├── PlatformerConstants.h       # Tuning constants
+        ├── PlatformerData.h            # Entity and level data tables
+        ├── PlatformerWorld.h/cpp       # Tile world: solidity, sweeps, spawns
+        ├── PlatformerInputManager.h/cpp # Keyboard/mouse routing → events
+        ├── Player.h/cpp                # Player body: velocity, collision, physics primitives
+        ├── Falcon.h/cpp                # Companion falcon (aim, latch, glide)
+        ├── Cursor.h/cpp                # Aiming cursor
+        ├── TileType.h                  # Tile enum
+        ├── Commands/                   # Deferred player inputs (Command pattern)
+        ├── Levels/                     # Level tile grids
+        └── StateMachine/               # Player movement states (see below)
+            ├── PlayerState.h           # State interface + PlayerContacts
+            ├── PlayerStateMachine.h/cpp # Hierarchical machine: transitions, dispatch
+            └── PlayerStates.h/cpp      # The states themselves
 tests/                                  # Google Test suite
 ├── Vec2Test.cpp                        # Vec2 math tests
 ├── RectTest.cpp                        # Rect math tests
