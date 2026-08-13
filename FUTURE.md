@@ -40,10 +40,17 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 
 ### `PlayerStateMachine` → `Engine::StateMachine<TStateId>`
 
-**Current:** `Player`'s movement modes (Grounded/Airborne/OnWall/Gliding) are driven by `PlayerState`/`PlayerStateMachine` in `games/Platformer/src/` — a concrete, non-templated State-pattern implementation scoped to `Player`.
-**Concern:** Falcon (`FalconState` + a plain `enum`+`switch` in `Falcon::Update`) has the same shape of problem and would benefit from the same pattern, but `PlayerStateMachine` is hardcoded to `PlayerState`/`PlayerStateId` and can't be reused as-is.
-**Future:** Once the local version has proven itself in Player, promote it to `Engine::State`/`Engine::StateMachine<TStateId>` (templated on the state-id type) in `engine/src/Patterns/State/`, mirroring the existing `Command`/`CommandQueue` pattern. Migrate Player, then optionally Falcon, onto the generic version. Add a `StateMachineTest.cpp` covering transition ordering and reentrant `TransitionTo` calls from within `Enter()`.
-**When:** After `PlayerStateMachine` has been live through the wall-jump/glide migration and held up in play-testing, or when Falcon's states need a rework anyway.
+**Current:** `Player`'s movement is driven by a hierarchical `PlayerState`/`PlayerStateMachine` in `games/Platformer/src/StateMachine/` — a concrete, non-templated implementation scoped to `Player`. It handles parent/child states, root-to-leaf `Update`, child-to-root input bubbling, and shared-ancestor transitions.
+**Concern:** Falcon (`FalconState` + a plain `enum`+`switch` in `Falcon::Update`) has the same shape of problem and would benefit from the same pattern, but the machine is hardcoded to `PlayerState`/`PlayerStateId` and can't be reused as-is. The notification methods (`JumpPressed`, `ContactsResolved`, `AdjustVisual`) are Player-specific by design — a generic version needs a way to keep that expressiveness without turning into a stringly-typed event bus.
+**Future:** Promote the transition/dispatch machinery to `Engine::State`/`Engine::StateMachine<TStateId>` in `engine/src/Patterns/State/`, mirroring the existing `Command`/`CommandQueue` pattern, and let games subclass it to add their own typed notifications. Migrate Player, then optionally Falcon. Add a `StateMachineTest.cpp` covering shared-ancestor transition ordering (parent stays entered between siblings), reentrant `TransitionTo` from within `Enter()`, and input bubbling.
+**When:** When Falcon's states need a rework anyway, or when a third state machine appears. Not before — the second use case is what will show which parts are genuinely general.
+
+### Player physics primitives are still reachable from any state
+
+**Current:** The movement states are nested classes of `Player`, so each one can touch every private member of the body — velocity, config coefficients, the wall jump history.
+**Concern:** Nesting is what keeps `Player`'s API narrow (nothing had to become public for the states to work), but it also means a state *could* reach for something it has no business touching. Discipline, not the compiler, is what keeps `GlidingState` out of the jump buffer.
+**Future:** If it ever bites, give the states a narrow `PlayerBody` interface holding just the primitives, and pass that to `PlayerState` instead of `Player &`.
+**When:** Only if a state actually reaches somewhere it shouldn't. Not worth the indirection speculatively.
 
 ### Pre-initialization hook (e.g. `Awake()` or `OnCreated()`)
 
