@@ -50,6 +50,7 @@ void Player::Initialize()
     RegisterState<OnWallState>();
     RegisterState<AirborneState>();
     RegisterState<JumpingState>(PlayerStateId::Airborne);
+    RegisterState<WallJumpingState>(PlayerStateId::Jumping);
     RegisterState<FallingState>(PlayerStateId::Airborne);
     RegisterState<GlidingState>(PlayerStateId::Airborne);
 
@@ -193,7 +194,11 @@ void Player::LaunchWallJump(int wallDirection)
     if (wallDirection == m_lastWallJumpDirection && GetGridPosition().y <= m_lastWallJumpHeight)
     {
         // No height gained from jumping off the same wall twice in a row.
-        SetGridPosition(Vec2(GetGridPosition().x, m_lastWallJumpHeight + 0.01f));
+        // TODO: This is a precaution. Proper way to deal with it is adjusting the different player
+        // parameters to make it impossible to reach the same wall with the same height before
+        // either landing or touching the other wall.
+        // Ideally, after playtesting and tuning this could be safely removed.
+        SetGridPosition(Vec2(GetGridPosition().x, m_lastWallJumpHeight));
     }
 
     float angleRad = m_wallJumpAngle * (std::numbers::pi_v<float> / 180.0f);
