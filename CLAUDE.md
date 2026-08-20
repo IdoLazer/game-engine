@@ -73,6 +73,12 @@ The developer is learning C++ through this project and has self-described "weak"
 - **Explicit `= default`**: only when the class also declares another special member function
 - **Don't refactor for style alone** — only when already modifying a file for functional reasons
 
+### Comments
+
+- **Comments document the code as it stands**, not the process that produced it. They earn their place by carrying intent, a constraint, or a non-obvious *why* the code can't express itself.
+- **Never comment the edit** — what changed, what moved, what a previous version did, or why a tweak was made while working. That context is invisible to anyone reading the file later, including a week from now, and it accumulates into noise. Commit messages carry the change; FUTURE.md carries the deferred decision.
+- **Write every comment for a reader who has never seen the diff** — if it only makes sense to someone who watched the code being written, it doesn't belong in the file.
+
 ---
 
 ## Documentation Discipline

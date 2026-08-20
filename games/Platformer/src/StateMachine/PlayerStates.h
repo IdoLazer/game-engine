@@ -82,15 +82,15 @@ private:
     Engine::CommandQueue m_glideCommandQueue; // a glide asked for mid-lock, deferred
 };
 
-// Shared base for the substates of AirborneState, giving them typed access to
-// the parent that owns what they have in common.
+// Shared base for the substates of AirborneState, giving them typed access to the
+// ancestor that owns what they have in common.
 class Player::AirborneSubState : public PlayerState
 {
 public:
     using PlayerState::PlayerState;
 
 protected:
-    AirborneState &Airborne() const { return static_cast<AirborneState &>(*GetParent()); }
+    AirborneState &Airborne() const { return m_machine.Get<AirborneState>(); }
 };
 
 // --- Jumping ---
@@ -114,6 +114,25 @@ private:
 
     Engine::Timer m_minJumpTimer;             // guarantees a minimum arc on a quick tap
     Engine::CommandQueue m_stopCommandQueue;  // a release during that arc, deferred
+};
+
+// A jump launched off a wall. Its parent JumpingState runs the jump itself, so all
+// this adds is the wall jump lock - AirborneState owns that, so it outlives this state.
+class Player::WallJumpingState : public Player::AirborneSubState
+{
+public:
+    static constexpr PlayerStateId Id = PlayerStateId::WallJumping;
+    using AirborneSubState::AirborneSubState;
+
+    void Enter() override;
+    void Exit() override;
+    const char *GetName() const override { return "WallJumping"; }
+
+    // Which wall to launch from, set by whoever transitions us in.
+    void LaunchFrom(int wallDirection) { m_launchDirection = wallDirection; }
+
+private:
+    int m_launchDirection{0};
 };
 
 // --- Falling ---
@@ -154,7 +173,6 @@ public:
     void Enter() override;
     void Exit() override;
     void Update(float deltaTime) override;
-    bool OnJumpPressed() override;
     bool OnGlideReleased() override;
     bool OnContacts(const PlayerContacts &contacts) override;
     const char *GetName() const override { return "Gliding"; }

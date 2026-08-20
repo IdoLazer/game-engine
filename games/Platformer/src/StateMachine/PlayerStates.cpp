@@ -77,9 +77,8 @@ void Player::OnWallState::Update(float deltaTime)
 
 bool Player::OnWallState::OnJumpPressed()
 {
-    m_player.LaunchWallJump(m_wallDirection);
-    m_machine.Get<AirborneState>().BeginWallJumpLock();
-    m_machine.TransitionTo(PlayerStateId::Jumping);
+    m_machine.Get<WallJumpingState>().LaunchFrom(m_wallDirection);
+    m_machine.TransitionTo(PlayerStateId::WallJumping);
     return true;
 }
 
@@ -278,6 +277,19 @@ void Player::JumpingState::EndMinimumJump()
         m_stopCommandQueue.DequeueCommand()->Execute();
 }
 
+// --- Wall Jumping ---
+
+void Player::WallJumpingState::Enter()
+{
+    m_player.LaunchWallJump(m_launchDirection);
+    Airborne().BeginWallJumpLock();
+}
+
+void Player::WallJumpingState::Exit()
+{
+    m_launchDirection = 0;
+}
+
 // --- Falling ---
 
 Player::FallingState::FallingState(Player &player, PlayerStateMachine &machine)
@@ -311,9 +323,8 @@ bool Player::FallingState::OnJumpPressed()
         return true;
 
     case CoyoteJump::Wall:
-        m_player.LaunchWallJump(m_coyoteWallDirection);
-        Airborne().BeginWallJumpLock();
-        m_machine.TransitionTo(PlayerStateId::Jumping);
+        m_machine.Get<WallJumpingState>().LaunchFrom(m_coyoteWallDirection);
+        m_machine.TransitionTo(PlayerStateId::WallJumping);
         return true;
 
     case CoyoteJump::None:
@@ -364,10 +375,6 @@ void Player::GlidingState::Update(float deltaTime)
     Airborne().ApplyAirControl(deltaTime, m_player.m_glideAccCoeff, m_player.m_glideDecCoeff);
 }
 
-bool Player::GlidingState::OnJumpPressed()
-{
-    return true; // hands are busy holding the falcon
-}
 
 bool Player::GlidingState::OnGlideReleased()
 {
