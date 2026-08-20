@@ -11,8 +11,9 @@ enum class PlayerStateId
 {
     Grounded,
     OnWall,
-    Airborne, // parent of the three below
+    Airborne, // parent of Jumping, Falling and Gliding
     Jumping,
+    WallJumping, // child of Jumping
     Falling,
     Gliding
 };
