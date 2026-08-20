@@ -48,6 +48,7 @@ private:
     class AirborneState;
     class AirborneSubState;
     class JumpingState;
+    class WallJumpingState;
     class FallingState;
     class GlidingState;
 
