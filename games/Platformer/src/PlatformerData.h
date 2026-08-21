@@ -54,7 +54,8 @@ namespace PlatformerData
             {"Color", PlatformerConstants::FALCON_COLOR},
             // Falcon-specific properties
             {"OffsetFromPlayer", PlatformerConstants::FALCON_OFFSET_FROM_PLAYER},
-            {"Speed", PlatformerConstants::FALCON_SPEED},
+            {"Speed",   PlatformerConstants::FALCON_SPEED},
+            {"RetrieveSpeed", PlatformerConstants::FALCON_RETRIEVE_SPEED},
             {"SnapRadius", PlatformerConstants::FALCON_SNAP_RADIUS},
             {"GlideOffsetFromPlayer", PlatformerConstants::FALCON_GLIDE_OFFSET_FROM_PLAYER}
         }},
