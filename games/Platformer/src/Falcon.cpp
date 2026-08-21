@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "Cursor.h"
 #include "PlatformerWorld.h"
+#include "Commands/FalconCommands.h"
 
 using namespace Engine;
 
@@ -53,7 +54,7 @@ void Falcon::Update(float deltaTime)
     case FalconState::Returning:
         if (m_player && FlyTowards(m_player->GetGridPosition() + m_offsetFromPlayer, deltaTime))
         {
-            m_state = FalconState::OnShoulder;
+            ReturnToShoulder();
         }
         break;
     case FalconState::Latched:
@@ -130,13 +131,22 @@ void Falcon::Render() const
 
 void Falcon::StartAiming()
 {
-    if (m_state != FalconState::OnShoulder) return;
+    if (m_state != FalconState::OnShoulder)
+    {
+        if (!m_startAimingCommandQueue.HasCommands())
+        {
+            m_startAimingCommandQueue.EnqueueCommand(std::make_unique<StartAimingCommand>(*this));
+        }
+        return;
+    }
 
     m_state = FalconState::Aiming;
 }
 
 void Falcon::ReleaseAiming()
 {
+    m_startAimingCommandQueue.Clear();
+
     if (m_state != FalconState::Aiming) return;
 
     if (m_latchPoint)
@@ -145,7 +155,7 @@ void Falcon::ReleaseAiming()
     }
     else
     {
-        m_state = FalconState::OnShoulder;
+        ReturnToShoulder();
     }
 }
 
@@ -163,6 +173,11 @@ bool Falcon::IsOnShoulder() const
 
 void Falcon::StartGlide()
 {
+    if (m_state == FalconState::Aiming && !m_startAimingCommandQueue.HasCommands())
+    {
+        m_startAimingCommandQueue.EnqueueCommand(std::make_unique<StartAimingCommand>(*this));
+    }
+
     if (m_state == FalconState::OnShoulder || m_state == FalconState::Aiming)
     {
         m_state = FalconState::Gliding;
@@ -173,7 +188,7 @@ void Falcon::StopGlide()
 {
     if (m_state == FalconState::Gliding)
     {
-        m_state = FalconState::OnShoulder;
+        ReturnToShoulder();
     }
 }
 
@@ -232,4 +247,14 @@ void Falcon::Latch()
 {
     m_direction = m_latchDirection;
     m_state = FalconState::Latched;
+}
+
+void Falcon::ReturnToShoulder()
+{
+    m_state = FalconState::OnShoulder;
+    if (m_startAimingCommandQueue.HasCommands())
+    {
+        m_startAimingCommandQueue.DequeueCommand()->Execute();
+    }
+    m_onReturnedEvent.Notify();
 }

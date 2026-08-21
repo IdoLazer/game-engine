@@ -55,6 +55,8 @@ void Player::Initialize()
     RegisterState<GlidingState>(PlayerStateId::Airborne);
 
     m_stateMachine.TransitionTo(PlayerStateId::Grounded);
+
+    m_falconReturnedSubscription = m_falcon->OnReturned().Subscribe(this, &Player::OnFalconReturned);
 }
 
 void Player::Update(float deltaTime)
@@ -84,6 +86,7 @@ void Player::Render() const
 void Player::Destroy()
 {
     GridEntity::Destroy();
+    m_falconReturnedSubscription.Unsubscribe();
 }
 
 // --- Accessors ---
@@ -127,11 +130,17 @@ void Player::StopJump()
 
 void Player::Glide()
 {
+    if (!CanGlide() && !m_glideCommandQueue.HasCommands())
+    {
+        m_glideCommandQueue.EnqueueCommand(std::make_unique<GlideCommand>(*this));
+    }
+
     m_stateMachine.GlidePressed();
 }
 
 void Player::StopGlide()
 {
+    m_glideCommandQueue.Clear();
     m_stateMachine.GlideReleased();
 }
 
@@ -303,5 +312,16 @@ void Player::CheckChangeLevel(const Engine::Vec2 &position)
     else if (m_world->IsDeadly(cell))
     {
         m_reloadLevelEvent.Notify();
+    }
+}
+
+
+// --- Falcon Interaction ---
+
+void Player::OnFalconReturned()
+{
+    if (m_glideCommandQueue.HasCommands())
+    {
+        m_glideCommandQueue.DequeueCommand()->Execute();
     }
 }
