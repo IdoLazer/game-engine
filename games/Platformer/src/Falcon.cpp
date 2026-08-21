@@ -9,6 +9,7 @@ BEGIN_TYPE_REGISTER(Falcon)
     REGISTER_PROPERTY(Engine::Vec2, OffsetFromPlayer, &Falcon::m_offsetFromPlayer)
     REGISTER_PROPERTY(Engine::Vec2, GlideOffsetFromPlayer, &Falcon::m_glideOffsetFromPlayer)
     REGISTER_PROPERTY(float, Speed, &Falcon::m_speed)
+    REGISTER_PROPERTY(float, RetrieveSpeed, &Falcon::m_retrieveSpeed)
     REGISTER_PROPERTY(float, SnapRadius, &Falcon::m_snapRadius)
 END_TYPE_REGISTER()
 
@@ -150,7 +151,7 @@ void Falcon::ReleaseAiming()
 
 void Falcon::Retrieve()
 {
-    if (m_state == FalconState::OnShoulder || m_state == FalconState::Aiming) return;
+    if (!(m_state == FalconState::Flying || m_state == FalconState::Latched)) return;
     m_state = FalconState::Returning;
     m_latchPoint.reset();
 }
@@ -215,7 +216,8 @@ void Falcon::SetAimPoint(const Engine::Vec2 &aimPoint)
 bool Falcon::FlyTowards(const Engine::Vec2 &target, float deltaTime)
 {
     m_direction = (target - GetGridPosition()).Normalized();
-    SetGridPosition(GetGridPosition() + m_direction * m_speed * deltaTime);
+    float speed = (m_state == FalconState::Returning) ? m_retrieveSpeed : m_speed;
+    SetGridPosition(GetGridPosition() + m_direction * speed * deltaTime);
 
     if ((GetGridPosition() - target).Length() < m_snapRadius)
     {
