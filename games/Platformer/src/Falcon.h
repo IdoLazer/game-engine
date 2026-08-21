@@ -56,6 +56,7 @@ private:
     Engine::Vec2 m_offsetFromPlayer{0.0f, 0.0f}; // Falcon's position relative to the player
     Engine::Vec2 m_glideOffsetFromPlayer{0.0f, 0.0f}; // Falcon's position relative to the player while gliding
     float m_speed{0.0f}; // Falcon's movement speed
+    float m_retrieveSpeed{0.0f}; // Falcon's movement speed when returning to the player
     float m_snapRadius{0.0f}; // Distance to a flight target within which it's considered reached
 
 // --- Private Fields ---
