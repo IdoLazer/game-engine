@@ -83,6 +83,9 @@ private:
     void ConsumeBufferedJump();
     void ClearBufferedJump();
 
+// --- Falcon Interaction ---
+    void OnFalconReturned();
+
 // --- Configuration (data-driven via type registry) ---
 private:
     float m_speed{0.0f};
@@ -124,6 +127,7 @@ private:
 // --- Other ---
 private:
     Engine::CommandQueue m_jumpCommandQueue;
+    Engine::CommandQueue m_glideCommandQueue;
     Engine::Timer m_jumpBufferTimer;
     PlatformerWorld *m_world{nullptr};
     Falcon *m_falcon{nullptr};
@@ -131,4 +135,5 @@ private:
     Engine::Event<int> m_nextLevelEvent;
     Engine::Event<int> m_previousLevelEvent;
     Engine::Event<> m_reloadLevelEvent;
+    Engine::Subscription m_falconReturnedSubscription;
 };
