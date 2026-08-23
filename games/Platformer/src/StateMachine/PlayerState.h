@@ -1,5 +1,6 @@
 #pragma once
 
+#include "State.h"
 #include <Engine.h>
 
 // --- Forward Declarations ---
@@ -27,19 +28,13 @@ struct PlayerContacts
 
 // One mode of Player's movement. A state owns its own timers and flags, decides
 // its own transitions, and clears only itself on exit.
-// Local to Platformer for now - see FUTURE.md for the planned promotion
-// to a generic Engine::State/StateMachine once this proves itself.
-class PlayerState
+// Adds Player's own notification vocabulary (input, collision, visual
+// adjustment) on top of the generic tree/lifecycle mechanism in State.h.
+class PlayerState : public State<PlayerStateId>
 {
 public:
     PlayerState(Player &player, PlayerStateMachine &machine)
         : m_player(player), m_machine(machine) {}
-    virtual ~PlayerState() = default;
-
-    // --- Lifecycle ---
-    virtual void Enter() {}
-    virtual void Exit() {}
-    virtual void Update(float deltaTime) {}
 
     // --- Input ---
     // Return true to consume the input, false to let it bubble up to the parent state.
@@ -55,16 +50,8 @@ public:
     // --- Rendering ---
     virtual void AdjustVisual(Engine::Vec2 &center, Engine::Vec2 &size) const {}
 
-    // --- Accessors ---
-    virtual const char *GetName() const = 0;
-    PlayerState *GetParent() const { return m_parent; }
-    void SetParent(PlayerState *parent) { m_parent = parent; }
-
 protected:
     // --- Fields ---
     Player &m_player;
     PlayerStateMachine &m_machine;
-
-private:
-    PlayerState *m_parent{nullptr};
 };
