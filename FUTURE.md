@@ -38,17 +38,17 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Add lifecycle events using the existing `Event<>` system.  
 **When:** When something actually needs to observe entity lifecycle changes. Not worth adding speculatively.
 
-### `PlayerStateMachine` → `Engine::StateMachine<TStateId>`
+### Game-local `State`/`StateMachine` → `Engine::StateMachine`
 
-**Current:** `Player`'s movement is driven by a hierarchical `PlayerState`/`PlayerStateMachine` in `games/Platformer/src/StateMachine/` — a concrete, non-templated implementation scoped to `Player`. It handles parent/child states, root-to-leaf `Update`, child-to-root input bubbling, and shared-ancestor transitions.
-**Concern:** Falcon (`FalconState` + a plain `enum`+`switch` in `Falcon::Update`) has the same shape of problem and would benefit from the same pattern, but the machine is hardcoded to `PlayerState`/`PlayerStateId` and can't be reused as-is. The notification methods (`JumpPressed`, `ContactsResolved`, `AdjustVisual`) are Player-specific by design — a generic version needs a way to keep that expressiveness without turning into a stringly-typed event bus.
-**Future:** Promote the transition/dispatch machinery to `Engine::State`/`Engine::StateMachine<TStateId>` in `engine/src/Patterns/State/`, mirroring the existing `Command`/`CommandQueue` pattern, and let games subclass it to add their own typed notifications. Migrate Player, then optionally Falcon. Add a `StateMachineTest.cpp` covering shared-ancestor transition ordering (parent stays entered between siblings), reentrant `TransitionTo` from within `Enter()`, and input bubbling.
-**When:** When Falcon's states need a rework anyway, or when a third state machine appears. Not before — the second use case is what will show which parts are genuinely general.
+**Current:** The transition/dispatch machinery is generic and templated — `State<TStateId>` and `StateMachine<TStateId, TState = State<TStateId>>` in `games/Platformer/src/StateMachine/` — but deliberately still game-local. It carries only the tree and the dispatch mechanism (`RegisterState`, `TransitionTo`, `Update`, the protected `Dispatch`/`GetActiveChain`), vocabulary-free; `PlayerState`/`PlayerStateMachine` are thin subclasses adding Player's own notifications (`JumpPressed`, `ContactsResolved`, `AdjustVisual`, ...). The `TState` parameter is what lets those notifications take `PlayerState &` directly instead of casting down at every call site.
+**Concern:** It looks generic, but only one entity has actually exercised it. Promoting it to `engine/src/Patterns/State/` and into `Engine.h` would make it public API for Snake and Chess too, and freeze its shape (the `TState` parameter, `kMaxDepth`, `GetActiveChain`'s signature) before a second use case has had a chance to argue with any of it. Meanwhile it is untested — `tests/` covers engine modules only — so until the lift, playing the game is the only thing exercising it.
+**Future:** Once Falcon is running on it and the shape has held, move the two headers to `engine/src/Patterns/State/`, wrap them in `namespace Engine`, and add them to `Engine.h`. The lift is what earns it a `tests/StateMachineTest.cpp`, covering shared-ancestor transition ordering (parent stays entered between siblings), reentrant `TransitionTo` from within `Enter()`, and input bubbling.
+**When:** After Falcon is migrated and the API has survived it — not before.
 
 ### Player physics primitives are still reachable from any state
 
 **Current:** The movement states are nested classes of `Player`, so each one can touch every private member of the body — velocity, config coefficients, the wall jump history.
-**Concern:** Nesting is what keeps `Player`'s API narrow (nothing had to become public for the states to work), but it also means a state *could* reach for something it has no business touching. Discipline, not the compiler, is what keeps `GlidingState` out of the jump buffer.
+**Concern:** Nesting is what keeps `Player`'s API narrow (nothing had to become public for the states to work), but it also means a state _could_ reach for something it has no business touching. Discipline, not the compiler, is what keeps `GlidingState` out of the jump buffer.
 **Future:** If it ever bites, give the states a narrow `PlayerBody` interface holding just the primitives, and pass that to `PlayerState` instead of `Player &`.
 **When:** Only if a state actually reaches somewhere it shouldn't. Not worth the indirection speculatively.
 
@@ -84,22 +84,27 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 Four traversal mechanics tied to the Falcon's state, designed together so each one expresses "what does the falcon's body do from this angle" rather than an arbitrary elemental effect per direction. None of these are implemented yet - logged here before starting so the reasoning behind their shape isn't lost.
 
 ### Shoulder glide
+
 **Concept:** While the falcon rests on the player's shoulder (`FalconState::OnShoulder`), the player can hold onto its legs mid-air and glide instead of free-falling after a jump.  
 **Why:** The most literal reading of "boy has a magical falcon companion" - carrying it turns a fall into flight.
 
 ### Stoop dash
+
 **Concept:** While gliding, the player can aim the falcon (the same aim used for latching) and trigger a fast dash towards the aim point, ending the glide.  
 **Why:** Riffs on the peregrine falcon's stoop - the fastest dive in nature - giving the glide state a second, more aggressive option instead of only ever being a slow-fall.
 
 ### Perch platform
+
 **Concept:** When the falcon is latched into a wall (`m_latchDirection` horizontal), its body becomes a small horizontal platform the player can stand on.  
 **Why:** A perched falcon is literally a perch - furniture, not magic.
 
 ### Rope swing
+
 **Concept:** When the falcon is latched into a ceiling (`m_latchDirection` pointing up), the player can grab on below it and swing like a pendulum to cross gaps.  
 **Why:** A falcon hanging from a ceiling reads naturally as something to swing from.
 
 ### Updraft dash
+
 **Concept:** When the falcon is latched into the floor (`m_latchDirection` pointing down), it flaps its wings to give a nearby player an upward dash of momentum - an area effect near the falcon rather than a stand-on-it platform, so it's usable off a run-up instead of requiring a precise landing on its body.  
 **Why:** Reframed from an earlier "magic air vortex" idea into a physical wing-flap, so all four latch states stay in the same "physical consequence of the falcon's pose" register instead of one of them being an arbitrary elemental effect.
 
