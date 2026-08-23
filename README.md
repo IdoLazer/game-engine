@@ -65,9 +65,11 @@ games/
         ├── TileType.h                  # Tile enum
         ├── Commands/                   # Deferred player inputs (Command pattern)
         ├── Levels/                     # Level tile grids
-        └── StateMachine/               # Player movement states (see below)
-            ├── PlayerState.h           # State interface + PlayerContacts
-            ├── PlayerStateMachine.h/cpp # Hierarchical machine: transitions, dispatch
+        └── StateMachine/               # Hierarchical state machine + Player's movement states
+            ├── State.h                 # Generic state node: lifecycle + tree structure
+            ├── StateMachine.h          # Generic machine: transitions, dispatch, root-to-leaf update
+            ├── PlayerState.h           # Player's notification vocabulary + PlayerContacts
+            ├── PlayerStateMachine.h    # Player's typed notifications over the generic machine
             └── PlayerStates.h/cpp      # The states themselves
 tests/                                  # Google Test suite
 ├── Vec2Test.cpp                        # Vec2 math tests
