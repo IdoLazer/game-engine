@@ -9,26 +9,25 @@ class PlayerStateMachine : public StateMachine<PlayerStateId, PlayerState>
 {
 public:
     // --- Input ---
-    void JumpPressed()   { Dispatch([](PlayerState &state) { return state.OnJumpPressed(); }); }
-    void JumpReleased()  { Dispatch([](PlayerState &state) { return state.OnJumpReleased(); }); }
-    void GlidePressed()  { Dispatch([](PlayerState &state) { return state.OnGlidePressed(); }); }
-    void GlideReleased() { Dispatch([](PlayerState &state) { return state.OnGlideReleased(); }); }
-    void DirectionChanged(const Engine::Vec2 &direction)
+    // Each returns whether a state acted on the input - see Player::Jump.
+    bool JumpPressed()   { return Dispatch([](PlayerState &state) { return state.OnJumpPressed(); }); }
+    bool JumpReleased()  { return Dispatch([](PlayerState &state) { return state.OnJumpReleased(); }); }
+    bool GlidePressed()  { return Dispatch([](PlayerState &state) { return state.OnGlidePressed(); }); }
+    bool GlideReleased() { return Dispatch([](PlayerState &state) { return state.OnGlideReleased(); }); }
+    bool DirectionChanged(const Engine::Vec2 &direction)
     {
-        Dispatch([&direction](PlayerState &state) { return state.OnDirectionChanged(direction); });
+        return Dispatch([&direction](PlayerState &state) { return state.OnDirectionChanged(direction); });
     }
 
     // --- Collision ---
-    void ContactsResolved(const PlayerContacts &contacts)
+    bool ContactsResolved(const PlayerContacts &contacts)
     {
-        Dispatch([&contacts](PlayerState &state) { return state.OnContacts(contacts); });
+        return Dispatch([&contacts](PlayerState &state) { return state.OnContacts(contacts); });
     }
 
     // --- Rendering ---
-    void AdjustVisual(Engine::Vec2 &center, Engine::Vec2 &size) const
+    void Render(Engine::Vec2 &center, Engine::Vec2 &size) const
     {
-        auto [chain, count] = GetActiveChain();
-        for (int depth = 0; depth < count; ++depth)
-            chain[depth]->AdjustVisual(center, size);
+        if (const PlayerState *state = GetCurrentState()) state->Render(center, size);
     }
 };

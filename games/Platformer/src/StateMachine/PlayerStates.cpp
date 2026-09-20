@@ -117,7 +117,7 @@ void Player::OnWallState::LetGoOfWall()
     m_machine.TransitionTo(PlayerStateId::Falling);
 }
 
-void Player::OnWallState::AdjustVisual(Vec2 &center, Vec2 &size) const
+void Player::OnWallState::Render(Vec2 &center, Vec2 &size) const
 {
     if (!m_isWallSliding) return;
 
@@ -170,13 +170,6 @@ void Player::AirborneState::ApplyAirControl(float deltaTime, float accCoeff, flo
         return; // keep the wall jump's momentum until there's input to override it
 
     m_player.ApplyHorizontalAcceleration(deltaTime, accCoeff, decCoeff);
-}
-
-bool Player::AirborneState::OnJumpPressed()
-{
-    // Nothing to jump from - remember it in case we land in time to use it.
-    m_player.BufferJump();
-    return true;
 }
 
 bool Player::AirborneState::OnGlidePressed()
@@ -328,7 +321,7 @@ bool Player::FallingState::OnJumpPressed()
         return true;
 
     case CoyoteJump::None:
-        return false; // nothing left to jump from - let Airborne buffer it
+        return false; // nothing left to jump from - let Player buffer it
     }
 
     return false;

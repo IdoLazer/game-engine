@@ -3,6 +3,7 @@
 #include "Cursor.h"
 #include "PlatformerWorld.h"
 #include "Commands/FalconCommands.h"
+#include "StateMachine/FalconStates.h"
 
 using namespace Engine;
 
@@ -20,179 +21,85 @@ void Falcon::Initialize()
 {
     GridEntity::Initialize();
 
-    // Set the falcon's initial position relative to the player
+    RegisterState<OnShoulderState>();
+    RegisterState<AimingState>(FalconStateId::OnShoulder);
+    RegisterState<FlyingState>();
+    RegisterState<ReturningState>();
+    RegisterState<LatchedState>();
+    RegisterState<GlidingState>();
+
     if (m_player)
     {
-        SetGridPosition(m_player->GetGridPosition() + m_offsetFromPlayer);
+        SetGridPosition(ShoulderPosition());
     }
+
+    m_stateMachine.TransitionTo(FalconStateId::OnShoulder);
 }
 
 void Falcon::Update(float deltaTime)
 {
-    switch (m_state)
-    {
-    case FalconState::Aiming:
-        // If aiming, set the aim point to the cursor's position
-        if (m_cursor && m_grid)
-        {
-            SetAimPoint(m_grid->WorldToGrid(m_cursor->GetWorldPosition()));
-        }
-        // No break here since aiming falcon should also follow the player
-    case FalconState::OnShoulder:
-        // Update the falcon's position to follow the player with the specified offset
-        if (m_player)
-        {
-            SetGridPosition(m_player->GetGridPosition() + m_offsetFromPlayer);
-        }
-        break;
-    case FalconState::Flying:
-        if (m_latchPoint && FlyTowards(*m_latchPoint, deltaTime))
-        {
-            Latch();
-        }
-        break;
-    case FalconState::Returning:
-        if (m_player && FlyTowards(m_player->GetGridPosition() + m_offsetFromPlayer, deltaTime))
-        {
-            ReturnToShoulder();
-        }
-        break;
-    case FalconState::Latched:
-        break;
-    case FalconState::Gliding:
-        // Update the falcon's position to follow the player with the specified offset
-        if (m_player)
-        {
-            SetGridPosition(m_player->GetGridPosition() + m_glideOffsetFromPlayer);
-        }
-    }
+    m_stateMachine.Update(deltaTime);
 }
 
 void Falcon::Render() const
 {
-    // Convert the falcon's grid position and size to world coordinates for rendering
-    Vec2 worldCenter = GetWorldPosition();
-    Vec2 worldSize = GetWorldSize();
-    Vec2 worldAimPoint = m_grid->GridToWorld(m_aimPoint);
-    Vec2 worldDirection = Vec2(m_direction.x, -m_direction.y).Normalized(); // Invert y for rendering
-    
-    if (m_state == FalconState::Gliding)
-    {
-        // If gliding, the falcon's wings are spread out, so we draw it as 2 triangles in a fixed rotation
-        
-        // Triangle 1 (left wing)
-        Vec2 p1 = worldCenter + Vec2(-3.0f, 0.5f) * (worldSize.x / 2.0f);
-        Vec2 p2 = worldCenter + Vec2(0.0f, 1.0f) * (worldSize.y / 2.0f);
-        Vec2 p3 = worldCenter + Vec2(0.0f, -1.0f) * (worldSize.y / 2.0f);
-        Renderer2D::DrawTriangle(p1, p2, p3, m_color);
-
-        // Triangle 2 (right wing)
-        p1 = worldCenter + Vec2(3.0f, 0.5f) * (worldSize.x / 2.0f);
-        Renderer2D::DrawTriangle(p1, p2, p3, m_color);
-
-    }
-    else
-    {
-        // Draw falcon as a white triangle pointing in the direction it's facing
-    
-        // Falcon's "face" - the point in the direction it's facing
-        Vec2 p1 = worldCenter + worldDirection * (worldSize.x / 2.0f);
-        
-        // The two other points are in the opposite direction, forming a triangle
-        Vec2 perp = Vec2(-worldDirection.y, worldDirection.x).Normalized(); // Perpendicular vector to the direction
-        Vec2 p2 = worldCenter - worldDirection * (worldSize.x / 2.0f) + perp * (worldSize.y / 2.0f);
-        Vec2 p3 = worldCenter - worldDirection * (worldSize.x / 2.0f) - perp * (worldSize.y / 2.0f);
-    
-        Renderer2D::DrawTriangle(p1, p2, p3, m_color);
-    }
-
-    if (m_state == FalconState::Aiming)
-    {
-        // Draw a line from the player to the aim point for debugging purposes
-        if (m_latchPoint)
-        {
-            Vec2 latchWorldPos = m_grid->GridToWorld(*m_latchPoint);
-            Renderer2D::DrawLine(m_player->GetWorldPosition(), latchWorldPos, Color::White, 0.02f, LineStyle::Dashed);
-            Renderer2D::DrawLine(latchWorldPos, worldAimPoint, Color::Grey, 0.02f, LineStyle::Dashed);
-
-            // Draw the latch point as a white x if the aim point is latchable
-            float latchSize = 0.06f;
-            Renderer2D::DrawLine(latchWorldPos - Vec2(latchSize, latchSize), latchWorldPos + Vec2(latchSize, latchSize), Color::White, 0.05f);
-            Renderer2D::DrawLine(latchWorldPos - Vec2(-latchSize, latchSize), latchWorldPos + Vec2(-latchSize, latchSize), Color::White, 0.05f);
-        }
-        else
-        {
-            Renderer2D::DrawLine(m_player->GetWorldPosition(), worldAimPoint, Color::Grey, 0.02f, LineStyle::Dashed);
-        }
-    }
+    m_stateMachine.Render();
 }
 
 // --- Public Interface ---
 
 void Falcon::StartAiming()
 {
-    if (m_state != FalconState::OnShoulder)
+    if (!m_stateMachine.AimRequested())
     {
-        if (!m_startAimingCommandQueue.HasCommands())
-        {
-            m_startAimingCommandQueue.EnqueueCommand(std::make_unique<StartAimingCommand>(*this));
-        }
-        return;
+        QueueAimRequest();
     }
-
-    m_state = FalconState::Aiming;
 }
 
 void Falcon::ReleaseAiming()
 {
-    m_startAimingCommandQueue.Clear();
-
-    if (m_state != FalconState::Aiming) return;
-
-    if (m_latchPoint)
-    {
-        m_state = FalconState::Flying;
-    }
-    else
-    {
-        ReturnToShoulder();
-    }
+    ClearQueuedAimRequest();
+    m_stateMachine.AimReleased();
 }
 
 void Falcon::Retrieve()
 {
-    if (!(m_state == FalconState::Flying || m_state == FalconState::Latched)) return;
-    m_state = FalconState::Returning;
-    m_latchPoint.reset();
+    m_stateMachine.RetrieveRequested();
 }
 
 bool Falcon::IsOnShoulder() const
 {
-    return m_state == FalconState::OnShoulder || m_state == FalconState::Aiming;
+    return m_stateMachine.IsOnShoulder();
 }
 
 void Falcon::StartGlide()
 {
-    if (m_state == FalconState::Aiming && !m_startAimingCommandQueue.HasCommands())
-    {
-        m_startAimingCommandQueue.EnqueueCommand(std::make_unique<StartAimingCommand>(*this));
-    }
-
-    if (m_state == FalconState::OnShoulder || m_state == FalconState::Aiming)
-    {
-        m_state = FalconState::Gliding;
-    }
+    m_stateMachine.GlideRequested();
 }
 
 void Falcon::StopGlide()
 {
-    if (m_state == FalconState::Gliding)
-    {
-        ReturnToShoulder();
-    }
+    m_stateMachine.GlideReleased();
 }
 
-// --- Falcon Behavior ---
+// --- Flight & Aiming ---
+
+Vec2 Falcon::ShoulderPosition() const
+{
+    return m_player ? m_player->GetGridPosition() + m_offsetFromPlayer : GetGridPosition();
+}
+
+void Falcon::FollowPlayer(const Engine::Vec2 &offset)
+{
+    if (!m_player) return;
+    SetGridPosition(m_player->GetGridPosition() + offset);
+}
+
+void Falcon::AimAtCursor()
+{
+    if (!m_cursor || !m_grid) return;
+    SetAimPoint(m_grid->WorldToGrid(m_cursor->GetWorldPosition()));
+}
 
 void Falcon::SetAimPoint(const Engine::Vec2 &aimPoint)
 {
@@ -228,10 +135,9 @@ void Falcon::SetAimPoint(const Engine::Vec2 &aimPoint)
 
 // Steers towards target, moves, and snaps on arrival. Returns true once arrived.
 // Deliberately uncollided in both directions - see FUTURE.md.
-bool Falcon::FlyTowards(const Engine::Vec2 &target, float deltaTime)
+bool Falcon::FlyTowards(const Engine::Vec2 &target, float speed, float deltaTime)
 {
     m_direction = (target - GetGridPosition()).Normalized();
-    float speed = (m_state == FalconState::Returning) ? m_retrieveSpeed : m_speed;
     SetGridPosition(GetGridPosition() + m_direction * speed * deltaTime);
 
     if ((GetGridPosition() - target).Length() < m_snapRadius)
@@ -242,19 +148,82 @@ bool Falcon::FlyTowards(const Engine::Vec2 &target, float deltaTime)
     return false;
 }
 
-// Falcon becomes a fixed hinge point, pointy end stuck into whichever surface it hit.
-void Falcon::Latch()
+// --- Deferred Aim ---
+
+void Falcon::QueueAimRequest()
 {
-    m_direction = m_latchDirection;
-    m_state = FalconState::Latched;
+    if (m_startAimingCommandQueue.HasCommands()) return;
+    m_startAimingCommandQueue.EnqueueCommand(std::make_unique<StartAimingCommand>(*this));
 }
 
-void Falcon::ReturnToShoulder()
+void Falcon::ConsumeQueuedAimRequest()
 {
-    m_state = FalconState::OnShoulder;
     if (m_startAimingCommandQueue.HasCommands())
     {
         m_startAimingCommandQueue.DequeueCommand()->Execute();
     }
-    m_onReturnedEvent.Notify();
+}
+
+void Falcon::ClearQueuedAimRequest()
+{
+    m_startAimingCommandQueue.Clear();
+}
+
+// --- Rendering ---
+
+// A triangle with its point in the direction the falcon is facing.
+void Falcon::DrawBody() const
+{
+    Vec2 worldCenter = GetWorldPosition();
+    Vec2 worldSize = GetWorldSize();
+    Vec2 worldDirection = Vec2(m_direction.x, -m_direction.y).Normalized(); // Invert y for rendering
+
+    // Falcon's "face" - the point in the direction it's facing
+    Vec2 p1 = worldCenter + worldDirection * (worldSize.x / 2.0f);
+
+    // The two other points are in the opposite direction, forming a triangle
+    Vec2 perp = Vec2(-worldDirection.y, worldDirection.x).Normalized(); // Perpendicular vector to the direction
+    Vec2 p2 = worldCenter - worldDirection * (worldSize.x / 2.0f) + perp * (worldSize.y / 2.0f);
+    Vec2 p3 = worldCenter - worldDirection * (worldSize.x / 2.0f) - perp * (worldSize.y / 2.0f);
+
+    Renderer2D::DrawTriangle(p1, p2, p3, m_color);
+}
+
+// Wings spread: two triangles in a fixed rotation, not one pointing where it faces.
+void Falcon::DrawGlidingBody() const
+{
+    Vec2 worldCenter = GetWorldPosition();
+    Vec2 worldSize = GetWorldSize();
+
+    // Triangle 1 (left wing)
+    Vec2 p1 = worldCenter + Vec2(-3.0f, 0.5f) * (worldSize.x / 2.0f);
+    Vec2 p2 = worldCenter + Vec2(0.0f, 1.0f) * (worldSize.y / 2.0f);
+    Vec2 p3 = worldCenter + Vec2(0.0f, -1.0f) * (worldSize.y / 2.0f);
+    Renderer2D::DrawTriangle(p1, p2, p3, m_color);
+
+    // Triangle 2 (right wing)
+    p1 = worldCenter + Vec2(3.0f, 0.5f) * (worldSize.x / 2.0f);
+    Renderer2D::DrawTriangle(p1, p2, p3, m_color);
+}
+
+// The line out to the aim point, marking where a release would latch.
+void Falcon::DrawAimOverlay() const
+{
+    Vec2 worldAimPoint = m_grid->GridToWorld(m_aimPoint);
+
+    if (m_latchPoint)
+    {
+        Vec2 latchWorldPos = m_grid->GridToWorld(*m_latchPoint);
+        Renderer2D::DrawLine(m_player->GetWorldPosition(), latchWorldPos, Color::White, 0.02f, LineStyle::Dashed);
+        Renderer2D::DrawLine(latchWorldPos, worldAimPoint, Color::Grey, 0.02f, LineStyle::Dashed);
+
+        // Draw the latch point as a white x if the aim point is latchable
+        float latchSize = 0.06f;
+        Renderer2D::DrawLine(latchWorldPos - Vec2(latchSize, latchSize), latchWorldPos + Vec2(latchSize, latchSize), Color::White, 0.05f);
+        Renderer2D::DrawLine(latchWorldPos - Vec2(-latchSize, latchSize), latchWorldPos + Vec2(-latchSize, latchSize), Color::White, 0.05f);
+    }
+    else
+    {
+        Renderer2D::DrawLine(m_player->GetWorldPosition(), worldAimPoint, Color::Grey, 0.02f, LineStyle::Dashed);
+    }
 }

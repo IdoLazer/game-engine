@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Engine.h>
+#include "StateMachine/FalconStateMachine.h"
 #include <optional>
 
 // --- Forward Declarations ---
@@ -8,16 +9,8 @@ class Player;
 class PlatformerWorld;
 class Cursor;
 
-enum class FalconState
-{
-    OnShoulder,  // Resting on the player's shoulder, following them
-    Aiming,      // While on the shoulder, aiming at the cursor but not yet released
-    Flying,      // Moving out towards a latch point after being released
-    Returning,   // Flying back to the player after Retrieve()
-    Latched,     // Stuck to a ceiling tile, acting as a fixed hinge point
-    Gliding      // Gliding with the player, reducing fall speed
-};
-
+// The body: position, flight, aiming and drawing primitives. Which to apply,
+// and when, belongs to the states in StateMachine/FalconStates.h.
 class Falcon : public Engine::GridEntity
 {
     DECLARE_TYPE(Falcon, GridEntity)
@@ -46,12 +39,47 @@ public:
     void StopGlide();
     Engine::EventSubscriber<> &OnReturned() { return m_onReturnedEvent; }
 
-// --- Falcon Behavior ---
+// --- Behavior States ---
+    // Defined in StateMachine/FalconStates.h. Nested so they can reach the
+    // primitives below without any of it becoming public.
 private:
+    // Their shared base isn't nested, but its default rendering needs the same access.
+    friend class FalconState;
+
+    class OnShoulderState;
+    class AimingState;
+    class FlyingState;
+    class ReturningState;
+    class LatchedState;
+    class GlidingState;
+
+    template <typename TState>
+    void RegisterState(std::optional<FalconStateId> parent = std::nullopt)
+    {
+        m_stateMachine.RegisterState(TState::Id, std::make_unique<TState>(*this, m_stateMachine), parent);
+    }
+
+    FalconStateMachine m_stateMachine;
+
+// --- Flight & Aiming ---
+private:
+    Engine::Vec2 ShoulderPosition() const;
+    void FollowPlayer(const Engine::Vec2 &offset);
+    void AimAtCursor();
     void SetAimPoint(const Engine::Vec2 &aimPoint);
-    bool FlyTowards(const Engine::Vec2 &target, float deltaTime);
-    void Latch();
-    void ReturnToShoulder();
+    bool FlyTowards(const Engine::Vec2 &target, float speed, float deltaTime);
+
+// --- Deferred Aim ---
+private:
+    void QueueAimRequest();
+    void ConsumeQueuedAimRequest();
+    void ClearQueuedAimRequest();
+
+// --- Rendering ---
+private:
+    void DrawBody() const;
+    void DrawGlidingBody() const;
+    void DrawAimOverlay() const;
 
 // --- Configuration (data-driven via type registry) ---
 private:
@@ -67,7 +95,6 @@ private:
     PlatformerWorld *m_world{nullptr};
     Cursor *m_cursor{nullptr};
     Engine::Vec2 m_direction{1.0f, 0.0f}; // Direction the falcon is facing
-    FalconState m_state{FalconState::OnShoulder}; // The falcon's current behavior state
     Engine::Vec2 m_aimPoint{0.0f, 0.0f}; // The point the falcon is currently aiming at
     std::optional<Engine::Vec2> m_latchPoint; // The point to fly to, if the current aim point is a valid latch target
     Engine::Vec2 m_latchDirection{1.0f, 0.0f}; // Direction to face once latched - embeds into the surface, opposite its hit normal
