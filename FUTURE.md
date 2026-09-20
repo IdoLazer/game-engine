@@ -38,6 +38,20 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Add lifecycle events using the existing `Event<>` system.  
 **When:** When something actually needs to observe entity lifecycle changes. Not worth adding speculatively.
 
+### Game-local `State`/`StateMachine` → `Engine::StateMachine`
+
+**Current:** `State<TStateId>` and `StateMachine<TStateId, TState>` in `games/Platformer/src/StateMachine/` are generic and vocabulary-free, but still game-local. `Player` and `Falcon` both run on them.
+**Concern:** Being game-local, it's untested — `tests/` covers engine modules only — so playing the game is the only thing exercising it. Promoting it makes it public API for Snake and Chess too.
+**Future:** Move the two headers to `engine/src/Patterns/State/`, wrap them in `namespace Engine`, and add them to `Engine.h`. Drop `GetActiveChain` if it still has no callers by then. Add a `tests/StateMachineTest.cpp` covering shared-ancestor transition ordering (parent stays entered between siblings), reentrant `TransitionTo` from within `Enter()`, and input bubbling.
+**When:** Ready whenever — two use cases have held the shape. The open question is only whether to wait for a third, non-Platformer one.
+
+### An entity's primitives are still reachable from any of its states
+
+**Current:** The states are nested classes of the entity they drive — `Player`'s movement states can touch velocity, config coefficients and the wall jump history; `Falcon`'s behavior states can touch the aim point, latch point and command queue. `FalconState`, the shared base, isn't nested and reaches the same primitives through an explicit `friend`.
+**Concern:** Nesting is what keeps each entity's API narrow (nothing had to become public for the states to work), but it also means a state _could_ reach for something it has no business touching. Discipline, not the compiler, is what keeps `GlidingState` out of the jump buffer.
+**Future:** If it ever bites, give the states a narrow body interface holding just the primitives (`PlayerBody`, `FalconBody`), and pass that to the state base instead of `Player &`/`Falcon &`. That would also retire the `friend`.
+**When:** Only if a state actually reaches somewhere it shouldn't. Not worth the indirection speculatively.
+
 ### Pre-initialization hook (e.g. `Awake()` or `OnCreated()`)
 
 **Current:** `Initialize()` is deferred — it runs during `FlushPending()` on the first `Update()` frame, not immediately after `Instantiate()`. There is no hook that runs right after an entity is created and its properties are set.  
@@ -70,22 +84,27 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 Four traversal mechanics tied to the Falcon's state, designed together so each one expresses "what does the falcon's body do from this angle" rather than an arbitrary elemental effect per direction. None of these are implemented yet - logged here before starting so the reasoning behind their shape isn't lost.
 
 ### Shoulder glide
-**Concept:** While the falcon rests on the player's shoulder (`FalconState::OnShoulder`), the player can hold onto its legs mid-air and glide instead of free-falling after a jump.  
+
+**Concept:** While the falcon rests on the player's shoulder (`FalconStateId::OnShoulder`), the player can hold onto its legs mid-air and glide instead of free-falling after a jump.  
 **Why:** The most literal reading of "boy has a magical falcon companion" - carrying it turns a fall into flight.
 
 ### Stoop dash
+
 **Concept:** While gliding, the player can aim the falcon (the same aim used for latching) and trigger a fast dash towards the aim point, ending the glide.  
 **Why:** Riffs on the peregrine falcon's stoop - the fastest dive in nature - giving the glide state a second, more aggressive option instead of only ever being a slow-fall.
 
 ### Perch platform
+
 **Concept:** When the falcon is latched into a wall (`m_latchDirection` horizontal), its body becomes a small horizontal platform the player can stand on.  
 **Why:** A perched falcon is literally a perch - furniture, not magic.
 
 ### Rope swing
+
 **Concept:** When the falcon is latched into a ceiling (`m_latchDirection` pointing up), the player can grab on below it and swing like a pendulum to cross gaps.  
 **Why:** A falcon hanging from a ceiling reads naturally as something to swing from.
 
 ### Updraft dash
+
 **Concept:** When the falcon is latched into the floor (`m_latchDirection` pointing down), it flaps its wings to give a nearby player an upward dash of momentum - an area effect near the falcon rather than a stand-on-it platform, so it's usable off a run-up instead of requiring a precise landing on its body.  
 **Why:** Reframed from an earlier "magic air vortex" idea into a physical wing-flap, so all four latch states stay in the same "physical consequence of the falcon's pose" register instead of one of them being an arbitrary elemental effect.
 
