@@ -74,6 +74,14 @@ The developer is learning C++ through this project and has self-described "weak"
 - **Explicit `= default`**: only when the class also declares another special member function
 - **Don't refactor for style alone** — only when already modifying a file for functional reasons
 
+### Comments
+
+- **Comments document the code as it stands**, not the process that produced it. They earn their place by carrying intent, a constraint, or a non-obvious *why* the code can't express itself.
+- **Never comment the edit** — what changed, what moved, what a previous version did, or why a tweak was made while working. That context is invisible to anyone reading the file later, including a week from now, and it accumulates into noise. Commit messages carry the change; FUTURE.md carries the deferred decision.
+- **Write every comment for a reader who has never seen the diff** — if it only makes sense to someone who watched the code being written, it doesn't belong in the file.
+- **First ask whether it's needed at all.** Clear names are the documentation. A comment that restates the line under it — `// do this` above `DoThis()` — is noise, and it rots the moment the code changes. Before writing one, try making the code say it instead: rename, extract the condition, split the step out. Write the comment only when the code genuinely can't carry the meaning.
+- **Keep them short.** One line by default, two or three only for a genuinely subtle constraint. A comment that needs a paragraph is a sign the code or the naming should change instead. Don't argue the design's merits and don't spell out the consequences of getting it wrong — that reasoning belongs in FUTURE.md or the commit message, not above every function.
+
 ---
 
 ## Documentation Discipline
