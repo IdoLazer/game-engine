@@ -40,16 +40,16 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 
 ### Game-local `State`/`StateMachine` → `Engine::StateMachine`
 
-**Current:** The transition/dispatch machinery is generic and templated — `State<TStateId>` and `StateMachine<TStateId, TState = State<TStateId>>` in `games/Platformer/src/StateMachine/` — but deliberately still game-local. It carries only the tree and the dispatch mechanism (`RegisterState`, `TransitionTo`, `Update`, the protected `Dispatch`/`GetActiveChain`), vocabulary-free; `PlayerState`/`PlayerStateMachine` are thin subclasses adding Player's own notifications (`JumpPressed`, `ContactsResolved`, `AdjustVisual`, ...). The `TState` parameter is what lets those notifications take `PlayerState &` directly instead of casting down at every call site.
-**Concern:** It looks generic, but only one entity has actually exercised it. Promoting it to `engine/src/Patterns/State/` and into `Engine.h` would make it public API for Snake and Chess too, and freeze its shape (the `TState` parameter, `kMaxDepth`, `GetActiveChain`'s signature) before a second use case has had a chance to argue with any of it. Meanwhile it is untested — `tests/` covers engine modules only — so until the lift, playing the game is the only thing exercising it.
-**Future:** Once Falcon is running on it and the shape has held, move the two headers to `engine/src/Patterns/State/`, wrap them in `namespace Engine`, and add them to `Engine.h`. The lift is what earns it a `tests/StateMachineTest.cpp`, covering shared-ancestor transition ordering (parent stays entered between siblings), reentrant `TransitionTo` from within `Enter()`, and input bubbling.
-**When:** After Falcon is migrated and the API has survived it — not before.
+**Current:** `State<TStateId>` and `StateMachine<TStateId, TState>` in `games/Platformer/src/StateMachine/` are generic and vocabulary-free, but still game-local. `Player` and `Falcon` both run on them.
+**Concern:** Being game-local, it's untested — `tests/` covers engine modules only — so playing the game is the only thing exercising it. Promoting it makes it public API for Snake and Chess too.
+**Future:** Move the two headers to `engine/src/Patterns/State/`, wrap them in `namespace Engine`, and add them to `Engine.h`. Drop `GetActiveChain` if it still has no callers by then. Add a `tests/StateMachineTest.cpp` covering shared-ancestor transition ordering (parent stays entered between siblings), reentrant `TransitionTo` from within `Enter()`, and input bubbling.
+**When:** Ready whenever — two use cases have held the shape. The open question is only whether to wait for a third, non-Platformer one.
 
-### Player physics primitives are still reachable from any state
+### An entity's primitives are still reachable from any of its states
 
-**Current:** The movement states are nested classes of `Player`, so each one can touch every private member of the body — velocity, config coefficients, the wall jump history.
-**Concern:** Nesting is what keeps `Player`'s API narrow (nothing had to become public for the states to work), but it also means a state _could_ reach for something it has no business touching. Discipline, not the compiler, is what keeps `GlidingState` out of the jump buffer.
-**Future:** If it ever bites, give the states a narrow `PlayerBody` interface holding just the primitives, and pass that to `PlayerState` instead of `Player &`.
+**Current:** The states are nested classes of the entity they drive — `Player`'s movement states can touch velocity, config coefficients and the wall jump history; `Falcon`'s behavior states can touch the aim point, latch point and command queue. `FalconState`, the shared base, isn't nested and reaches the same primitives through an explicit `friend`.
+**Concern:** Nesting is what keeps each entity's API narrow (nothing had to become public for the states to work), but it also means a state _could_ reach for something it has no business touching. Discipline, not the compiler, is what keeps `GlidingState` out of the jump buffer.
+**Future:** If it ever bites, give the states a narrow body interface holding just the primitives (`PlayerBody`, `FalconBody`), and pass that to the state base instead of `Player &`/`Falcon &`. That would also retire the `friend`.
 **When:** Only if a state actually reaches somewhere it shouldn't. Not worth the indirection speculatively.
 
 ### Pre-initialization hook (e.g. `Awake()` or `OnCreated()`)
@@ -85,7 +85,7 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 
 ### Shoulder glide
 
-**Concept:** While the falcon rests on the player's shoulder (`FalconState::OnShoulder`), the player can hold onto its legs mid-air and glide instead of free-falling after a jump.  
+**Concept:** While the falcon rests on the player's shoulder (`FalconStateId::OnShoulder`), the player can hold onto its legs mid-air and glide instead of free-falling after a jump.  
 **Why:** The most literal reading of "boy has a magical falcon companion" - carrying it turns a fall into flight.
 
 ### Stoop dash

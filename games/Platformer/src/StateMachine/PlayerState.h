@@ -26,10 +26,8 @@ struct PlayerContacts
     int wall{0}; // -1 = wall on left, 1 = wall on right, 0 = none
 };
 
-// One mode of Player's movement. A state owns its own timers and flags, decides
-// its own transitions, and clears only itself on exit.
-// Adds Player's own notification vocabulary (input, collision, visual
-// adjustment) on top of the generic tree/lifecycle mechanism in State.h.
+// One mode of Player's movement, adding its notification vocabulary (input,
+// collision, rendering) on top of the generic lifecycle in State.h.
 class PlayerState : public State<PlayerStateId>
 {
 public:
@@ -48,7 +46,7 @@ public:
     virtual bool OnContacts(const PlayerContacts &contacts) { return false; }
 
     // --- Rendering ---
-    virtual void AdjustVisual(Engine::Vec2 &center, Engine::Vec2 &size) const {}
+    virtual void Render(Engine::Vec2 &center, Engine::Vec2 &size) const {}
 
 protected:
     // --- Fields ---

@@ -71,7 +71,7 @@ void Player::Render() const
     Vec2 center = m_worldPosition;
     Vec2 size = m_worldSize;
 
-    m_stateMachine.AdjustVisual(center, size);
+    m_stateMachine.Render(center, size);
 
     // Stretch on the way up, squash on the way down, preserving area.
     float scale = m_velocity.y < 0.0f
@@ -119,7 +119,11 @@ bool Player::CanGlide() const
 
 void Player::Jump()
 {
-    m_stateMachine.JumpPressed();
+    // A jump no state could act on is held in case we land in time to use it.
+    if (!m_stateMachine.JumpPressed())
+    {
+        BufferJump();
+    }
 }
 
 void Player::StopJump()
