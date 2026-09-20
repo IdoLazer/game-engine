@@ -37,7 +37,7 @@ public:
     bool OnGlidePressed() override;
     bool OnDirectionChanged(const Engine::Vec2 &direction) override;
     bool OnContacts(const PlayerContacts &contacts) override;
-    void AdjustVisual(Engine::Vec2 &center, Engine::Vec2 &size) const override;
+    void Render(Engine::Vec2 &center, Engine::Vec2 &size) const override;
     const char *GetName() const override { return "OnWall"; }
 
     // Which wall to attach to, set by whoever transitions us in.
@@ -63,7 +63,6 @@ public:
 
     void Exit() override;
     void Update(float deltaTime) override;
-    bool OnJumpPressed() override;
     bool OnGlidePressed() override;
     bool OnGlideReleased() override;
     bool OnContacts(const PlayerContacts &contacts) override;
@@ -82,12 +81,15 @@ private:
     Engine::CommandQueue m_glideCommandQueue; // a glide asked for mid-lock, deferred
 };
 
-// Shared base for the substates of AirborneState, giving them typed access to the
-// ancestor that owns what they have in common.
+// Deriving from this claims the state runs under Airborne, which RegisterState
+// checks - Airborne() resolves either way, so a misplaced substate would read
+// modifiers nothing updates.
 class Player::AirborneSubState : public PlayerState
 {
 public:
     using PlayerState::PlayerState;
+
+    static constexpr PlayerStateId RequiredAncestor = PlayerStateId::Airborne;
 
 protected:
     AirborneState &Airborne() const { return m_machine.Get<AirborneState>(); }

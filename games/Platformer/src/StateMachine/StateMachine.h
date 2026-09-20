@@ -3,40 +3,31 @@
 #include "State.h"
 #include <algorithm>
 #include <array>
+#include <iostream>
 #include <memory>
 #include <optional>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
 
-// Drives a single active TState. States are registered once (e.g. in an
-// Initialize()) and live for the machine's lifetime - TransitionTo only ever
-// swaps the active pointer, no per-transition allocation.
+// Drives a single active TState. States are registered once and live for the
+// machine's lifetime - TransitionTo only swaps the active pointer.
 //
-// A state may be registered under a parent, which shares behavior its children
-// have in common: Update runs parent-first, and a transition between two
-// children leaves their shared parent entered, so data the parent owns survives
-// the switch.
+// Update runs parent-first, and a transition between two children leaves their
+// shared parent entered, so data the parent owns survives the switch.
 //
-// Deliberately vocabulary-free: this carries the tree and the dispatch
-// mechanism, nothing else. An owner subclasses it and adds its own typed
-// notifications on top of the protected Dispatch() and GetActiveChain().
+// Vocabulary-free: an owner subclasses it and adds its own typed notifications
+// on top of Dispatch(). TState is that owner's state base, so those
+// notifications take it directly instead of casting down.
 //
-// TState is the common base every registered state derives from. Naming it as a
-// parameter, rather than always working through State<TStateId>, is what lets a
-// subclass's notifications take their own state type directly instead of
-// casting down at every call site.
-//
-// Generic on purpose, but game-local until a second use case proves the shape -
-// see FUTURE.md for the planned move to engine/src/Patterns/State/.
+// Game-local for now - see FUTURE.md for the move to engine/src/Patterns/State/.
 template <typename TStateId, typename TState = State<TStateId>>
 class StateMachine
 {
     static_assert(std::is_base_of_v<State<TStateId>, TState>,
                   "TState must derive from State<TStateId>");
 
-    // Deepest root-to-leaf chain supported. Must stay declared above the
-    // members whose signatures reference it.
+    // Must stay above the members whose signatures reference it.
     static constexpr int kMaxDepth = 4;
 
 public:
@@ -49,14 +40,33 @@ public:
     StateMachine &operator=(const StateMachine &) = delete;
 
     // --- Setup ---
-    // A parent must be registered before its children.
-    void RegisterState(TStateId id, std::unique_ptr<TState> state,
+    // A parent must be registered before its children. A state declaring
+    // `static constexpr TStateId RequiredAncestor` must be registered under it;
+    // misplacing one fails silently otherwise, since Get<> still reaches an
+    // ancestor that never runs.
+    template <typename TConcrete>
+    void RegisterState(TStateId id, std::unique_ptr<TConcrete> state,
                        std::optional<TStateId> parent = std::nullopt)
     {
+        static_assert(std::is_base_of_v<TState, TConcrete>,
+                      "A registered state must derive from TState");
+
         if (parent)
             state->SetParent(m_states.at(*parent).get());
 
+        TState *registered = state.get();
         m_states[id] = std::move(state);
+
+        if constexpr (requires { TConcrete::RequiredAncestor; })
+        {
+            auto ancestor = m_states.find(TConcrete::RequiredAncestor);
+            if (ancestor == m_states.end() || !IsAncestorOrSelf(ancestor->second.get(), registered))
+            {
+                std::cerr << "StateMachine: " << registered->GetName()
+                          << " is written to run under an ancestor it was not registered below."
+                          << std::endl;
+            }
+        }
     }
 
     // --- Control ---
@@ -105,35 +115,39 @@ public:
     }
 
     // --- Accessors ---
-    // For debugging. Nothing outside the states should be branching on this -
-    // deciding what a state means is the state's own job.
+    // For debugging - deciding what a state means is the state's own job.
     TStateId GetCurrentId() const { return m_currentId; }
     const char *GetCurrentName() const { return m_current ? m_current->GetName() : "None"; }
 
-    // Typed access to a registered state, for the setup a caller does right
-    // before transitioning into it.
+    // For the setup a caller does right before transitioning in.
     template <typename TConcrete>
     TConcrete &Get() { return static_cast<TConcrete &>(*m_states.at(TConcrete::Id)); }
 
 protected:
-    // Offers the notification to the active state first, then up through its
-    // ancestors, stopping at the first one that consumes it. THandler takes a
-    // TState& and returns true once the notification is consumed.
+    // Active state first, then up through its ancestors. Returns whether any consumed it.
     template <typename THandler>
-    void Dispatch(THandler &&handler)
+    bool Dispatch(THandler &&handler)
     {
         for (TState *state = m_current; state; state = ParentOf(state))
         {
-            if (handler(*state)) return;
+            if (handler(*state)) return true;
         }
+        return false;
     }
 
-    // Root-to-leaf chain of the active state and its ancestors, deepest last,
-    // for notifications every level gets a say in rather than the first
-    // consumer only.
+    // Root-to-leaf, deepest last - for notifications every level gets a say in.
     std::pair<std::array<TState *, kMaxDepth>, int> GetActiveChain() const
     {
         return BuildChain(m_current);
+    }
+
+    TState *GetCurrentState() const { return m_current; }
+
+    // True for a descendant too, not just an exact match.
+    bool IsInState(TStateId id) const
+    {
+        auto entry = m_states.find(id);
+        return entry != m_states.end() && IsAncestorOrSelf(entry->second.get(), m_current);
     }
 
 private:
