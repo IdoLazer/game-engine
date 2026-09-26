@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <functional>
 #include <any>
+#include <string_view>
 #include <memory>
 
 namespace Engine
@@ -18,6 +19,7 @@ namespace Engine
     {
         std::string name;
         std::function<void(Entity *, const std::any &)> setter;
+        std::function<std::any(std::string_view)> parser;
     };
 
     // Describes a registered entity type: its name, its base class, a factory, and own properties.
@@ -62,9 +64,20 @@ namespace Engine
             void SetProperties(Entity *entity, const std::string &typeName,
                             const PropertyMap &properties) const;
 
+            // Empty when the type has no such property, or when the text doesn't parse as its type.
+            std::any ParseProperty(const std::string &typeName, const std::string &propertyName,
+                            std::string_view text) const;
+            bool HasProperty(const std::string &typeName, const std::string &propertyName) const;
+
         // --- Queries ---
         public:
             bool IsTypeRegistered(const std::string &typeName) const;
             std::vector<std::string> GetRegisteredTypes() const;
+
+        // --- Internal ---
+        private:
+            // Walks the parent chain, so inherited properties resolve too.
+            const PropertyDescriptor *FindProperty(const std::string &typeName,
+                            const std::string &propertyName) const;
         };
 }

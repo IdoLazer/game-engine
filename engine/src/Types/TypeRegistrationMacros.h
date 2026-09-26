@@ -33,6 +33,7 @@
 // ============================================================================
 
 #include "TypeRegistry.h"
+#include "PropertyParsing.h"
 #include <concepts>
 #include <type_traits>
 
@@ -100,7 +101,8 @@ private:
                 {                                                                   \
                     static_cast<_Type *>(entity)->*MemberPtr =                      \
                         std::any_cast<Type>(value);                                 \
-                }                                                                   \
+                },                                                                  \
+                Engine::MakePropertyParser<Type>()                                  \
             });
 
 #define END_TYPE_REGISTER()                                                         \

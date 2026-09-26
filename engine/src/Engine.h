@@ -63,6 +63,7 @@
 
 // Types
 #include "Types/TypeRegistry.h"
+#include "Types/PropertyParsing.h"
 #include "Types/TypeRegistrationMacros.h"
 
 // This header provides everything a game needs:

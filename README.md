@@ -22,6 +22,7 @@ engine/
     │   └── Subscription.h              # RAII subscription handle
     ├── Types/                          # Runtime type registry and self-registration
     │   ├── TypeRegistry.h              # Singleton mapping type names → factories + properties
+    │   ├── PropertyParsing.h           # Text → property value (PropertyParser<T>)
     │   └── TypeRegistrationMacros.h    # DECLARE_TYPE / REGISTER_PROPERTY macros
     ├── Patterns/                       # Reusable design patterns
     │   └── Command/                    # Command pattern (Command, CommandQueue)
@@ -61,7 +62,9 @@ tests/                                  # Google Test suite
 ├── EventTest.cpp                       # Event system tests
 ├── GridCoordinateSystemTest.cpp        # Grid coordinate system tests
 ├── FileSystemTest.cpp                  # Text file IO tests
-└── ResourceManagerTest.cpp             # Resource caching and reload tests
+├── ResourceManagerTest.cpp             # Resource caching and reload tests
+├── PropertyParsingTest.cpp             # Text → property value parsing tests
+└── TypeRegistryTest.cpp                # Type registration, property lookup and parsing tests
 ```
 
 ## How It Works
@@ -179,7 +182,35 @@ BEGIN_TYPE_REGISTER(Player)
 END_TYPE_REGISTER(Player)
 ```
 
-This enables runtime instantiation by name and data-driven property assignment — the foundation for future scene serialization.
+This enables runtime instantiation by name and data-driven property assignment — the foundation for scene serialization.
+
+### Properties From Text
+
+`REGISTER_PROPERTY` also records how to turn text into that property's type, so a registered
+property can be set from a file:
+
+```cpp
+// While reading a file: build a PropertyMap, one property at a time
+PropertyMap properties;
+properties["JumpForce"] = TypeRegistry::Get().ParseProperty("Player", "JumpForce", "12.5");
+
+// Later, when the entity is created
+GetScene()->Instantiate(EntityInfo{"Player", properties});
+```
+
+`float`, `int`, `bool`, `std::string`, `Vec2` and `Color` are built in. A game adds its own types by
+specializing `PropertyParser`:
+
+```cpp
+template <> struct Engine::PropertyParser<PieceColor>
+{
+    static std::optional<PieceColor> Parse(std::string_view text);
+};
+```
+
+Types with no specialization — pointers to other entities, for instance — get a null parser and keep
+being assigned in code. `ParseProperty` returns an empty `std::any` for them, and for text that
+doesn't parse.
 
 ## Building
 

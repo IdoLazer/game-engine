@@ -31,27 +31,50 @@ Entity *TypeRegistry::Create(const std::string &typeName) const
 
 // --- Property Access ---
 
-bool TypeRegistry::SetProperty(Entity *entity, const std::string &typeName,
-                               const std::string &propertyName, const std::any &value) const
+const PropertyDescriptor *TypeRegistry::FindProperty(const std::string &typeName,
+                                                    const std::string &propertyName) const
 {
     std::string currentType = typeName;
     while (!currentType.empty())
     {
         auto typeIt = m_types.find(currentType);
         if (typeIt == m_types.end())
-            break;
+            return nullptr;
 
         for (const auto &prop : typeIt->second.properties)
         {
             if (prop.name == propertyName)
-            {
-                prop.setter(entity, value);
-                return true;
-            }
+                return &prop;
         }
         currentType = typeIt->second.parentName;
     }
-    return false;
+    return nullptr;
+}
+
+bool TypeRegistry::SetProperty(Entity *entity, const std::string &typeName,
+                               const std::string &propertyName, const std::any &value) const
+{
+    const PropertyDescriptor *property = FindProperty(typeName, propertyName);
+    if (!property)
+        return false;
+
+    property->setter(entity, value);
+    return true;
+}
+
+std::any TypeRegistry::ParseProperty(const std::string &typeName, const std::string &propertyName,
+                                     std::string_view text) const
+{
+    const PropertyDescriptor *property = FindProperty(typeName, propertyName);
+    if (!property || !property->parser)
+        return {};
+
+    return property->parser(text);
+}
+
+bool TypeRegistry::HasProperty(const std::string &typeName, const std::string &propertyName) const
+{
+    return FindProperty(typeName, propertyName) != nullptr;
 }
 
 void TypeRegistry::SetProperties(Entity *entity, const std::string &typeName,
