@@ -35,6 +35,8 @@ engine/
     ├── Math/                           # Vec2, Rect
     ├── Graphics/                       # Color
     ├── Rendering/                      # Window, Renderer2D, Camera2D, Texture2D, Sprite, BitmapFont
+    ├── IO/                             # File access
+    │   └── FileSystem.h                # Text file read/write, executable location
     ├── Resources/                      # Resource base class, ResourceManager (static API)
     └── Utilities/                      # Timer
 games/
@@ -57,7 +59,9 @@ tests/                                  # Google Test suite
 ├── RectTest.cpp                        # Rect math tests
 ├── SweepTest.cpp                       # Swept-AABB collision tests
 ├── EventTest.cpp                       # Event system tests
-└── GridCoordinateSystemTest.cpp        # Grid coordinate system tests
+├── GridCoordinateSystemTest.cpp        # Grid coordinate system tests
+├── FileSystemTest.cpp                  # Text file IO tests
+└── ResourceManagerTest.cpp             # Resource caching and reload tests
 ```
 
 ## How It Works
@@ -108,6 +112,20 @@ auto* texture = ResourceManager::Load<Texture2D>("assets/Pawn.png");
 All paths are resolved relative to the executable's directory. CMake copies each game's `assets/` folder next to its exe at build time via a `POST_BUILD` step, so games use clean relative paths regardless of working directory.
 
 Loadable resource types inherit from `Resource`. Currently `Texture2D` and `BitmapFont` exist; future types (audio, etc.) follow the same pattern.
+
+A resource can be re-read from disk without being replaced:
+
+```cpp
+// Re-reads the file into the cached instance, so existing pointers stay valid
+auto* texture = ResourceManager::Load<Texture2D>("assets/Pawn.png", CacheMode::Refresh);
+```
+
+`Resource::Reload()` does the re-reading; types that don't override it return `false` and keep
+their cached data. A failed refresh leaves the previous version in place.
+
+`Engine::FileSystem` sits underneath, reading and writing text files and reporting the
+executable's directory. It resolves nothing on its own — deciding what a relative path is
+relative to belongs to whoever owns the data, which for assets is `ResourceManager`.
 
 ## Text Rendering
 

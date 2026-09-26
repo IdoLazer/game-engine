@@ -23,25 +23,38 @@ namespace Engine
     Texture2D::Texture2D(const std::string& filePath)
     {
         m_path = filePath;
+        LoadFromFile();
+    }
+
+    bool Texture2D::Reload()
+    {
+        return LoadFromFile();
+    }
+
+    bool Texture2D::LoadFromFile()
+    {
         // stb_image loads with (0,0) at top-left, but OpenGL expects
         // (0,0) at bottom-left. This flips the image vertically on load
         // so UV coordinates work correctly: (0,0) = bottom-left.
         stbi_set_flip_vertically_on_load(true);
 
         int channels = 0;
-        unsigned char* pixels = stbi_load(filePath.c_str(), &m_width, &m_height, &channels, 0);
+        unsigned char* pixels = stbi_load(m_path.c_str(), &m_width, &m_height, &channels, 0);
 
         if (!pixels)
         {
-            std::cerr << "Texture2D: Failed to load image: " << filePath << std::endl;
-            return;
+            std::cerr << "Texture2D: Failed to load image: " << m_path << std::endl;
+            return false;
         }
 
         // Determine the OpenGL format based on the number of color channels.
         // RGB (3 channels) for images without transparency, RGBA (4) for those with.
         GLenum format = (channels == 4) ? GL_RGBA : GL_RGB;
 
-        // Generate and configure the OpenGL texture object.
+        // A new texture object each time, so a smaller reloaded image leaves no stale mip levels.
+        if (m_textureID != 0)
+            glDeleteTextures(1, &m_textureID);
+
         glGenTextures(1, &m_textureID);
         glBindTexture(GL_TEXTURE_2D, m_textureID);
 
@@ -66,8 +79,10 @@ namespace Engine
         // The CPU-side pixel data is now on the GPU — we don't need it anymore.
         stbi_image_free(pixels);
 
-        std::cout << "Texture2D: Loaded " << filePath
+        std::cout << "Texture2D: Loaded " << m_path
                   << " (" << m_width << "x" << m_height << ", " << channels << " channels)" << std::endl;
+
+        return true;
     }
 
     Texture2D::~Texture2D()

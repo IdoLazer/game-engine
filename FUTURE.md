@@ -91,6 +91,13 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 
 ## Resource System
 
+### Refresh is manual - no file watching
+
+**Current:** `ResourceManager::Load<T>(path, CacheMode::Refresh)` re-reads a resource only when a caller explicitly asks. Nothing notices that a file on disk changed.
+**Concern:** Every iteration loop has to route through something that knows to pass `Refresh`. Editing an asset while the game runs does nothing until that code path happens to run again.
+**Future:** Watch the asset directory (`ReadDirectoryChangesW` on Windows, or poll `last_write_time`) and refresh the affected resources automatically. The `Reload()` contract already preserves object identity, so nothing holding a resource pointer needs to know it happened.
+**When:** When manually triggering a refresh becomes the annoying part of iterating on art or level data.
+
 ### Asset paths are relative to the executable
 
 **Current:** CMake copies game assets next to the exe via `POST_BUILD`. Games use paths like `"assets/Pawn.png"`.  

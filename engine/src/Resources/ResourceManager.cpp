@@ -1,11 +1,6 @@
 #include "ResourceManager.h"
+#include "../IO/FileSystem.h"
 #include <iostream>
-
-#ifdef _WIN32
-#include <windows.h>
-#elif __APPLE__
-#include <mach-o/dyld.h>
-#endif
 
 namespace Engine
 {
@@ -16,24 +11,8 @@ namespace Engine
     {
         s_resources.clear();
 
-        // Resolve the directory containing the running executable.
-        // All asset paths are relative to this directory.
-#ifdef _WIN32
-        char buffer[MAX_PATH];
-        GetModuleFileNameA(nullptr, buffer, MAX_PATH);
-        s_basePath = std::filesystem::path(buffer).parent_path();
-
-#elif __APPLE__
-        // On macOS, get the executable path using _NSGetExecutablePath.
-        char buffer[PATH_MAX];
-        uint32_t bufferSize = sizeof(buffer);
-        _NSGetExecutablePath(buffer, &bufferSize);
-        s_basePath = std::filesystem::path(buffer).parent_path();
-
-#else
-        // On other platforms, fall back to cwd.
-        s_basePath = std::filesystem::current_path();
-#endif
+        // Assets ship next to the executable, so that's what asset paths are relative to.
+        s_basePath = FileSystem::GetExecutableDirectory();
 
         std::cout << "ResourceManager initialized. Base path: " << s_basePath.string() << std::endl;
     }

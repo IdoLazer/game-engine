@@ -15,6 +15,9 @@
 #include "Rendering/Sprite.h"
 #include "Rendering/BitmapFont.h"
 
+// File IO
+#include "IO/FileSystem.h"
+
 // Resources
 #include "Resources/Resource.h"
 #include "Resources/ResourceManager.h"

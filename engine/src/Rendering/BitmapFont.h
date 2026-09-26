@@ -20,6 +20,8 @@ namespace Engine
         // Loads the font atlas from disk and derives cell dimensions.
         explicit BitmapFont(const std::string& filePath);
 
+        bool Reload() override;
+
         // Get the source rectangle (in pixels) for a given character.
         // Returns a zero-size rect for characters outside the atlas range.
         TextureRect GetGlyphRect(char c) const;
@@ -34,6 +36,8 @@ namespace Engine
         float GetAspectRatio() const;
 
     private:
+        void DeriveCellSize();
+
         static constexpr int COLUMNS = 16;
         static constexpr int ROWS = 6;
         static constexpr char FIRST_CHAR = ' ';  // ASCII 32

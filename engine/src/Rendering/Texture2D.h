@@ -25,6 +25,9 @@ namespace Engine
         explicit Texture2D(const std::string& filePath);
         ~Texture2D();
 
+        // Re-reads the image from disk. The GPU handle is regenerated, so GetID() changes.
+        bool Reload() override;
+
         // Non-copyable — the GPU texture handle must have a single owner.
         Texture2D(const Texture2D&) = delete;
         Texture2D& operator=(const Texture2D&) = delete;
@@ -42,6 +45,7 @@ namespace Engine
         unsigned int GetID() const { return m_textureID; }
 
     private:
+        bool LoadFromFile();
         void GenerateMipmaps(unsigned char* pixels, GLenum format, int channels);
 
         unsigned int m_textureID = 0;

@@ -7,6 +7,20 @@ namespace Engine
         : m_atlas(filePath)
     {
         m_path = filePath;
+        DeriveCellSize();
+    }
+
+    bool BitmapFont::Reload()
+    {
+        if (!m_atlas.Reload())
+            return false;
+
+        DeriveCellSize();
+        return true;
+    }
+
+    void BitmapFont::DeriveCellSize()
+    {
         m_cellWidth = m_atlas.GetWidth() / COLUMNS;
         m_cellHeight = m_atlas.GetHeight() / ROWS;
     }

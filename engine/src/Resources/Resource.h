@@ -11,6 +11,10 @@ namespace Engine
     public:
         virtual ~Resource() = default;
 
+        // Re-reads from m_path in place, so pointers to this resource stay valid.
+        // False means the type doesn't support reloading.
+        virtual bool Reload() { return false; }
+
         const std::string& GetPath() const { return m_path; }
 
     protected:
