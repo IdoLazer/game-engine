@@ -112,6 +112,24 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 
 ---
 
+## Levels
+
+### Spawn points and level triggers are still tile values
+
+**Current:** `TileType` mixes geometry (`Empty`, `Solid`, `Death`) with markers that aren't tiles at all: `EntrySpawn`, `ReturnSpawn`, `DefaultSpawn`, `NextLevel`, `PreviousLevel`. A level transition has to be painted down a whole column to act as one trigger, and `FindEntrySpawn(int row)` scans a row for a magic value.
+**Concern:** A spawn is a position and a transition is a volume; both are entities wearing a tile's clothes, because the grid was the only data a level had. This is what breaks first if levels stop being a single screen.
+**Future:** Give them their own entity types placed in the level document alongside `PlatformerWorld`, and replace `Player`'s per-cell `IsNextLevel`/`IsPreviousLevel` checks with a query against those entities. The document format already allows it - they would just be more sections.
+**When:** When a level needs two exits on the same row, a trigger that isn't cell-aligned, or when levels stop being one screen each.
+
+### Level size is fixed by GRID_WORLD_SIZE
+
+**Current:** `TileGrid` reports its own row and column counts, and the document format imposes no size. But `Platformer::Initialize` still builds `m_grid` from `PlatformerConstants::GRID_WORLD_SIZE` (30x20), and the camera shows exactly that.
+**Concern:** A differently sized level would parse correctly and then render and collide against the wrong grid.
+**Future:** Build the `Grid` from the loaded `TileGrid`'s dimensions. That is a few lines; the open question is what the camera should do, since showing a bigger level whole means smaller cells.
+**When:** When a level wants to be a size other than 30x20, which likely arrives with a scrolling camera.
+
+---
+
 ## Build System
 
 ### `GLOB_RECURSE` for sources
@@ -174,12 +192,12 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 
 ## Serialization
 
-### Per-entity properties → Full scene serialization
+### Documents can name each other, but the engine doesn't resolve it
 
-**Current:** Entities are instantiated from `EntityInfo` structs (type name + property map) defined in code. Properties are set via the TypeRegistry's `std::any`-based setters. There is no file format, no hierarchy, and no save/load API.  
-**Concern:** All "data" still lives in C++ constants (e.g. `CHESS_PIECES_DATA`). Adding a new entity means recompiling. Parent–child relationships and cross-references (e.g. "this entity points at that entity") aren't handled.  
-**Future:** A hierarchical scene serialization system — load/save an entire scene to a file (JSON, YAML, or custom binary). Entities reference each other by ID. The TypeRegistry provides the reflection needed to serialize any registered property. Editor tooling can produce scene files.  
-**When:** When we want a level editor, runtime scene loading, or game saves.
+**Current:** `SceneData` reads a flat list of entities whose properties are value types. `LevelSet::Levels` is a list of paths to other documents, but the engine sees plain strings - the game reads them off the `EntityInfo` and loads the level document itself, because the level has to be instantiated before the document naming it.
+**Concern:** A document is not the whole truth about a scene. The three pointer properties across the games (`Grid*`, `Weapon*`, `const GridCoordinateSystem*`) have no text form either, so `Platformer::Initialize` still wires `SetWorld`, `SetFalcon` and `SetCursor` by hand.
+**Future:** A property type the engine recognizes as a reference: load the named document, instantiate it, and hand back the entity. That needs a two-pass load (every entity has to exist before references resolve), a rule for load order, and cycle detection. It would also let Player and Falcon live in their own documents.
+**When:** When hand-wiring in `Initialize` becomes the thing standing between a new entity type and a playable level.
 
 ### File-based level data
 

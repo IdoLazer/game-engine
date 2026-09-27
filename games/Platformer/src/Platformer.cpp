@@ -1,44 +1,57 @@
 #include "Platformer.h"
-#include "PlatformerData.h"
+#include "PlatformerConstants.h"
 #include "PlatformerWorld.h"
 #include "Player.h"
 #include "PlatformerInputManager.h"
-#include "Levels/Levels.h"
+#include "Levels/LevelSet.h"
 #include "Cursor.h"
 #include "Falcon.h"
 
 using namespace Engine;
 
+namespace
+{
+    constexpr const char *PLATFORMER_SCENE = "assets/scenes/platformer.scene";
+}
+
 void Platformer::Initialize()
 {
-    const LevelData &level = *PlatformerData::LEVELS_DATA[m_currentLevel];
+    SceneData *rootScene = ResourceManager::Load<SceneData>(PLATFORMER_SCENE, CacheMode::Refresh);
+    if (!rootScene || rootScene->IsEmpty())
+        throw std::runtime_error(std::string("Failed to load ") + PLATFORMER_SCENE);
+
+    m_levelPaths = FindLevelPaths(*rootScene);
+    if (m_levelPaths.empty())
+        throw std::runtime_error(std::string("No LevelSet levels in ") + PLATFORMER_SCENE);
+
+    // The level list is re-read on every reload, so a level deleted from it can leave the index
+    // past the end.
+    if (m_currentLevel >= static_cast<int>(m_levelPaths.size()))
+        m_currentLevel = static_cast<int>(m_levelPaths.size()) - 1;
 
     float cellSize = Renderer2D::GetCamera().GetWorldWidth() / PlatformerConstants::GRID_WORLD_SIZE.x;
     m_grid = Grid(cellSize, PlatformerConstants::GRID_WORLD_SIZE);
 
-    PlatformerWorld *world = nullptr;
-    Player *player = nullptr;
-    Falcon *falcon = nullptr;
+    SceneData *levelScene = ResourceManager::Load<SceneData>(m_levelPaths[m_currentLevel], CacheMode::Refresh);
+    if (!levelScene || levelScene->IsEmpty())
+        throw std::runtime_error("Failed to load level " + m_levelPaths[m_currentLevel]);
 
-    for (const auto &entityInfo : PlatformerData::ENTITY_DATA)
-    {
-        auto *entity = GetScene()->Instantiate(entityInfo);
-        if (auto *gridEntity = dynamic_cast<GridEntity *>(entity))
-            gridEntity->SetGrid(&m_grid);
-        if (auto *w = dynamic_cast<PlatformerWorld *>(entity))
-        {
-            w->SetTileGrid(level.tileGrid);
-            w->SetCoordSystem(&m_grid.GetCoordinateSystem());
-            world = w;
-        }
-        if (auto *p = dynamic_cast<Player *>(entity))
-            player = p;
-        if (auto *f = dynamic_cast<Falcon *>(entity))
-            falcon = f;
-    }
+    // Level document first: its background and tiles must render behind the shared entities.
+    for (const SceneData *scene : {levelScene, rootScene})
+        for (const Scene::EntityInfo &entityInfo : scene->GetEntities())
+            GetScene()->Instantiate(entityInfo);
+
+    auto *world = GetScene()->GetFirstEntityOfType<PlatformerWorld>();
+    auto *player = GetScene()->GetFirstEntityOfType<Player>();
+    auto *falcon = GetScene()->GetFirstEntityOfType<Falcon>();
 
     if (!world || !player || !falcon)
         throw std::runtime_error("Failed to instantiate required entities (PlatformerWorld, Player, Falcon)");
+
+    for (GridEntity *gridEntity : GetScene()->GetAllEntitiesOfType<GridEntity>())
+        gridEntity->SetGrid(&m_grid);
+
+    world->SetCoordSystem(&m_grid.GetCoordinateSystem());
 
     player->SetWorld(world);
     falcon->SetWorld(world);
@@ -125,7 +138,7 @@ void Platformer::Shutdown()
 void Platformer::GoToNextLevel(int row)
 {
     m_currentLevel++;
-    if (m_currentLevel < static_cast<int>(PlatformerData::LEVELS_DATA.size()))
+    if (m_currentLevel < static_cast<int>(m_levelPaths.size()))
     {
         if (row >= 0)
         {
