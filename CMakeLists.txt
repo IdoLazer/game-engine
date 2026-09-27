@@ -99,6 +99,7 @@ target_include_directories(Platformer PRIVATE games/Platformer/src)
 target_link_libraries(Platformer PRIVATE Engine)
 set_target_properties(Platformer PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Platformer)
 copy_game_assets(Platformer "${CMAKE_SOURCE_DIR}/games/Platformer/assets")
+set_debug_asset_root(Platformer "${CMAKE_SOURCE_DIR}/games/Platformer/assets")
 
 # In Release builds, suppress the console window for game executables.
 # Debug keeps the console so std::cout/std::cerr diagnostics are visible.
