@@ -1,0 +1,36 @@
+// Level 0: Playground — a simple level for testing mechanics and iterating on level design:
+// 3 tile vertical wall - too high to jump over
+// 2 tile vertical wall - can be jumped over (but only full jump - min jump doesn't clear it)
+// 1 tile vertical wall - can be jumped over with min jump
+// Wall jump - the player can easily wall jump between 2-tile vertical walls that are vertically non-overlapping (i.e. they are on separate rows) and have a 2-column gap between them.
+// Wall jump - the player cannot use wall jump to gain height if the walls have 6 or more columns between them (the player will fall too far to reach the other wall).
+
+[Tile]
+WorldPosition = 0, 0
+WorldSize = 30, 20
+Color = 0.5, 0.7, 1, 1
+
+[PlatformerWorld]
+StaticTileColor = 0.3, 0.3, 0.3, 1
+DeathTileColor = 0.7, 0.1, 0.1, 1
+TileGrid = |
+#.............................
+#.............................
+#............#......#......#..
+#............#......#......#..
+#...............#...#......#..
+#...............#...#......#..
+#............#......#......#..
+#............#......#......#..
+#...............#...#......#..
+#...............#...#......#..
+#............#......#......#..
+#............#......#......#..
+#...............#...#......#..
+#...............#...#......#..
+#............#......#......#..
+#............#......#......#..
+#.#.............#...#......#..
+#.#......#......#...#......#..
+#.#.@.#..#......#..........#..
+##############################

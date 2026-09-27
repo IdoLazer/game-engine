@@ -57,10 +57,10 @@ games/
 │   │   └── Pieces/                     # Piece hierarchy (Pawn, Rook, Bishop, Knight, Queen, King)
 │   └── assets/                         # Game-specific assets (copied to build dir)
 └── Platformer/                         # Platformer game
+    ├── assets/scenes/                  # platformer.scene (root) + one document per level
     └── src/
         ├── Platformer.h/cpp            # Application subclass + level navigation
         ├── PlatformerConstants.h       # Tuning constants
-        ├── PlatformerData.h            # Entity and level data tables
         ├── PlatformerWorld.h/cpp       # Tile world: solidity, sweeps, spawns
         ├── PlatformerInputManager.h/cpp # Keyboard/mouse routing → events
         ├── Player.h/cpp                # Player body: velocity, collision, physics primitives
@@ -68,7 +68,10 @@ games/
         ├── Cursor.h/cpp                # Aiming cursor
         ├── TileType.h                  # Tile enum
         ├── Commands/                   # Deferred player and falcon inputs (Command pattern)
-        ├── Levels/                     # Level tile grids
+        ├── Levels/                     # Level loading
+        │   ├── TileGrid.h/cpp          # Tile rows + PropertyParser specialization
+        │   ├── TileLegend.h            # Character ↔ TileType table
+        │   └── LevelSet.h/cpp          # Entity carrying the level list from a document
         └── StateMachine/               # Hierarchical state machine + Player's and Falcon's states
             ├── State.h                 # Generic state node: lifecycle + tree structure
             ├── StateMachine.h          # Generic machine: transitions, dispatch, root-to-leaf update
@@ -254,6 +257,12 @@ for (const auto& info : data->GetEntities())
 ```
 
 A value of `|` starts a block value, running until a blank line, the next `[`, or end of file — for multi-line values such as a tile grid or a vector. Unknown types, unregistered properties, and values that don't parse are reported as `file:line: message` and skipped.
+
+The Platformer loads two documents: `platformer.scene`, the root, holding Player, Falcon, Cursor and
+a `LevelSet` whose `Levels` block lists the level documents in play order; and the current level's
+own, holding the background and `PlatformerWorld` with its `TileGrid`. Tile characters are `.` empty,
+`#` solid, `x` death, `@` spawn, `>` next level, `<` previous level, `e` and `r` entry and return
+spawns.
 
 ## Building
 
