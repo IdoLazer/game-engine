@@ -1,0 +1,35 @@
+// Testing level: the farthest horizontal gap the player can glide across with the falcon is 12 tiles.
+// This requires a long jump + starting the glide as soon as possible + starting the jump after going
+// off the edge, relying on coyote time.
+// A gap of 10 tiles can be comfortably cleared without having to rely on coyote time, while still being
+// somewhat of a challenge to the player.
+
+[Tile]
+WorldPosition = 0, 0
+WorldSize = 30, 20
+Color = 0.5, 0.7, 1, 1
+
+[PlatformerWorld]
+StaticTileColor = 0.3, 0.3, 0.3, 1
+DeathTileColor = 0.7, 0.1, 0.1, 1
+TileGrid = |
+#............................>
+#............................>
+#............................>
+#............................>
+#............................>
+#............................>
+#............................>
+#............................>
+#............................>
+#............................>
+#............................>
+#...#####...........#########>
+#............................>
+#............................>
+#@...........................>
+########.............#########
+#............................#
+#............................#
+#............................#
+#xxxxxxxxxxxxxxxxxxxxxxxxxxxx#

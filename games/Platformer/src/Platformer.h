@@ -29,6 +29,7 @@ private:
     enum class SpawnType { Entry, Return };
 
     // --- Fields ---
+    std::vector<std::string> m_levelPaths;
     int m_currentLevel = 0;
     bool m_hasSpawnOverride = false;
     SpawnType m_spawnType{SpawnType::Entry};

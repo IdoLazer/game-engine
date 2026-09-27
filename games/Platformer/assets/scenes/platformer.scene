@@ -1,0 +1,56 @@
+// The root scene document: entities every level shares, and the level list itself.
+
+[Player]
+GridSize = 0.4, 0.4
+Color = 1, 0, 0, 1
+Speed = 9
+AccelerationCoefficient = 80
+DecelerationCoefficient = 180
+AirAccelerationCoefficient = 35
+AirDecelerationCoefficient = 35
+GlideAccelerationCoefficient = 20
+GlideDecelerationCoefficient = 20
+WallHitDecelerationCoefficient = 30
+JumpForce = 12
+Gravity = 34
+CoyoteTime = 0.1
+WallCoyoteTime = 0.1
+JumpBufferTime = 0.1
+MinJumpTime = 0.15
+WallJumpLockTime = 0.33
+WallJumpForce = 13.5
+WallJumpAngle = 55
+MaxFallSpeed = 18
+WallSlideMaxSpeed = 5
+WallGravityScale = 0.15
+GlideMaxSpeed = 3
+GlideGravityScale = 0.1
+
+[Falcon]
+GridSize = 0.25, 0.25
+Color = 1, 1, 1, 1
+OffsetFromPlayer = 0.2, -0.2
+Speed = 12
+RetrieveSpeed = 20
+SnapRadius = 0.1
+GlideOffsetFromPlayer = 0, -0.3
+
+[Cursor]
+Radius = 0.05
+Color = 1, 1, 1, 1
+
+[LevelSet]
+Levels = |
+assets/scenes/falcon_gliding_testing.scene
+
+// The movement set, to play instead of the falcon set:
+// assets/scenes/movement_training_level_1.scene
+// assets/scenes/movement_training_level_2.scene
+// assets/scenes/movement_training_level_3.scene
+// assets/scenes/movement_training_level_4.scene
+// assets/scenes/movement_training_level_5.scene
+// assets/scenes/movement_training_level_6.scene
+// assets/scenes/movement_level_1.scene
+// assets/scenes/movement_level_2.scene
+// assets/scenes/movement_level_3.scene
+// assets/scenes/movement_level_4.scene

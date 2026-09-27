@@ -2,7 +2,7 @@
 
 #include <Engine.h>
 #include "TileType.h"
-#include <vector>
+#include "Levels/TileGrid.h"
 
 class PlatformerWorld : public Engine::TileMap
 {
@@ -33,7 +33,6 @@ public:
     Engine::Vec2 FindEntrySpawn(int row) const;
     Engine::Vec2 FindReturnSpawn(int row) const;
     Engine::Vec2 FindDefaultSpawn() const;
-    void SetTileGrid(const std::vector<std::vector<int>> &grid);
 
 // --- TileMap Interface ---
 protected:
@@ -41,13 +40,11 @@ protected:
 
 // --- Internal ---
 private:
-    TileType GetTileAt(int x, int y) const;
+    TileType TileAt(const Engine::Vec2 &cell) const;
 
 // --- Configuration ---
 private:
-    std::vector<std::vector<int>> m_tileGrid;
+    TileGrid m_tileGrid;
     Engine::Color m_staticTileColor{};
     Engine::Color m_deathTileColor{};
-    int m_rows{0};
-    int m_cols{0};
 };
