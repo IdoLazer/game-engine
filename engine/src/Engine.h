@@ -6,6 +6,7 @@
 // Core Engine Systems
 #include "Core/Application.h"
 #include "Core/Scene.h"
+#include "Core/SceneData.h"
 
 // Rendering System
 #include "Rendering/Window.h"

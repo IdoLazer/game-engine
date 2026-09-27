@@ -11,7 +11,8 @@ engine/
     ├── Core/                           # Application lifecycle, entry point, scene management
     │   ├── Application.h               # Base application class + CreateApplication() declaration
     │   ├── EntryPoint.h                # Engine-owned main() function
-    │   └── Scene.h                     # Entity ownership and lifecycle management
+    │   ├── Scene.h                     # Entity ownership and lifecycle management
+    │   └── SceneData.h                 # Scene document parsing → EntityInfo list
     ├── Entity/                         # Entity system
     │   ├── Entity.h                    # Base entity class (with Scene access for spawning)
     │   ├── GridEntity.h                # Grid-based entity with coordinate management
@@ -39,7 +40,7 @@ engine/
     ├── IO/                             # File access
     │   └── FileSystem.h                # Text file read/write, executable location
     ├── Resources/                      # Resource base class, ResourceManager (static API)
-    └── Utilities/                      # Timer
+    └── Utilities/                      # Timer, StringUtils
 games/
 ├── Snake/                              # Snake game
 │   ├── src/
@@ -64,7 +65,8 @@ tests/                                  # Google Test suite
 ├── FileSystemTest.cpp                  # Text file IO tests
 ├── ResourceManagerTest.cpp             # Resource caching and reload tests
 ├── PropertyParsingTest.cpp             # Text → property value parsing tests
-└── TypeRegistryTest.cpp                # Type registration, property lookup and parsing tests
+├── TypeRegistryTest.cpp                # Type registration, property lookup and parsing tests
+└── SceneDataTest.cpp                   # Scene document parsing and entity building tests
 ```
 
 ## How It Works
@@ -116,19 +118,13 @@ All paths are resolved relative to the executable's directory. CMake copies each
 
 Loadable resource types inherit from `Resource`. Currently `Texture2D` and `BitmapFont` exist; future types (audio, etc.) follow the same pattern.
 
-A resource can be re-read from disk without being replaced:
+`CacheMode::Refresh` re-reads a resource into the cached instance, so existing pointers stay valid:
 
 ```cpp
-// Re-reads the file into the cached instance, so existing pointers stay valid
 auto* texture = ResourceManager::Load<Texture2D>("assets/Pawn.png", CacheMode::Refresh);
 ```
 
-`Resource::Reload()` does the re-reading; types that don't override it return `false` and keep
-their cached data. A failed refresh leaves the previous version in place.
-
-`Engine::FileSystem` sits underneath, reading and writing text files and reporting the
-executable's directory. It resolves nothing on its own — deciding what a relative path is
-relative to belongs to whoever owns the data, which for assets is `ResourceManager`.
+Types that don't override `Resource::Reload()` return `false` and keep their cached data; a failed refresh leaves the previous version in place. `Engine::FileSystem` provides the underlying text file read/write and reports the executable's directory.
 
 ## Text Rendering
 
@@ -186,31 +182,47 @@ This enables runtime instantiation by name and data-driven property assignment �
 
 ### Properties From Text
 
-`REGISTER_PROPERTY` also records how to turn text into that property's type, so a registered
-property can be set from a file:
+`REGISTER_PROPERTY` also records how to build the property's type from text. `float`, `int`, `bool`, `std::string`, `Vec2` and `Color` are built in; a game adds its own:
 
 ```cpp
-// While reading a file: build a PropertyMap, one property at a time
-PropertyMap properties;
-properties["JumpForce"] = TypeRegistry::Get().ParseProperty("Player", "JumpForce", "12.5");
-
-// Later, when the entity is created
-GetScene()->Instantiate(EntityInfo{"Player", properties});
-```
-
-`float`, `int`, `bool`, `std::string`, `Vec2` and `Color` are built in. A game adds its own types by
-specializing `PropertyParser`:
-
-```cpp
-template <> struct Engine::PropertyParser<PieceColor>
+namespace Engine
 {
-    static std::optional<PieceColor> Parse(std::string_view text);
-};
+    template <>
+    struct PropertyParser<PieceColor>
+    {
+        static std::optional<PieceColor> Parse(std::string_view text);
+    };
+}
 ```
 
-Types with no specialization — pointers to other entities, for instance — get a null parser and keep
-being assigned in code. `ParseProperty` returns an empty `std::any` for them, and for text that
-doesn't parse.
+Types with no specialization, such as pointers to other entities, stay assigned in code.
+
+## Scene Documents
+
+A scene document lists entities to instantiate. Each `[TypeName]` section is one entity; each `Key = Value` beneath it sets one registered property.
+
+```text
+// Lines starting with // are comments
+
+[GridTile]
+GridPosition = 3, 4
+Color = 0.3, 0.3, 0.3
+
+[TextEntity]
+FontPath = assets/font.png
+Text = Hello!
+CharHeight = 0.5
+```
+
+`SceneData` is a `Resource`, so a document loads and reloads like any other asset:
+
+```cpp
+auto* data = ResourceManager::Load<SceneData>("assets/first.scene", CacheMode::Refresh);
+for (const auto& info : data->GetEntities())
+    GetScene()->Instantiate(info);
+```
+
+A value of `|` starts a block value, running until a blank line, the next `[`, or end of file — for multi-line values such as a tile grid. Unknown types, unregistered properties, and values that don't parse are reported as `file:line: message` and skipped.
 
 ## Building
 
