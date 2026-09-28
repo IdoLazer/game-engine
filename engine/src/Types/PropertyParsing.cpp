@@ -1,4 +1,5 @@
 #include "PropertyParsing.h"
+#include "../Utilities/StringUtils.h"
 
 #include <cstdlib>
 #include <vector>
@@ -7,18 +8,6 @@ namespace Engine
 {
     namespace
     {
-        constexpr const char *WHITESPACE = " \t";
-
-        std::string_view Trim(std::string_view text)
-        {
-            std::size_t first = text.find_first_not_of(WHITESPACE);
-            if (first == std::string_view::npos)
-                return {};
-
-            std::size_t last = text.find_last_not_of(WHITESPACE);
-            return text.substr(first, last - first + 1);
-        }
-
         std::vector<std::string_view> SplitOnCommas(std::string_view text)
         {
             std::vector<std::string_view> fields;
