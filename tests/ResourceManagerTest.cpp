@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
+#include "IO/FileSystem.h"
 #include "Resources/ResourceManager.h"
+
+#include <filesystem>
 
 using namespace Engine;
 
@@ -151,4 +154,53 @@ TEST_F(ResourceManagerTest, ResourcesDoNotReloadUnlessTheyImplementIt)
 {
     UnreloadableResource plain("plain.res");
     EXPECT_FALSE(plain.Reload());
+}
+
+// --- Asset Root ---
+
+TEST_F(ResourceManagerTest, AssetPathsResolveAgainstTheExecutableDirectoryByDefault)
+{
+    auto *resource = ResourceManager::Load<FakeResource>("fake.res");
+
+    ASSERT_NE(resource, nullptr);
+    EXPECT_EQ(std::filesystem::path(resource->GetPath()),
+              FileSystem::GetExecutableDirectory() / "fake.res");
+}
+
+TEST_F(ResourceManagerTest, SetAssetRootChangesWhereAssetPathsResolve)
+{
+    std::filesystem::path root = std::filesystem::temp_directory_path() / "AssetRootTest";
+
+    ResourceManager::Shutdown();
+    ResourceManager::SetAssetRoot(root);
+    ResourceManager::Initialize();
+
+    auto *resource = ResourceManager::Load<FakeResource>("fake.res");
+
+    ASSERT_NE(resource, nullptr);
+    EXPECT_EQ(std::filesystem::path(resource->GetPath()), root / "fake.res");
+}
+
+// EntryPoint sets the root before Run(), which is before Initialize() runs.
+TEST_F(ResourceManagerTest, InitializeKeepsAnAssetRootThatWasAlreadySet)
+{
+    std::filesystem::path root = std::filesystem::temp_directory_path() / "PresetRootTest";
+
+    ResourceManager::Shutdown();
+    ResourceManager::SetAssetRoot(root);
+    ResourceManager::Initialize();
+
+    EXPECT_EQ(std::filesystem::path(ResourceManager::Load<FakeResource>("fake.res")->GetPath()),
+              root / "fake.res");
+}
+
+TEST_F(ResourceManagerTest, ShutdownForgetsTheAssetRoot)
+{
+    ResourceManager::Shutdown();
+    ResourceManager::SetAssetRoot(std::filesystem::temp_directory_path() / "Forgotten");
+    ResourceManager::Shutdown();
+    ResourceManager::Initialize();
+
+    EXPECT_EQ(std::filesystem::path(ResourceManager::Load<FakeResource>("fake.res")->GetPath()),
+              FileSystem::GetExecutableDirectory() / "fake.res");
 }

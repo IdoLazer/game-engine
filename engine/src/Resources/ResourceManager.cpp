@@ -5,22 +5,29 @@
 namespace Engine
 {
     std::unordered_map<std::string, std::unique_ptr<Resource>> ResourceManager::s_resources;
-    std::filesystem::path ResourceManager::s_basePath;
+    std::filesystem::path ResourceManager::s_assetRoot;
+
+    void ResourceManager::SetAssetRoot(const std::filesystem::path &root)
+    {
+        s_assetRoot = root;
+    }
 
     void ResourceManager::Initialize()
     {
         s_resources.clear();
 
-        // Assets ship next to the executable, so that's what asset paths are relative to.
-        s_basePath = FileSystem::GetExecutableDirectory();
+        // Assets ship next to the executable, so that is where they are read from unless something
+        // pointed the root elsewhere first.
+        if (s_assetRoot.empty())
+            s_assetRoot = FileSystem::GetExecutableDirectory();
 
-        std::cout << "ResourceManager initialized. Base path: " << s_basePath.string() << std::endl;
+        std::cout << "ResourceManager initialized. Asset root: " << s_assetRoot.string() << std::endl;
     }
 
     void ResourceManager::Shutdown()
     {
         s_resources.clear();
-        s_basePath.clear();
+        s_assetRoot.clear();
         std::cout << "ResourceManager shut down. All resources released." << std::endl;
     }
 }

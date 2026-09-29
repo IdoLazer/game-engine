@@ -26,6 +26,10 @@ namespace Engine
         static void Initialize();
         static void Shutdown();
 
+        // The directory asset paths resolve against. Call before Initialize(), which otherwise
+        // defaults it to the executable's directory.
+        static void SetAssetRoot(const std::filesystem::path &root);
+
         // Load a resource by path. Returns cached instance on subsequent calls, unless
         // CacheMode::Refresh asks for it to be re-read from disk first.
         // T must inherit from Resource and have a constructor taking std::string.
@@ -57,7 +61,7 @@ namespace Engine
             }
 
             // Resolve the path relative to the executable's directory
-            std::string fullPath = (s_basePath / path).string();
+            std::string fullPath = (s_assetRoot / path).string();
 
             // Not cached — create, cache, and return
             auto resource = std::make_unique<T>(fullPath);
@@ -70,6 +74,6 @@ namespace Engine
 
     private:
         static std::unordered_map<std::string, std::unique_ptr<Resource>> s_resources;
-        static std::filesystem::path s_basePath;  // Directory game assets are resolved against
+        static std::filesystem::path s_assetRoot;
     };
 }

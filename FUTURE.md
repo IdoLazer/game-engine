@@ -100,7 +100,7 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 
 ### Asset paths are relative to the executable
 
-**Current:** CMake copies game assets next to the exe via `POST_BUILD`. Games use paths like `"assets/Pawn.png"`.  
-**Concern:** This assumes the working directory is the exe's directory. Running from a different CWD would break.  
-**Future:** Resolve asset paths relative to the executable's location (using platform APIs like `GetModuleFileName` on Windows), or introduce a virtual file system.  
-**When:** If anyone runs a game from a non-standard working directory, or if we support multiple platforms.
+**Current:** `ResourceManager` resolves asset paths against an explicit asset root - the executable's directory, or the game's source directory in Debug. Assets are loose files copied next to the exe.
+**Concern:** Loose files mean a shipped game's assets are readable and editable, and every load is a separate file open. There is also no way to load an asset from anywhere but the one root.
+**Future:** A virtual file system: mount several roots (a pack file, a patch directory, the loose source tree) and resolve through them in order. `ResourceManager::SetAssetRoot` is the single seam this would replace.
+**When:** When we ship a build to someone else, or need to override assets without replacing them.
