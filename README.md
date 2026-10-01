@@ -114,7 +114,7 @@ The engine's `Application` base class provides:
 auto* texture = ResourceManager::Load<Texture2D>("assets/Pawn.png");
 ```
 
-Asset paths resolve against `ResourceManager`'s asset root: the executable's directory, where CMake copies each game's `assets/` folder at build time. In Debug the root points at the game's source directory instead, so editing an asset and reloading picks it up without a build. `EntryPoint.h` sets that up from a CMake definition, so games are unaware of it either way and use plain relative paths.
+Asset paths resolve against `ResourceManager`'s asset root: the executable's directory, where CMake copies each game's `assets/` folder at build time. In Debug the root points at the game's source directory instead, so editing an asset and reloading picks it up without a build. `ResourceManager` picks the root from a per-game CMake definition (`GAME_SOURCE_DIR`), so games are unaware of it either way and use plain relative paths. Because the definition differs per game, `ResourceManager.cpp` is the one engine source compiled into each game rather than once into the shared `Engine` library.
 
 Loadable resource types inherit from `Resource`. Currently `Texture2D` and `BitmapFont` exist; future types (audio, etc.) follow the same pattern.
 

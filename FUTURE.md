@@ -48,6 +48,13 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** If this causes missed-file bugs, switch to explicit source lists or use a file-watcher wrapper.  
 **When:** If someone adds a file and the build silently ignores it.
 
+### Per-game compile definitions reach only one engine source
+
+**Current:** `Engine` is an `OBJECT` library compiled once and linked into every game, so a game's compile definitions never reach it. `ResourceManager.cpp` needs one (`GAME_SOURCE_DIR`), so CMake leaves it out of the library and compiles it into each game instead.  
+**Concern:** It is a special case in the build - one engine file compiled once per target - and every further per-game value adds another file to that list.  
+**Future:** Hand per-game settings to the engine at runtime instead: a project file beside the executable, or a command-line argument like Quake's `-basedir`. No engine source would then depend on which game it is built for.  
+**When:** When a second engine source needs a per-game value.
+
 ---
 
 ## Resource System
@@ -102,5 +109,5 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 
 **Current:** `ResourceManager` resolves asset paths against an explicit asset root - the executable's directory, or the game's source directory in Debug. Assets are loose files copied next to the exe.
 **Concern:** Loose files mean a shipped game's assets are readable and editable, and every load is a separate file open. There is also no way to load an asset from anywhere but the one root.
-**Future:** A virtual file system: mount several roots (a pack file, a patch directory, the loose source tree) and resolve through them in order. `ResourceManager::SetAssetRoot` is the single seam this would replace.
+**Future:** A virtual file system: mount several roots (a pack file, a patch directory, the loose source tree) and resolve through them in order. `ResourceManager`'s asset root is the single seam this would replace.
 **When:** When we ship a build to someone else, or need to override assets without replacing them.

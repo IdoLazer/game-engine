@@ -38,7 +38,12 @@ find_package(OpenGL REQUIRED)
 file(GLOB_RECURSE ENGINE_SOURCES "engine/src/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADERS "engine/src/*.h")
 
+# Compiled into each target that links Engine, so they see that target's GAME_SOURCE_DIR.
+set(PER_GAME_ENGINE_SOURCES "${CMAKE_SOURCE_DIR}/engine/src/Resources/ResourceManager.cpp")
+list(REMOVE_ITEM ENGINE_SOURCES ${PER_GAME_ENGINE_SOURCES})
+
 add_library(Engine OBJECT ${ENGINE_SOURCES} ${ENGINE_HEADERS})
+target_sources(Engine INTERFACE ${PER_GAME_ENGINE_SOURCES})
 
 target_include_directories(Engine PUBLIC engine/src)
 target_link_libraries(Engine PUBLIC glfw OpenGL::GL)
@@ -61,8 +66,7 @@ function(copy_game_assets TARGET ASSET_DIR)
     endif()
 endfunction()
 
-# In Debug, tells the engine to read this game's assets from the source tree rather than the copy
-# beside the executable, so editing one needs no rebuild. EntryPoint.h reads the definition.
+# In Debug, points ResourceManager at this game's source assets instead of the copy beside the exe.
 function(set_debug_asset_root TARGET ASSET_DIR)
     if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND EXISTS "${ASSET_DIR}")
         get_filename_component(GAME_DIR "${ASSET_DIR}" DIRECTORY)
