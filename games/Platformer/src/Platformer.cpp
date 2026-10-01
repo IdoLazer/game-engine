@@ -12,34 +12,31 @@ using namespace Engine;
 namespace
 {
     constexpr const char *PLATFORMER_SCENE = "assets/scenes/platformer.scene";
+
+    // Scene documents are edited while the game runs only in Debug, so only Debug re-reads them.
+#ifdef NDEBUG
+    constexpr CacheMode SCENE_CACHE_MODE = CacheMode::Reuse;
+#else
+    constexpr CacheMode SCENE_CACHE_MODE = CacheMode::Refresh;
+#endif
 }
 
 void Platformer::Initialize()
 {
-    SceneData *rootScene = ResourceManager::Load<SceneData>(PLATFORMER_SCENE, CacheMode::Refresh);
+    SceneData *rootScene = ResourceManager::Load<SceneData>(PLATFORMER_SCENE, SCENE_CACHE_MODE);
     if (!rootScene || rootScene->IsEmpty())
         throw std::runtime_error(std::string("Failed to load ") + PLATFORMER_SCENE);
-
-    m_levelPaths = FindLevelPaths(*rootScene);
-    if (m_levelPaths.empty())
-        throw std::runtime_error(std::string("No LevelSet levels in ") + PLATFORMER_SCENE);
-
-    // The level list is re-read on every reload, so a level deleted from it can leave the index
-    // past the end.
-    if (m_currentLevel >= static_cast<int>(m_levelPaths.size()))
-        m_currentLevel = static_cast<int>(m_levelPaths.size()) - 1;
 
     float cellSize = Renderer2D::GetCamera().GetWorldWidth() / PlatformerConstants::GRID_WORLD_SIZE.x;
     m_grid = Grid(cellSize, PlatformerConstants::GRID_WORLD_SIZE);
 
-    SceneData *levelScene = ResourceManager::Load<SceneData>(m_levelPaths[m_currentLevel], CacheMode::Refresh);
-    if (!levelScene || levelScene->IsEmpty())
-        throw std::runtime_error("Failed to load level " + m_levelPaths[m_currentLevel]);
-
-    // Level document first: its background and tiles must render behind the shared entities.
-    for (const SceneData *scene : {levelScene, rootScene})
-        for (const Scene::EntityInfo &entityInfo : scene->GetEntities())
-            GetScene()->Instantiate(entityInfo);
+    // Entities render in the order instantiated, so the level lands where the document lists LevelSet.
+    for (const Scene::EntityInfo &entityInfo : rootScene->GetEntities())
+    {
+        Entity *entity = GetScene()->Instantiate(entityInfo);
+        if (auto *levelSet = dynamic_cast<LevelSet *>(entity))
+            InstantiateCurrentLevel(*levelSet);
+    }
 
     auto *world = GetScene()->GetFirstEntityOfType<PlatformerWorld>();
     auto *player = GetScene()->GetFirstEntityOfType<Player>();
@@ -131,6 +128,27 @@ void Platformer::Shutdown()
     m_retrieveSub.Unsubscribe();
     m_glideSub.Unsubscribe();
     m_stopGlideSub.Unsubscribe();
+}
+
+// --- Level Loading ---
+
+void Platformer::InstantiateCurrentLevel(const LevelSet &levelSet)
+{
+    m_levelPaths = levelSet.GetLevels();
+    if (m_levelPaths.empty())
+        throw std::runtime_error(std::string("No LevelSet levels in ") + PLATFORMER_SCENE);
+
+    // A level deleted from the list between reloads can leave the index past the end.
+    if (m_currentLevel >= static_cast<int>(m_levelPaths.size()))
+        m_currentLevel = static_cast<int>(m_levelPaths.size()) - 1;
+
+    const std::string &levelPath = m_levelPaths[m_currentLevel];
+    SceneData *levelScene = ResourceManager::Load<SceneData>(levelPath, SCENE_CACHE_MODE);
+    if (!levelScene || levelScene->IsEmpty())
+        throw std::runtime_error("Failed to load level " + levelPath);
+
+    for (const Scene::EntityInfo &entityInfo : levelScene->GetEntities())
+        GetScene()->Instantiate(entityInfo);
 }
 
 // --- Level Navigation ---
