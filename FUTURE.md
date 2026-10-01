@@ -194,32 +194,28 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 
 ### Documents can name each other, but the engine doesn't resolve it
 
-**Current:** `SceneData` reads a flat list of entities whose properties are value types. `LevelSet::Levels` is a list of paths to other documents, but the engine sees plain strings - the game reads them off the `EntityInfo` and loads the level document itself, because the level has to be instantiated before the document naming it.
+**Current:** `SceneData` reads a flat list of entities whose properties are value types. `LevelSet::Levels` is a list of paths to other documents, but the engine sees plain strings - when the game instantiates the `LevelSet` it loads the current level's document itself, then carries on with the rest of the root document.
 **Concern:** A document is not the whole truth about a scene. The three pointer properties across the games (`Grid*`, `Weapon*`, `const GridCoordinateSystem*`) have no text form either, so `Platformer::Initialize` still wires `SetWorld`, `SetFalcon` and `SetCursor` by hand.
 **Future:** A property type the engine recognizes as a reference: load the named document, instantiate it, and hand back the entity. That needs a two-pass load (every entity has to exist before references resolve), a rule for load order, and cycle detection. It would also let Player and Falcon live in their own documents.
 **When:** When hand-wiring in `Initialize` becomes the thing standing between a new entity type and a playable level.
 
-### File-based level data
+### Draw order is instantiation order
 
-**Current:** Level grids (tile layouts) are defined as C++ constants in game code. Adding or changing a level requires recompilation.  
-**Concern:** Designers can't iterate on levels without a C++ toolchain. The data-in-code pattern won't scale to dozens of levels.  
-**Future:** Load level data from files (JSON, CSV, or a custom text format). This requires choosing a format, adding a file-parsing module to the engine, and integrating with the resource system. Could pair with an editor that exports levels directly.  
-**When:** When level count grows beyond what's comfortable in code, or when we build editor tooling.
+**Current:** `Scene` renders entities in the order they were instantiated, so the order of a document's sections decides what draws on top. The Platformer's root document lists `LevelSet` first so that the level it pulls in lands behind Player, Falcon and Cursor.
+**Concern:** Position in a file is an implicit way of saying "behind". Reordering sections for readability changes what covers what, and an entity spawned mid-game can only ever land on top.
+**Future:** An explicit layer (or order) property on `Entity` that `Scene::Render` sorts by, so depth is stated in the document rather than implied by it.
+**When:** When something spawned at runtime has to draw behind an existing entity, or a document's reading order and its draw order need to differ.
 
----
+### No saving back to a scene document
 
-## Resource System
+**Current:** Documents are read-only. `PropertyParser<T>` turns text into a value; nothing turns a value back into text, and `TileLegend` only maps characters to tiles.
+**Concern:** An in-game editor needs to write what it changed. Without saving, edits have to be typed into the file by hand.
+**Future:** A matching `PropertyWriter<T>` (or a `ToString` beside each `Parse`), plus the reverse of `TileLegend`, and a document writer that keeps comments where it can. `FileSystem::WriteTextFile` is already there.
+**When:** When we build an in-game editor, which is the only thing that needs it.
 
-### Refresh is manual - no file watching
+### Snake and Chess still hold their data in C++
 
-**Current:** `ResourceManager::Load<T>(path, CacheMode::Refresh)` re-reads a resource only when a caller explicitly asks. Nothing notices that a file on disk changed.
-**Concern:** Every iteration loop has to route through something that knows to pass `Refresh`. Editing an asset while the game runs does nothing until that code path happens to run again.
-**Future:** Watch the asset directory (`ReadDirectoryChangesW` on Windows, or poll `last_write_time`) and refresh the affected resources automatically. The `Reload()` contract already preserves object identity, so nothing holding a resource pointer needs to know it happened.
-**When:** When manually triggering a refresh becomes the annoying part of iterating on art or level data.
-
-### Asset paths are relative to the executable
-
-**Current:** `ResourceManager` resolves asset paths against an explicit asset root - the executable's directory, or the game's source directory in Debug. Assets are loose files copied next to the exe.
-**Concern:** Loose files mean a shipped game's assets are readable and editable, and every load is a separate file open. There is also no way to load an asset from anywhere but the one root.
-**Future:** A virtual file system: mount several roots (a pack file, a patch directory, the loose source tree) and resolve through them in order. `ResourceManager`'s asset root is the single seam this would replace.
-**When:** When we ship a build to someone else, or need to override assets without replacing them.
+**Current:** `CHESS_PIECES_DATA`, `TURN_LABEL_DATA` and `GAME_OVER_LABEL_DATA` are `EntityInfo` tables in `ChessConstants.h`; Snake does the same. Only the Platformer reads scene documents.
+**Concern:** Two ways to describe the same thing. The Chess board's 32 pieces are exactly the repetitive data a document handles better than a C++ table.
+**Future:** Move them to scene documents. Chess needs a `PropertyParser` for its `PieceColor` and `Type` enums; the rest is float, Vec2, Color and string, which are built in.
+**When:** When either game is touched for another reason. Nothing is wrong with them today.
