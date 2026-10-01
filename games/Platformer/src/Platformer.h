@@ -5,6 +5,7 @@
 // --- Forward Declarations ---
 class PlatformerInputManager;
 class Cursor;
+class LevelSet;
 
 // --- Platformer Application ---
 class Platformer : public Engine::Application
@@ -22,6 +23,7 @@ public:
 
 private:
     // --- Game Logic ---
+    void InstantiateCurrentLevel(const LevelSet &levelSet);
     void GoToNextLevel(int row);
     void GoToPreviousLevel(int row);
     void ReloadCurrentLevel();

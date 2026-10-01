@@ -258,9 +258,11 @@ for (const auto& info : data->GetEntities())
 
 A value of `|` starts a block value, running until a blank line, the next `[`, or end of file — for multi-line values such as a tile grid or a vector. Unknown types, unregistered properties, and values that don't parse are reported as `file:line: message` and skipped.
 
-The Platformer loads two documents: `platformer.scene`, the root, holding Player, Falcon, Cursor and
-a `LevelSet` whose `Levels` block lists the level documents in play order; and the current level's
-own, holding the background and `PlatformerWorld` with its `TileGrid`. Tile characters are `.` empty,
+The Platformer loads two documents: `platformer.scene`, the root, holding a `LevelSet` whose `Levels`
+block lists the level documents in play order, then Player, Falcon and Cursor; and the current level's
+own, holding the background and `PlatformerWorld` with its `TileGrid`. Entities draw in the order they
+are instantiated, and the level is instantiated when the root document reaches `LevelSet` - so listing
+it first puts the level behind everything else. Tile characters are `.` empty,
 `#` solid, `x` death, `@` spawn, `>` next level, `<` previous level, `e` and `r` entry and return
 spawns.
 
