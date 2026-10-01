@@ -6,9 +6,12 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 #include "../Graphics/Color.h"
 #include "../Math/Vec2.h"
+#include "../Utilities/StringUtils.h"
 
 namespace Engine
 {
@@ -30,6 +33,27 @@ namespace Engine
     template <> struct PropertyParser<std::string> { static std::optional<std::string> Parse(std::string_view text); };
     template <> struct PropertyParser<Vec2>        { static std::optional<Vec2> Parse(std::string_view text); };
     template <> struct PropertyParser<Color>       { static std::optional<Color> Parse(std::string_view text); };
+
+    // One element per line, since an element such as a Vec2 has commas of its own.
+    template <ParsableProperty T>
+    struct PropertyParser<std::vector<T>>
+    {
+        static std::optional<std::vector<T>> Parse(std::string_view text)
+        {
+            std::vector<T> elements;
+
+            for (std::string_view line : SplitNonBlankLines(text))
+            {
+                std::optional<T> element = PropertyParser<T>::Parse(line);
+                if (!element)
+                    return std::nullopt;
+
+                elements.push_back(std::move(*element));
+            }
+
+            return elements;
+        }
+    };
 
     // Null for a type with no PropertyParser - properties of that type stay assigned in code.
     template <typename T>

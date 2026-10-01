@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string_view>
+#include <vector>
 
 namespace Engine
 {
@@ -24,5 +25,23 @@ namespace Engine
             return {};
 
         return text.substr(0, last + 1);
+    }
+
+    // The lines of a text, each trimmed, with blank ones left out.
+    inline std::vector<std::string_view> SplitNonBlankLines(std::string_view text)
+    {
+        std::vector<std::string_view> lines;
+
+        while (!text.empty())
+        {
+            std::size_t newline = text.find('\n');
+            std::string_view line = Trim(text.substr(0, newline));
+            if (!line.empty())
+                lines.push_back(line);
+
+            text.remove_prefix(newline == std::string_view::npos ? text.size() : newline + 1);
+        }
+
+        return lines;
     }
 }
