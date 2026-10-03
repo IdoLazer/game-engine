@@ -66,6 +66,7 @@ tests/                                  # Google Test suite
 ├── ResourceManagerTest.cpp             # Resource caching and reload tests
 ├── PropertyParsingTest.cpp             # Text → property value parsing tests
 ├── TypeRegistryTest.cpp                # Type registration, property lookup and parsing tests
+├── Camera2DTest.cpp                    # Camera world, screen and OpenGL conversion tests
 └── SceneDataTest.cpp                   # Scene document parsing and entity building tests
 ```
 
