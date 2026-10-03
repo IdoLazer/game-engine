@@ -11,11 +11,14 @@ static_assert(ParsableProperty<bool>);
 static_assert(ParsableProperty<std::string>);
 static_assert(ParsableProperty<Vec2>);
 static_assert(ParsableProperty<Color>);
+static_assert(ParsableProperty<std::vector<std::string>>);
+static_assert(ParsableProperty<std::vector<Vec2>>);
 
 // A type with no PropertyParser specialization can't come from text.
 struct Unparsable {};
 static_assert(!ParsableProperty<Unparsable>);
 static_assert(!ParsableProperty<float *>);
+static_assert(!ParsableProperty<std::vector<Unparsable>>);
 
 // --- float ---
 
@@ -116,6 +119,47 @@ TEST(PropertyParsing, RejectsColorWithWrongComponentCount)
 {
     EXPECT_FALSE(PropertyParser<Color>::Parse("1, 0").has_value());
     EXPECT_FALSE(PropertyParser<Color>::Parse("1, 0, 0, 1, 0").has_value());
+}
+
+// --- vector ---
+
+TEST(PropertyParsing, ParsesAVectorWithOneElementPerLine)
+{
+    std::vector<std::string> expected = {"first.scene", "second.scene"};
+
+    EXPECT_EQ(*PropertyParser<std::vector<std::string>>::Parse("first.scene\nsecond.scene"), expected);
+}
+
+TEST(PropertyParsing, VectorElementsMayContainCommas)
+{
+    std::vector<Vec2> expected = {Vec2(1.0f, 2.0f), Vec2(3.0f, 4.0f)};
+
+    EXPECT_EQ(*PropertyParser<std::vector<Vec2>>::Parse("1, 2\n3, 4"), expected);
+}
+
+TEST(PropertyParsing, ASingleLineValueIsAVectorOfOneElement)
+{
+    EXPECT_EQ(*PropertyParser<std::vector<int>>::Parse("7"), std::vector<int>{7});
+}
+
+TEST(PropertyParsing, VectorSkipsBlankLines)
+{
+    std::vector<int> expected = {1, 2};
+
+    EXPECT_EQ(*PropertyParser<std::vector<int>>::Parse("1\n\n   \n2\n"), expected);
+}
+
+TEST(PropertyParsing, AnEmptyValueIsAnEmptyVector)
+{
+    std::optional<std::vector<int>> parsed = PropertyParser<std::vector<int>>::Parse("");
+
+    ASSERT_TRUE(parsed.has_value());
+    EXPECT_TRUE(parsed->empty());
+}
+
+TEST(PropertyParsing, RejectsAVectorWithAnElementThatDoesNotParse)
+{
+    EXPECT_FALSE(PropertyParser<std::vector<int>>::Parse("1\ntwo\n3").has_value());
 }
 
 // --- MakePropertyParser ---

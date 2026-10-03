@@ -52,6 +52,7 @@ class SceneTestEntity : public Engine::Entity
     std::string m_label;
     Vec2 m_offset{};
     TestRows m_rows;
+    std::vector<Vec2> m_waypoints;
     Engine::Entity *m_target{nullptr};
 
 public:
@@ -59,6 +60,7 @@ public:
     const std::string &GetLabel() const { return m_label; }
     Vec2 GetOffset() const { return m_offset; }
     const TestRows &GetRows() const { return m_rows; }
+    const std::vector<Vec2> &GetWaypoints() const { return m_waypoints; }
 };
 
 BEGIN_TYPE_REGISTER(SceneTestEntity)
@@ -66,6 +68,7 @@ BEGIN_TYPE_REGISTER(SceneTestEntity)
     REGISTER_PROPERTY(std::string, Label, &SceneTestEntity::m_label)
     REGISTER_PROPERTY(Vec2, Offset, &SceneTestEntity::m_offset)
     REGISTER_PROPERTY(TestRows, Rows, &SceneTestEntity::m_rows)
+    REGISTER_PROPERTY(std::vector<Vec2>, Waypoints, &SceneTestEntity::m_waypoints)
     REGISTER_PROPERTY(Engine::Entity *, Target, &SceneTestEntity::m_target)
 END_TYPE_REGISTER()
 
@@ -268,6 +271,20 @@ TEST_F(SceneDataTest, BlockValuesReachAGameRegisteredParser)
     ASSERT_EQ(rows.rows.size(), 2u);
     EXPECT_EQ(rows.rows[0], "#..#");
     EXPECT_EQ(rows.rows[1], "#@.#");
+}
+
+TEST_F(SceneDataTest, BlockValuesFillAVectorProperty)
+{
+    SceneData scene(WriteDocument("[SceneTestEntity]\nWaypoints = |\n1, 2\n3, 4\n"));
+
+    ASSERT_EQ(scene.GetEntities().size(), 1u);
+
+    SceneTestEntity entity;
+    const Scene::EntityInfo &info = scene.GetEntities()[0];
+    TypeRegistry::Get().SetProperties(&entity, info.typeName, info.properties);
+
+    std::vector<Vec2> expected = {Vec2(1.0f, 2.0f), Vec2(3.0f, 4.0f)};
+    EXPECT_EQ(entity.GetWaypoints(), expected);
 }
 
 TEST_F(SceneDataTest, AppliedPropertiesEndUpOnTheEntity)

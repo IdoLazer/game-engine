@@ -195,6 +195,14 @@ namespace Engine
 }
 ```
 
+A `std::vector` of any parsable type is parsable too, one element per line:
+
+```text
+Waypoints = |
+1, 2
+3, 4
+```
+
 Types with no specialization, such as pointers to other entities, stay assigned in code.
 
 ## Scene Documents
@@ -222,7 +230,7 @@ for (const auto& info : data->GetEntities())
     GetScene()->Instantiate(info);
 ```
 
-A value of `|` starts a block value, running until a blank line, the next `[`, or end of file — for multi-line values such as a tile grid. Unknown types, unregistered properties, and values that don't parse are reported as `file:line: message` and skipped.
+A value of `|` starts a block value, running until a blank line, the next `[`, or end of file — for multi-line values such as a tile grid or a vector. Unknown types, unregistered properties, and values that don't parse are reported as `file:line: message` and skipped.
 
 ## Building
 
