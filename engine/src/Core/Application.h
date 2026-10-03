@@ -54,6 +54,11 @@ namespace Engine
         void Close();
         void ReloadScene();
 
+    // --- Scene Reload ---
+    protected:
+        // Runs between frames after ReloadScene(). Restarts the game unless overridden.
+        virtual void RebuildScene();
+
     // --- Internal ---
     private:
         bool InitializeSubsystems();

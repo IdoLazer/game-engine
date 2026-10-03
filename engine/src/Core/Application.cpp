@@ -68,9 +68,7 @@ namespace Engine
             if (m_reloadRequested)
             {
                 m_reloadRequested = false;
-                Shutdown();
-                m_scene.Clear();
-                Initialize();
+                RebuildScene();
                 m_lastFrameTime = glfwGetTime();
             }
 
@@ -129,6 +127,15 @@ namespace Engine
     Scene *Application::GetScene() { return &m_scene; }
     void Application::Close() { m_running = false; }
     void Application::ReloadScene() { m_reloadRequested = true; }
+
+// --- Scene Reload ---
+
+    void Application::RebuildScene()
+    {
+        Shutdown();
+        m_scene.Clear();
+        Initialize();
+    }
 
 // --- Internal ---
 

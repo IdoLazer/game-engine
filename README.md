@@ -104,6 +104,7 @@ The engine's `Application` base class provides:
 - A `Scene` for entity ownership (`GetScene()->Instantiate<T>()`)
 - A main loop that calls `Initialize → Update/Render → Shutdown`
 - `Close()` to request a clean exit
+- `ReloadScene()` to rebuild the scene between frames. By default it restarts the game (`Shutdown`, clear the scene, `Initialize`); a game overrides `RebuildScene()` to rebuild it another way
 
 ## Resource System
 
