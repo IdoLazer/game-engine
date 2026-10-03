@@ -5,6 +5,7 @@
 // --- Forward Declarations ---
 class PlatformerInputManager;
 class Cursor;
+class LevelSet;
 
 // --- Platformer Application ---
 class Platformer : public Engine::Application
@@ -22,6 +23,7 @@ public:
 
 private:
     // --- Game Logic ---
+    void InstantiateCurrentLevel(const LevelSet &levelSet);
     void GoToNextLevel(int row);
     void GoToPreviousLevel(int row);
     void ReloadCurrentLevel();
@@ -29,6 +31,7 @@ private:
     enum class SpawnType { Entry, Return };
 
     // --- Fields ---
+    std::vector<std::string> m_levelPaths;
     int m_currentLevel = 0;
     bool m_hasSpawnOverride = false;
     SpawnType m_spawnType{SpawnType::Entry};

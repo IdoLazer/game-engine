@@ -1,44 +1,54 @@
 #include "Platformer.h"
-#include "PlatformerData.h"
+#include "PlatformerConstants.h"
 #include "PlatformerWorld.h"
 #include "Player.h"
 #include "PlatformerInputManager.h"
-#include "Levels/Levels.h"
+#include "Levels/LevelSet.h"
 #include "Cursor.h"
 #include "Falcon.h"
 
 using namespace Engine;
 
+namespace
+{
+    constexpr const char *PLATFORMER_SCENE = "assets/scenes/platformer.scene";
+
+    // Scene documents are edited while the game runs only in Debug, so only Debug re-reads them.
+#ifdef NDEBUG
+    constexpr CacheMode SCENE_CACHE_MODE = CacheMode::Reuse;
+#else
+    constexpr CacheMode SCENE_CACHE_MODE = CacheMode::Refresh;
+#endif
+}
+
 void Platformer::Initialize()
 {
-    const LevelData &level = *PlatformerData::LEVELS_DATA[m_currentLevel];
+    SceneData *rootScene = ResourceManager::Load<SceneData>(PLATFORMER_SCENE, SCENE_CACHE_MODE);
+    if (!rootScene || rootScene->IsEmpty())
+        throw std::runtime_error(std::string("Failed to load ") + PLATFORMER_SCENE);
 
     float cellSize = Renderer2D::GetCamera().GetWorldWidth() / PlatformerConstants::GRID_WORLD_SIZE.x;
     m_grid = Grid(cellSize, PlatformerConstants::GRID_WORLD_SIZE);
 
-    PlatformerWorld *world = nullptr;
-    Player *player = nullptr;
-    Falcon *falcon = nullptr;
-
-    for (const auto &entityInfo : PlatformerData::ENTITY_DATA)
+    // Entities render in the order instantiated, so the level lands where the document lists LevelSet.
+    for (const Scene::EntityInfo &entityInfo : rootScene->GetEntities())
     {
-        auto *entity = GetScene()->Instantiate(entityInfo);
-        if (auto *gridEntity = dynamic_cast<GridEntity *>(entity))
-            gridEntity->SetGrid(&m_grid);
-        if (auto *w = dynamic_cast<PlatformerWorld *>(entity))
-        {
-            w->SetTileGrid(level.tileGrid);
-            w->SetCoordSystem(&m_grid.GetCoordinateSystem());
-            world = w;
-        }
-        if (auto *p = dynamic_cast<Player *>(entity))
-            player = p;
-        if (auto *f = dynamic_cast<Falcon *>(entity))
-            falcon = f;
+        Entity *entity = GetScene()->Instantiate(entityInfo);
+        if (auto *levelSet = dynamic_cast<LevelSet *>(entity))
+            InstantiateCurrentLevel(*levelSet);
     }
+
+    auto *world = GetScene()->GetFirstEntityOfType<PlatformerWorld>();
+    auto *player = GetScene()->GetFirstEntityOfType<Player>();
+    auto *falcon = GetScene()->GetFirstEntityOfType<Falcon>();
 
     if (!world || !player || !falcon)
         throw std::runtime_error("Failed to instantiate required entities (PlatformerWorld, Player, Falcon)");
+
+    for (GridEntity *gridEntity : GetScene()->GetAllEntitiesOfType<GridEntity>())
+        gridEntity->SetGrid(&m_grid);
+
+    world->SetCoordSystem(&m_grid.GetCoordinateSystem());
 
     player->SetWorld(world);
     falcon->SetWorld(world);
@@ -120,12 +130,33 @@ void Platformer::Shutdown()
     m_stopGlideSub.Unsubscribe();
 }
 
+// --- Level Loading ---
+
+void Platformer::InstantiateCurrentLevel(const LevelSet &levelSet)
+{
+    m_levelPaths = levelSet.GetLevels();
+    if (m_levelPaths.empty())
+        throw std::runtime_error(std::string("No LevelSet levels in ") + PLATFORMER_SCENE);
+
+    // A level deleted from the list between reloads can leave the index past the end.
+    if (m_currentLevel >= static_cast<int>(m_levelPaths.size()))
+        m_currentLevel = static_cast<int>(m_levelPaths.size()) - 1;
+
+    const std::string &levelPath = m_levelPaths[m_currentLevel];
+    SceneData *levelScene = ResourceManager::Load<SceneData>(levelPath, SCENE_CACHE_MODE);
+    if (!levelScene || levelScene->IsEmpty())
+        throw std::runtime_error("Failed to load level " + levelPath);
+
+    for (const Scene::EntityInfo &entityInfo : levelScene->GetEntities())
+        GetScene()->Instantiate(entityInfo);
+}
+
 // --- Level Navigation ---
 
 void Platformer::GoToNextLevel(int row)
 {
     m_currentLevel++;
-    if (m_currentLevel < static_cast<int>(PlatformerData::LEVELS_DATA.size()))
+    if (m_currentLevel < static_cast<int>(m_levelPaths.size()))
     {
         if (row >= 0)
         {
