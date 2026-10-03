@@ -1,5 +1,8 @@
 #include <gtest/gtest.h>
+#include "IO/FileSystem.h"
 #include "Resources/ResourceManager.h"
+
+#include <filesystem>
 
 using namespace Engine;
 
@@ -151,4 +154,16 @@ TEST_F(ResourceManagerTest, ResourcesDoNotReloadUnlessTheyImplementIt)
 {
     UnreloadableResource plain("plain.res");
     EXPECT_FALSE(plain.Reload());
+}
+
+// --- Asset Root ---
+
+// The test target defines no GAME_SOURCE_DIR, so it gets the root a shipped game does.
+TEST_F(ResourceManagerTest, AssetPathsResolveAgainstTheExecutableDirectory)
+{
+    auto *resource = ResourceManager::Load<FakeResource>("fake.res");
+
+    ASSERT_NE(resource, nullptr);
+    EXPECT_EQ(std::filesystem::path(resource->GetPath()),
+              FileSystem::GetExecutableDirectory() / "fake.res");
 }

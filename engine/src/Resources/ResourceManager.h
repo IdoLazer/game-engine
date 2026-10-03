@@ -29,7 +29,7 @@ namespace Engine
         // Load a resource by path. Returns cached instance on subsequent calls, unless
         // CacheMode::Refresh asks for it to be re-read from disk first.
         // T must inherit from Resource and have a constructor taking std::string.
-        // Paths are resolved relative to the executable's directory.
+        // Paths are resolved against the asset root.
         template<typename T>
         static T* Load(const std::string& path, CacheMode cacheMode = CacheMode::Reuse)
         {
@@ -56,8 +56,8 @@ namespace Engine
                 return typed;
             }
 
-            // Resolve the path relative to the executable's directory
-            std::string fullPath = (s_basePath / path).string();
+            // Resolve the path against the asset root
+            std::string fullPath = (s_assetRoot / path).string();
 
             // Not cached — create, cache, and return
             auto resource = std::make_unique<T>(fullPath);
@@ -70,6 +70,6 @@ namespace Engine
 
     private:
         static std::unordered_map<std::string, std::unique_ptr<Resource>> s_resources;
-        static std::filesystem::path s_basePath;  // Directory game assets are resolved against
+        static std::filesystem::path s_assetRoot;  // Directory asset paths are resolved against
     };
 }

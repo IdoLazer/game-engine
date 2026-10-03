@@ -38,7 +38,12 @@ find_package(OpenGL REQUIRED)
 file(GLOB_RECURSE ENGINE_SOURCES "engine/src/*.cpp")
 file(GLOB_RECURSE ENGINE_HEADERS "engine/src/*.h")
 
+# Compiled into each target that links Engine, so they see that target's GAME_SOURCE_DIR.
+set(PER_GAME_ENGINE_SOURCES "${CMAKE_SOURCE_DIR}/engine/src/Resources/ResourceManager.cpp")
+list(REMOVE_ITEM ENGINE_SOURCES ${PER_GAME_ENGINE_SOURCES})
+
 add_library(Engine OBJECT ${ENGINE_SOURCES} ${ENGINE_HEADERS})
+target_sources(Engine INTERFACE ${PER_GAME_ENGINE_SOURCES})
 
 target_include_directories(Engine PUBLIC engine/src)
 target_link_libraries(Engine PUBLIC glfw OpenGL::GL)
@@ -61,6 +66,14 @@ function(copy_game_assets TARGET ASSET_DIR)
     endif()
 endfunction()
 
+# In Debug, points ResourceManager at this game's source assets instead of the copy beside the exe.
+function(set_debug_asset_root TARGET ASSET_DIR)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND EXISTS "${ASSET_DIR}")
+        get_filename_component(GAME_DIR "${ASSET_DIR}" DIRECTORY)
+        target_compile_definitions(${TARGET} PRIVATE GAME_SOURCE_DIR="${GAME_DIR}")
+    endif()
+endfunction()
+
 # Snake
 file(GLOB_RECURSE SNAKE_SOURCES "games/Snake/src/*.cpp")
 add_executable(Snake ${SNAKE_SOURCES})
@@ -68,6 +81,7 @@ target_include_directories(Snake PRIVATE games/Snake/src)
 target_link_libraries(Snake PRIVATE Engine)
 set_target_properties(Snake PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Snake)
 copy_game_assets(Snake "${CMAKE_SOURCE_DIR}/games/Snake/assets")
+set_debug_asset_root(Snake "${CMAKE_SOURCE_DIR}/games/Snake/assets")
 
 # Chess
 file(GLOB_RECURSE CHESS_SOURCES "games/Chess/src/*.cpp")
@@ -76,6 +90,7 @@ target_include_directories(Chess PRIVATE games/Chess/src)
 target_link_libraries(Chess PRIVATE Engine)
 set_target_properties(Chess PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/Chess)
 copy_game_assets(Chess "${CMAKE_SOURCE_DIR}/games/Chess/assets")
+set_debug_asset_root(Chess "${CMAKE_SOURCE_DIR}/games/Chess/assets")
 
 # In Release builds, suppress the console window for game executables.
 # Debug keeps the console so std::cout/std::cerr diagnostics are visible.
