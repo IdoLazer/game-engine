@@ -58,10 +58,20 @@ The developer is learning C++ through this project and has self-described "weak"
 
 Sometimes the developer hands a change over to be done in the background instead of pairing on it. A written plan and a pull request then take the place of confirming each increment.
 
-- **Plan first.** Write the whole plan before any code, where the developer asked for it (for example as Notion tasks): the goal, the design with the trade-offs behind it, the steps, and how each is verified. Nobody is there to ask mid-way, so design decisions belong in the plan — and if the plan turns out wrong, stop and report rather than improvise.
+- **Plan first.** Write the whole plan before any code, as the change's task (see Tracking Work): the goal, the design with the trade-offs behind it, the steps, and how each is verified. Nobody is there to ask mid-way, so design decisions belong in the plan — and if the plan turns out wrong, stop and report rather than improvise.
 - **One plan, one agent, one worktree, one pull request.** Each plan is implemented on its own git worktree and arrives as its own PR for review. State any dependency between plans in the plans themselves.
 - **Leave the developer's workspace alone.** Never work in their checkout, and never commit to or push `main` or a game branch directly. In shared tools such as Notion, add new items; don't edit existing ones unless asked.
 - **Everything in this file still applies** to whoever implements a plan — code style, comments, tests, documentation discipline.
+
+### Tracking Work
+
+Work is tracked in Notion as a ticketing system, where projects, tasks and pull requests point at each other.
+
+- **A project is a document with its task board in it.** The document says what the project is for and holds what its tasks share; the board shows those tasks by status.
+- **Every piece of work is a task** in the workspace's task database, associated with its project. A delegated plan is written as its task.
+- **A task's status follows the work.** Move it across the board as the work progresses; it is done once its pull requests are merged.
+- **Tasks and pull requests link to each other.** The task lists the pull requests that implement it, and each PR description links its task.
+- **Context goes in the project, the task, or a design doc linked from them.**
 
 ---
 
