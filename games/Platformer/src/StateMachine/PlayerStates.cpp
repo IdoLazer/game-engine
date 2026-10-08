@@ -49,7 +49,9 @@ void Player::OnWallState::Enter()
     // but only if it already carries the player toward the wall (or is zero).
     // Brushing a wall while moving away from it - a ledge corner on the way off
     // a platform - must not reverse that momentum.
-    if (m_player.m_velocity.x != 0.0f && m_player.m_velocity.x * m_wallDirection >= 0.0f)
+    if (m_player.m_velocity.x != 0.0f &&
+        m_player.m_velocity.x * m_wallDirection >= 0.0f
+        && m_player.m_direction.x * m_wallDirection >= 0.0f)
         m_player.m_velocity.x = m_wallDirection * m_player.m_speed;
 
     m_player.ConsumeBufferedJump();
@@ -59,6 +61,7 @@ void Player::OnWallState::Exit()
 {
     m_isWallSliding = false;
     m_wallDirection = 0;
+    m_player.m_velocity.x = 0.0f; // stop sticking to the wall
 }
 
 void Player::OnWallState::Update(float deltaTime)
