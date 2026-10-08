@@ -1,10 +1,9 @@
 #pragma once
 
+#include "Math/Vec2.h"
+
 namespace Engine
 {
-    // Forward declaration
-    struct Vec2;
-
     class Camera2D
     {
     public:
@@ -13,6 +12,7 @@ namespace Engine
 
         // --- Configuration ---
         void SetWindowSize(int pixelWidth, int pixelHeight);
+        void SetPosition(const Vec2 &position);
 
         // --- Coordinate Conversion ---
         float WorldToOpenGLX(float worldX) const;
@@ -26,6 +26,7 @@ namespace Engine
         float GetWorldHeight() const;
         int GetPixelWidth() const;
         int GetPixelHeight() const;
+        Vec2 GetPosition() const;
 
     private:
         // --- Fields ---
@@ -33,5 +34,6 @@ namespace Engine
         float m_worldWidth;
         int m_pixelWidth;
         int m_pixelHeight;
+        Vec2 m_position{}; // World point shown at the center of the screen
     };
 }

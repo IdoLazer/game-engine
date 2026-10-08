@@ -1,5 +1,4 @@
 #include "Camera2D.h"
-#include "Renderer2D.h" // For Vec2 definition
 #include <iostream>
 
 namespace Engine
@@ -23,21 +22,23 @@ namespace Engine
         m_worldWidth = m_worldHeight * aspectRatio;
 
         std::cout << "Camera2D: Window " << pixelWidth << "x" << pixelHeight
-                  << " -> World " << m_worldWidth << "x" << m_worldHeight << " units (centered at 0,0)" << std::endl;
+                  << " -> World " << m_worldWidth << "x" << m_worldHeight << " units" << std::endl;
     }
+
+    void Camera2D::SetPosition(const Vec2 &position) { m_position = position; }
 
     // --- Coordinate Conversion ---
 
     float Camera2D::WorldToOpenGLX(float worldX) const
     {
-        // Convert world X (-m_worldWidth/2 to +m_worldWidth/2) to OpenGL X (-1 to +1)
-        return (worldX / (m_worldWidth * 0.5f));
+        // Convert world X (m_position.x +/- m_worldWidth/2) to OpenGL X (-1 to +1)
+        return (worldX - m_position.x) / (m_worldWidth * 0.5f);
     }
 
     float Camera2D::WorldToOpenGLY(float worldY) const
     {
-        // Convert world Y (-m_worldHeight/2 to +m_worldHeight/2) to OpenGL Y (-1 to +1)
-        return (worldY / (m_worldHeight * 0.5f));
+        // Convert world Y (m_position.y +/- m_worldHeight/2) to OpenGL Y (-1 to +1)
+        return (worldY - m_position.y) / (m_worldHeight * 0.5f);
     }
 
     Vec2 Camera2D::WorldToOpenGL(const Vec2 &worldPos) const
@@ -48,16 +49,16 @@ namespace Engine
     Vec2 Camera2D::ScreenToWorld(const Vec2 &screenPos) const
     {
         // Convert screen coordinates (pixels) to world coordinates
-        float worldX = (screenPos.x / m_pixelWidth) * m_worldWidth - (m_worldWidth * 0.5f);
-        float worldY = ((m_pixelHeight - screenPos.y) / m_pixelHeight) * m_worldHeight - (m_worldHeight * 0.5f);
+        float worldX = (screenPos.x / m_pixelWidth) * m_worldWidth - (m_worldWidth * 0.5f) + m_position.x;
+        float worldY = ((m_pixelHeight - screenPos.y) / m_pixelHeight) * m_worldHeight - (m_worldHeight * 0.5f) + m_position.y;
         return Vec2(worldX, worldY);
     }
 
     Vec2 Camera2D::WorldToScreen(const Vec2 &worldPos) const
     {
         // Convert world coordinates to screen coordinates (pixels)
-        float screenX = ((worldPos.x + (m_worldWidth * 0.5f)) / m_worldWidth) * m_pixelWidth;
-        float screenY = m_pixelHeight - (((worldPos.y + (m_worldHeight * 0.5f)) / m_worldHeight) * m_pixelHeight);
+        float screenX = ((worldPos.x - m_position.x + (m_worldWidth * 0.5f)) / m_worldWidth) * m_pixelWidth;
+        float screenY = m_pixelHeight - (((worldPos.y - m_position.y + (m_worldHeight * 0.5f)) / m_worldHeight) * m_pixelHeight);
         return Vec2(screenX, screenY);
     }
 
@@ -67,4 +68,5 @@ namespace Engine
     float Camera2D::GetWorldHeight() const { return m_worldHeight; }
     int Camera2D::GetPixelWidth() const { return m_pixelWidth; }
     int Camera2D::GetPixelHeight() const { return m_pixelHeight; }
+    Vec2 Camera2D::GetPosition() const { return m_position; }
 }
