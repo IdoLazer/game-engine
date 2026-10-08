@@ -47,38 +47,33 @@ void Platformer::Initialize()
             InstantiateCurrentLevel(*levelSet);
     }
 
-    auto *world = GetScene()->GetFirstEntityOfType<PlatformerWorld>();
-    auto *player = GetScene()->GetFirstEntityOfType<Player>();
+    m_world = GetScene()->GetFirstEntityOfType<PlatformerWorld>();
+    m_player = GetScene()->GetFirstEntityOfType<Player>();
     auto *falcon = GetScene()->GetFirstEntityOfType<Falcon>();
 
-    if (!world || !player || !falcon)
+    if (!m_world || !m_player || !falcon)
         throw std::runtime_error("Failed to instantiate required entities (PlatformerWorld, Player, Falcon)");
 
     for (GridEntity *gridEntity : GetScene()->GetAllEntitiesOfType<GridEntity>())
         gridEntity->SetGrid(&m_grid);
 
-    world->SetCoordSystem(&m_grid.GetCoordinateSystem());
+    m_world->SetCoordSystem(&m_grid.GetCoordinateSystem());
 
-    player->SetWorld(world);
-    falcon->SetWorld(world);
-    player->SetFalcon(falcon);
+    m_player->SetWorld(m_world);
+    falcon->SetWorld(m_world);
+    m_player->SetFalcon(falcon);
     
     Vec2 spawnPos = m_hasSpawnOverride
         ? (m_spawnType == SpawnType::Entry
-            ? world->FindEntrySpawn(m_spawnRow)
-            : world->FindReturnSpawn(m_spawnRow))
-        : world->FindDefaultSpawn();
+            ? m_world->FindEntrySpawn(m_spawnRow)
+            : m_world->FindReturnSpawn(m_spawnRow))
+        : m_world->FindDefaultSpawn();
     m_hasSpawnOverride = false;
 
-    if (world->IsSolid(Vec2(spawnPos.x, spawnPos.y + 1.0f)))
-        spawnPos.y += 0.5f - player->GetGridSize().y / 2.0f;
+    if (m_world->IsSolid(Vec2(spawnPos.x, spawnPos.y + 1.0f)))
+        spawnPos.y += 0.5f - m_player->GetGridSize().y / 2.0f;
 
-    player->SetGridPosition(spawnPos);
-
-    // Tile-collision-driven level transitions
-    m_nextLevelSub     = player->OnNextLevel().Subscribe([this](const int &row)     { GoToNextLevel(row); });
-    m_previousLevelSub = player->OnPreviousLevel().Subscribe([this](const int &row) { GoToPreviousLevel(row); });
-    m_reloadLevelSub   = player->OnReloadLevel().Subscribe([this]()                 { ReloadCurrentLevel(); });
+    m_player->SetGridPosition(spawnPos);
 
     m_cursor = GetScene()->GetFirstEntityOfType<Cursor>();
     if (m_cursor)
@@ -86,19 +81,30 @@ void Platformer::Initialize()
 
     falcon->SetCursor(m_cursor);
 
-    m_inputManager->Bind(*player, *falcon, m_cursor);
+    m_inputManager->Bind(*m_player, *falcon, m_cursor);
 }
 
 void Platformer::Update(float deltaTime)
 {
+    if (!m_player || !m_world)
+        return;
+
+    Vec2 cell = m_grid.GetCellFromGridPosition(m_player->GetGridPosition());
+    int row = static_cast<int>(cell.y);
+
+    if (m_world->IsNextLevel(cell))
+        GoToNextLevel(row);
+    else if (m_world->IsPreviousLevel(cell))
+        GoToPreviousLevel(row);
+    else if (m_world->IsDeadly(cell))
+        ReloadCurrentLevel();
 }
 
 void Platformer::Shutdown()
 {
-    m_nextLevelSub.Unsubscribe();
-    m_previousLevelSub.Unsubscribe();
-    m_reloadLevelSub.Unsubscribe();
     m_inputManager->Unbind();
+    m_player = nullptr;
+    m_world = nullptr;
 }
 
 // --- Level Loading ---
