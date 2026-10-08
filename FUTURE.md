@@ -156,6 +156,13 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 **Future:** Check every exit's target when its level loads, and report it alongside the anchor problems.
 **When:** When there are more exits than are walked through in a normal playtest.
 
+### Camera follow is rigid
+
+**Current:** `LevelCamera` centers the view on the player every frame and stops at the level's edges.
+**Concern:** With no dead zone, smoothing or look-ahead, the whole view moves with every step and jump in a level larger than the screen.
+**Future:** A dead zone around the player, smoothing, or look-ahead in the direction of travel, inside `LevelCamera`.
+**When:** When a level larger than the screen is played and the motion is uncomfortable.
+
 ---
 
 ## Build System
@@ -229,7 +236,7 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 
 ### Draw order is instantiation order
 
-**Current:** `Scene` renders entities in the order they were instantiated, so the order of a document's sections decides what draws on top. The Platformer's root document lists `LevelSet` first so that the level it pulls in lands behind Player, Falcon and Cursor.
+**Current:** `Scene` renders entities in the order they were instantiated, so the order of a document's sections decides what draws on top. The Platformer's root document lists `LevelSet` first so that the level it pulls in lands behind Player, Falcon and Cursor. Update order is the same order, and the root document relies on that too: the camera after the player, the cursor after the camera, the falcon after the cursor.
 **Concern:** Position in a file is an implicit way of saying "behind". Reordering sections for readability changes what covers what, and an entity spawned mid-game can only ever land on top.
 **Future:** An explicit layer (or order) property on `Entity` that `Scene::Render` sorts by, so depth is stated in the document rather than implied by it.
 **When:** When something spawned at runtime has to draw behind an existing entity, or a document's reading order and its draw order need to differ.

@@ -1,6 +1,7 @@
 // The root scene document: the level list, and the entities every level shares.
 // Entities update and draw in the order listed here; the current level's take LevelSet's place.
-// The cursor is listed before the falcon, which aims at it.
+// The camera follows the player, the cursor reads the mouse through the camera, and the
+// falcon aims at the cursor, so they are listed in that order.
 
 [LevelSet]
 Levels = |
@@ -43,6 +44,9 @@ WallSlideMaxSpeed = 5
 WallGravityScale = 0.15
 GlideMaxSpeed = 3
 GlideGravityScale = 0.1
+
+[LevelCamera]
+VisibleRows = 20
 
 [Cursor]
 Radius = 0.05
