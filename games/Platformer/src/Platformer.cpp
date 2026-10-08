@@ -54,6 +54,9 @@ void Platformer::Initialize()
     if (!world || !player || !falcon)
         throw std::runtime_error("Failed to instantiate required entities (PlatformerWorld, Player, Falcon)");
 
+    m_world = world;
+    m_player = player;
+
     for (GridEntity *gridEntity : GetScene()->GetAllEntitiesOfType<GridEntity>())
         gridEntity->SetGrid(&m_grid);
 
@@ -75,11 +78,6 @@ void Platformer::Initialize()
 
     player->SetGridPosition(spawnPos);
 
-    // Tile-collision-driven level transitions
-    m_nextLevelSub     = player->OnNextLevel().Subscribe([this](const int &row)     { GoToNextLevel(row); });
-    m_previousLevelSub = player->OnPreviousLevel().Subscribe([this](const int &row) { GoToPreviousLevel(row); });
-    m_reloadLevelSub   = player->OnReloadLevel().Subscribe([this]()                 { ReloadCurrentLevel(); });
-
     m_cursor = GetScene()->GetFirstEntityOfType<Cursor>();
     if (m_cursor)
         Mouse::SetCursorVisibility(false);
@@ -91,14 +89,25 @@ void Platformer::Initialize()
 
 void Platformer::Update(float deltaTime)
 {
+    if (!m_player || !m_world)
+        return;
+
+    Vec2 cell = m_grid.GetCellFromGridPosition(m_player->GetGridPosition());
+    int row = static_cast<int>(cell.y);
+
+    if (m_world->IsNextLevel(cell))
+        GoToNextLevel(row);
+    else if (m_world->IsPreviousLevel(cell))
+        GoToPreviousLevel(row);
+    else if (m_world->IsDeadly(cell))
+        ReloadCurrentLevel();
 }
 
 void Platformer::Shutdown()
 {
-    m_nextLevelSub.Unsubscribe();
-    m_previousLevelSub.Unsubscribe();
-    m_reloadLevelSub.Unsubscribe();
     m_inputManager->Unbind();
+    m_player = nullptr;
+    m_world = nullptr;
 }
 
 // --- Level Loading ---

@@ -4,6 +4,8 @@
 
 // --- Forward Declarations ---
 class PlatformerInputManager;
+class PlatformerWorld;
+class Player;
 class Cursor;
 class LevelSet;
 
@@ -41,10 +43,8 @@ private:
     std::unique_ptr<PlatformerInputManager> m_inputManager;
     std::vector<Engine::Subscription> m_inputSubscriptions;
 
-    Engine::Subscription m_nextLevelSub;
-    Engine::Subscription m_previousLevelSub;
-    Engine::Subscription m_reloadLevelSub;
-
     Engine::Grid m_grid;
+    PlatformerWorld *m_world{nullptr};
+    Player *m_player{nullptr};
     Cursor *m_cursor = nullptr;
 };
