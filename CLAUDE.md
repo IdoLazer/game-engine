@@ -54,6 +54,35 @@ The developer is learning C++ through this project and has self-described "weak"
 4. Implement in small, explained increments
 5. Ensure each increment compiles and works before continuing
 
+### Delegated Work
+
+Sometimes the developer hands a change over to be done in the background instead of pairing on it. A written plan and a pull request then take the place of confirming each increment.
+
+- **Plan first.** Write the whole plan before any code, as the change's task (see Tracking Work): the goal, the design with the trade-offs behind it, the steps, and how each is verified. Nobody is there to ask mid-way, so design decisions belong in the plan — and if the plan turns out wrong, stop and report rather than improvise.
+- **One plan, one agent, one worktree, one pull request.** Each plan is implemented on its own git worktree and arrives as its own PR for review. State any dependency between plans in the plans themselves.
+- **Leave the developer's workspace alone.** Never work in their checkout, and never commit to or push `main` or a game branch directly. In shared tools such as Notion, add new items; don't edit existing ones unless asked.
+- **Everything in this file still applies** to whoever implements a plan — code style, comments, tests, documentation discipline.
+
+### Tracking Work
+
+Work is tracked in Notion as a ticketing system, where projects, tasks and pull requests point at each other.
+
+- **A project is a document with its task board in it.** The document says what the project is for and holds what its tasks share; the board shows those tasks by status.
+- **Every piece of work is a task** in the workspace's task database, associated with its project. A delegated plan is written as its task.
+- **A task's status follows the work.** Move it across the board as the work progresses; it is done once its pull requests are merged.
+- **Tasks and pull requests link to each other.** The task lists the pull requests that implement it, and each PR description links its task.
+- **Context goes in the project, the task, or a design doc linked from them.**
+
+---
+
+## Branches, Commits & Pull Requests
+
+- **Engine changes target `main`; game changes target the game's branch** (e.g. `ido/platformer`), which is rebased onto `main`.
+- **A change that needs both is two pull requests:** one based on `main` with the engine part, and one based on the game branch with the engine branch merged into it. Once the first is merged and the game branch rebased, the second is a pure game change.
+- **Stack pull requests that depend on each other** instead of combining them.
+- **Split a pull request into commits when it touches several systems.** Each commit is coherent and non-breaking on its own — it builds and the tests pass. A small PR can be a single commit.
+- **Commit messages and PR descriptions are concise and describe only the change** — not what was left alone, and not what was considered and rejected. That reasoning belongs in the plan or in FUTURE.md.
+
 ---
 
 ## Code Style & Conventions
