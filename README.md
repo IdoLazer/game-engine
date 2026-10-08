@@ -62,7 +62,7 @@ games/
         ├── Platformer.h/cpp            # Application subclass + level navigation
         ├── PlatformerConstants.h       # Tuning constants
         ├── PlatformerWorld.h/cpp       # Tile world: solidity, sweeps, spawns
-        ├── PlatformerInputManager.h/cpp # Keyboard/mouse routing → events
+        ├── PlatformerInputManager.h/cpp # Keyboard/mouse routing → events, bound to the level's entities
         ├── Player.h/cpp                # Player body: velocity, collision, physics primitives
         ├── Falcon.h/cpp                # Falcon body: flight, aiming, drawing primitives
         ├── Cursor.h/cpp                # Aiming cursor
