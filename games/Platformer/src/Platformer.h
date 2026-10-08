@@ -12,7 +12,7 @@ class Platformer : public Engine::Application
 {
 public:
     // --- Constructors & Destructors ---
-    Platformer() = default;
+    Platformer();
 
     // --- Game Interface ---
     void Initialize() override;
@@ -37,24 +37,13 @@ private:
     SpawnType m_spawnType{SpawnType::Entry};
     int m_spawnRow{0};
 
+    // Built in the constructor: Initialize and Shutdown run for every level load.
     std::unique_ptr<PlatformerInputManager> m_inputManager;
+    std::vector<Engine::Subscription> m_inputSubscriptions;
 
-    Engine::Subscription m_exitSub;
     Engine::Subscription m_nextLevelSub;
     Engine::Subscription m_previousLevelSub;
     Engine::Subscription m_reloadLevelSub;
-    Engine::Subscription m_moveSub;
-    Engine::Subscription m_jumpSub;
-    Engine::Subscription m_jumpStopSub;
-    Engine::Subscription m_cursorMoveSub;
-    Engine::Subscription m_debugNextLevelSub;
-    Engine::Subscription m_debugPreviousLevelSub;
-    Engine::Subscription m_debugReloadLevelSub;
-    Engine::Subscription m_aimSub;
-    Engine::Subscription m_releaseSub;
-    Engine::Subscription m_retrieveSub;
-    Engine::Subscription m_glideSub;
-    Engine::Subscription m_stopGlideSub;
 
     Engine::Grid m_grid;
     Cursor *m_cursor = nullptr;

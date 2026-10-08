@@ -2,6 +2,11 @@
 
 #include <Engine.h>
 
+// --- Forward Declarations ---
+class Player;
+class Falcon;
+class Cursor;
+
 class PlatformerInputManager
 {
 public:
@@ -9,8 +14,10 @@ public:
     PlatformerInputManager();
     ~PlatformerInputManager() = default;
 
-    // --- Initialization ---
-    void NotifyInitialState();
+    // --- Level Bindings ---
+    // Routes input to a level's entities until Unbind. `cursor` may be null.
+    void Bind(Player &player, Falcon &falcon, Cursor *cursor);
+    void Unbind();
 
     // --- Events ---
     Engine::EventSubscriber<Engine::Vec2>& OnMove()           { return m_onMove; }
@@ -19,6 +26,7 @@ public:
     Engine::EventSubscriber<>&             OnNextLevel()      { return m_onNextLevel; }
     Engine::EventSubscriber<>&             OnPreviousLevel()  { return m_onPreviousLevel; }
     Engine::EventSubscriber<>&             OnReloadLevel()    { return m_onReloadLevel; }
+    Engine::EventSubscriber<>&             OnQuit()           { return m_onQuit; }
     Engine::EventSubscriber<Engine::Vec2>& OnCursorMove()     { return m_onCursorMove; }
     Engine::EventSubscriber<>&             OnAim()            { return m_onAim; }
     Engine::EventSubscriber<>&             OnRelease()        { return m_onRelease; }
@@ -28,6 +36,7 @@ public:
 
 private:
     // --- Input Handling ---
+    float ReadHorizontalInput() const;
     void HandleKeyPress(const Engine::Key &key);
     void HandleKeyRelease(const Engine::Key &key);
     void HandleCursorMove(const Engine::Vec2 &position);
@@ -40,6 +49,7 @@ private:
     Engine::Subscription m_cursorMoveSub;
     Engine::Subscription m_mouseButtonPressedSub;
     Engine::Subscription m_mouseButtonReleasedSub;
+    std::vector<Engine::Subscription> m_bindings;
 
     // --- State ---
     float m_horizontalInput{0.0f};
@@ -51,6 +61,7 @@ private:
     Engine::Event<>             m_onNextLevel;
     Engine::Event<>             m_onPreviousLevel;
     Engine::Event<>             m_onReloadLevel;
+    Engine::Event<>             m_onQuit;
     Engine::Event<Engine::Vec2> m_onCursorMove;
     Engine::Event<>             m_onAim;
     Engine::Event<>             m_onRelease;

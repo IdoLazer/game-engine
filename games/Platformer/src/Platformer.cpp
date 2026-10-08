@@ -21,6 +21,15 @@ namespace
 #endif
 }
 
+Platformer::Platformer()
+    : m_inputManager(std::make_unique<PlatformerInputManager>())
+{
+    m_inputSubscriptions.push_back(m_inputManager->OnNextLevel().Subscribe([this]()     { GoToNextLevel(-1); }));
+    m_inputSubscriptions.push_back(m_inputManager->OnPreviousLevel().Subscribe([this]() { GoToPreviousLevel(-1); }));
+    m_inputSubscriptions.push_back(m_inputManager->OnReloadLevel().Subscribe([this]()   { ReloadCurrentLevel(); }));
+    m_inputSubscriptions.push_back(m_inputManager->OnQuit().Subscribe([this]()          { Close(); }));
+}
+
 void Platformer::Initialize()
 {
     SceneData *rootScene = ResourceManager::Load<SceneData>(PLATFORMER_SCENE, SCENE_CACHE_MODE);
@@ -71,39 +80,13 @@ void Platformer::Initialize()
     m_previousLevelSub = player->OnPreviousLevel().Subscribe([this](const int &row) { GoToPreviousLevel(row); });
     m_reloadLevelSub   = player->OnReloadLevel().Subscribe([this]()                 { ReloadCurrentLevel(); });
 
-    // Input manager — owns all keyboard routing
-    m_inputManager = std::make_unique<PlatformerInputManager>();
-
-    m_moveSub     = m_inputManager->OnMove().Subscribe(player, &Player::SetDirection);
-    m_jumpSub     = m_inputManager->OnJump().Subscribe(player, &Player::Jump);
-    m_jumpStopSub = m_inputManager->OnJumpStop().Subscribe(player, &Player::StopJump);
-    m_glideSub    = m_inputManager->OnGlide().Subscribe(player, &Player::Glide);
-    m_stopGlideSub = m_inputManager->OnStopGlide().Subscribe(player, &Player::StopGlide);
-
-    m_aimSub      = m_inputManager->OnAim().Subscribe(falcon, &Falcon::StartAiming);
-    m_releaseSub  = m_inputManager->OnRelease().Subscribe(falcon, &Falcon::ReleaseAiming);
-    m_retrieveSub = m_inputManager->OnRetrieve().Subscribe(falcon, &Falcon::Retrieve);
-
-    m_debugNextLevelSub     = m_inputManager->OnNextLevel().Subscribe([this]()     { GoToNextLevel(-1); });
-    m_debugPreviousLevelSub = m_inputManager->OnPreviousLevel().Subscribe([this]() { GoToPreviousLevel(-1); });
-    m_debugReloadLevelSub   = m_inputManager->OnReloadLevel().Subscribe([this]()   { ReloadCurrentLevel(); });
-
-    m_exitSub = Keyboard::OnKeyPressed().Subscribe([this](const Key &key)
-    {
-        if (key == Key::Escape)
-            Close();
-    });
-    
     m_cursor = GetScene()->GetFirstEntityOfType<Cursor>();
     if (m_cursor)
-    {
         Mouse::SetCursorVisibility(false);
-        m_cursorMoveSub = m_inputManager->OnCursorMove().Subscribe(m_cursor, &Cursor::SetPosition);
-    }
 
     falcon->SetCursor(m_cursor);
 
-    m_inputManager->NotifyInitialState();
+    m_inputManager->Bind(*player, *falcon, m_cursor);
 }
 
 void Platformer::Update(float deltaTime)
@@ -115,19 +98,7 @@ void Platformer::Shutdown()
     m_nextLevelSub.Unsubscribe();
     m_previousLevelSub.Unsubscribe();
     m_reloadLevelSub.Unsubscribe();
-    m_moveSub.Unsubscribe();
-    m_jumpSub.Unsubscribe();
-    m_jumpStopSub.Unsubscribe();
-    m_debugNextLevelSub.Unsubscribe();
-    m_debugPreviousLevelSub.Unsubscribe();
-    m_debugReloadLevelSub.Unsubscribe();
-    m_exitSub.Unsubscribe();
-    m_cursorMoveSub.Unsubscribe();
-    m_aimSub.Unsubscribe();
-    m_releaseSub.Unsubscribe();
-    m_retrieveSub.Unsubscribe();
-    m_glideSub.Unsubscribe();
-    m_stopGlideSub.Unsubscribe();
+    m_inputManager->Unbind();
 }
 
 // --- Level Loading ---
