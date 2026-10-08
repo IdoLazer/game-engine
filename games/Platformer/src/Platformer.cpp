@@ -6,6 +6,7 @@
 #include "Levels/LevelSet.h"
 #include "Levels/LevelExit.h"
 #include "Cursor.h"
+#include "LevelCamera.h"
 #include "Falcon.h"
 
 #include <algorithm>
@@ -39,9 +40,6 @@ void Platformer::Initialize()
     if (!rootScene || rootScene->IsEmpty())
         throw std::runtime_error(std::string("Failed to load ") + PLATFORMER_SCENE);
 
-    float cellSize = Renderer2D::GetCamera().GetWorldWidth() / PlatformerConstants::GRID_WORLD_SIZE.x;
-    m_grid = Grid(cellSize, PlatformerConstants::GRID_WORLD_SIZE);
-
     // Entities render in the order instantiated, so the level lands where the document lists LevelSet.
     for (const Scene::EntityInfo &entityInfo : rootScene->GetEntities())
     {
@@ -56,6 +54,12 @@ void Platformer::Initialize()
 
     if (!m_world || !m_player || !falcon)
         throw std::runtime_error("Failed to instantiate required entities (PlatformerWorld, Player, Falcon)");
+
+    auto *camera = GetScene()->GetFirstEntityOfType<LevelCamera>();
+    Vec2 cellCount = PlatformerConstants::GRID_WORLD_SIZE;
+    float visibleRows = camera && camera->GetVisibleRows() > 0.0f ? camera->GetVisibleRows() : cellCount.y;
+    float cellSize = Renderer2D::GetCamera().GetWorldHeight() / visibleRows;
+    m_grid = Grid(cellSize, cellCount);
 
     for (GridEntity *gridEntity : GetScene()->GetAllEntitiesOfType<GridEntity>())
         gridEntity->SetGrid(&m_grid);
@@ -75,6 +79,10 @@ void Platformer::Initialize()
         spawnPos.y += 0.5f - m_player->GetGridSize().y / 2.0f;
 
     m_player->SetGridPosition(spawnPos);
+
+    // The grid is centered on the world origin.
+    if (camera)
+        camera->Follow(m_player, Rect(Vec2::Zero, cellCount * (cellSize * 0.5f)));
 
     m_cursor = GetScene()->GetFirstEntityOfType<Cursor>();
     if (m_cursor)

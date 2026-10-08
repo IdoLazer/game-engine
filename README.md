@@ -66,6 +66,7 @@ games/
         ├── Player.h/cpp                # Player body: velocity, collision, physics primitives
         ├── Falcon.h/cpp                # Falcon body: flight, aiming, drawing primitives
         ├── Cursor.h/cpp                # Aiming cursor
+        ├── LevelCamera.h/cpp           # Camera that follows the player within the level
         ├── TileType.h                  # Tile enum
         ├── Commands/                   # Deferred player and falcon inputs (Command pattern)
         ├── Levels/                     # Level loading
