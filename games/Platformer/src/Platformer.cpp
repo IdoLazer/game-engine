@@ -1,5 +1,4 @@
 #include "Platformer.h"
-#include "PlatformerConstants.h"
 #include "PlatformerWorld.h"
 #include "Player.h"
 #include "PlatformerInputManager.h"
@@ -151,7 +150,8 @@ void Platformer::Initialize()
     m_player = player;
 
     auto *camera = GetScene()->GetFirstEntityOfType<LevelCamera>();
-    Vec2 cellCount = PlatformerConstants::GRID_WORLD_SIZE;
+    const TileGrid &tiles = m_world->GetTileGrid();
+    Vec2 cellCount(tiles.GetColumnCount(), tiles.GetRowCount());
     float visibleRows = camera && camera->GetVisibleRows() > 0.0f ? camera->GetVisibleRows() : cellCount.y;
     float cellSize = Renderer2D::GetCamera().GetWorldHeight() / visibleRows;
     m_grid = Grid(cellSize, cellCount);

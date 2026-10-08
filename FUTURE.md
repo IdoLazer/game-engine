@@ -128,13 +128,6 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 
 ## Levels
 
-### Level size is fixed by GRID_WORLD_SIZE
-
-**Current:** `TileGrid` reports its own row and column counts, and the document format imposes no size. But `Platformer::Initialize` still builds `m_grid` from `PlatformerConstants::GRID_WORLD_SIZE` (30x20), and the camera shows exactly that.
-**Concern:** A differently sized level would parse correctly and then render and collide against the wrong grid.
-**Future:** Build the `Grid` from the loaded `TileGrid`'s dimensions. That is a few lines; the open question is what the camera should do, since showing a bigger level whole means smaller cells.
-**When:** When a level wants to be a size other than 30x20, which likely arrives with a scrolling camera.
-
 ### Level entities cannot reach anything that outlives the level
 
 **Current:** A level load destroys every entity and builds the next level's. `Platformer` itself persists, but entities only see the `Scene`, so nothing they can reach survives the load.
@@ -162,6 +155,13 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 **Concern:** With no dead zone, smoothing or look-ahead, the whole view moves with every step and jump in a level larger than the screen.
 **Future:** A dead zone around the player, smoothing, or look-ahead in the direction of travel, inside `LevelCamera`.
 **When:** When a level larger than the screen is played and the motion is uncomfortable.
+
+### A level's sky is a hand-sized quad
+
+**Current:** Each level document carries a `[Tile]` with `WorldSize = 30, 20` as its sky, because the engine's clear color is fixed. It is in world units, so it covers a level of up to 60 by 40 cells.
+**Concern:** A level's size now comes from its picture, but its backdrop does not.
+**Future:** Let `PlatformerWorld` draw a backdrop sized from its own bounds, or replace the flat sky when art arrives.
+**When:** When a level outgrows the quad, or art replaces the flat color.
 
 ---
 
