@@ -12,7 +12,6 @@ END_TYPE_REGISTER()
 
 void Cursor::Update(float deltaTime)
 {
-    // Every frame, since the camera can move while the mouse stays still.
     m_worldPosition = Renderer2D::GetCamera().ScreenToWorld(m_screenPosition);
 }
 

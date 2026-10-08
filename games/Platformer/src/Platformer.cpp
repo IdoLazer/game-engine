@@ -1,5 +1,4 @@
 #include "Platformer.h"
-#include "PlatformerConstants.h"
 #include "PlatformerWorld.h"
 #include "Player.h"
 #include "PlatformerInputManager.h"
@@ -56,7 +55,7 @@ void Platformer::Initialize()
         throw std::runtime_error("Failed to instantiate required entities (PlatformerWorld, Player, Falcon)");
 
     auto *camera = GetScene()->GetFirstEntityOfType<LevelCamera>();
-    Vec2 cellCount = PlatformerConstants::GRID_WORLD_SIZE;
+    Vec2 cellCount = m_world->GetCellCount();
     float visibleRows = camera && camera->GetVisibleRows() > 0.0f ? camera->GetVisibleRows() : cellCount.y;
     float cellSize = Renderer2D::GetCamera().GetWorldHeight() / visibleRows;
     m_grid = Grid(cellSize, cellCount);
