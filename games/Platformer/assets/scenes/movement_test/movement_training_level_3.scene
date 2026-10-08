@@ -1,4 +1,4 @@
-// Training level 5: Jump over a wide gap with death tiles at the bottom
+// Training level 3: Use wall jump to reach a higher platform
 
 [Tile]
 WorldPosition = 0, 0
@@ -21,14 +21,14 @@ TileGrid = |
 <e..........................r>
 <e..........................r>
 <e..........................r>
-<e..........................r>
-<e..........................r>
-<e@.........................r>
-############......############
-....#.................#......#
-....#.................#......#
-....#.................#......#
-#####xxxxxxxxxxxxxxxxx########
+<e..................####....r>
+<e.....................#....r>
+<e..........#####......#....r>
+<e@.........#...#......#....r>
+####........########...#....r>
+...#...................#....r>
+...#...................#....r>
+##############################
 
 [SpawnPoint]
 Name = start
@@ -45,10 +45,10 @@ Anchor = r
 
 [LevelExit]
 Anchor = <
-TargetLevel = assets/scenes/movement_training_level_4.scene
+TargetLevel = assets/scenes/movement_test/movement_training_level_2.scene
 TargetSpawn = fromNext
 
 [LevelExit]
 Anchor = >
-TargetLevel = assets/scenes/movement_training_level_6.scene
+TargetLevel = assets/scenes/movement_test/movement_training_level_4.scene
 TargetSpawn = fromPrevious

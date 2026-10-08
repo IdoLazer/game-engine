@@ -45,10 +45,10 @@ Anchor = r
 
 [LevelExit]
 Anchor = <
-TargetLevel = assets/scenes/movement_level_1.scene
+TargetLevel = assets/scenes/movement_test/movement_level_1.scene
 TargetSpawn = fromNext
 
 [LevelExit]
 Anchor = >
-TargetLevel = assets/scenes/movement_level_3.scene
+TargetLevel = assets/scenes/movement_test/movement_level_3.scene
 TargetSpawn = fromPrevious
