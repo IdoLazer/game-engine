@@ -60,12 +60,12 @@ games/
     ├── assets/scenes/                  # platformer.scene (root) + one document per level
     └── src/
         ├── Platformer.h/cpp            # Application subclass + level navigation
-        ├── PlatformerConstants.h       # Tuning constants
         ├── PlatformerWorld.h/cpp       # Tile world: solidity, sweeps
         ├── PlatformerInputManager.h/cpp # Keyboard/mouse routing → events, bound to the level's entities
         ├── Player.h/cpp                # Player body: velocity, collision, physics primitives
         ├── Falcon.h/cpp                # Falcon body: flight, aiming, drawing primitives
         ├── Cursor.h/cpp                # Aiming cursor
+        ├── LevelCamera.h/cpp           # Camera that follows the player within the level
         ├── TileType.h                  # Tile enum
         ├── Commands/                   # Deferred player and falcon inputs (Command pattern)
         ├── Levels/                     # Level loading

@@ -1,5 +1,4 @@
 #include "PlatformerInputManager.h"
-#include "Cursor.h"
 #include "Falcon.h"
 #include "Player.h"
 
@@ -9,14 +8,13 @@ PlatformerInputManager::PlatformerInputManager()
 {
     m_keyPressedSub = Keyboard::OnKeyPressed().Subscribe(this, &PlatformerInputManager::HandleKeyPress);
     m_keyReleaseSub = Keyboard::OnKeyReleased().Subscribe(this, &PlatformerInputManager::HandleKeyRelease);
-    m_cursorMoveSub = Mouse::OnMoved().Subscribe(this, &PlatformerInputManager::HandleCursorMove);
     m_mouseButtonPressedSub = Mouse::OnButtonPressed().Subscribe(this, &PlatformerInputManager::HandleClick);
     m_mouseButtonReleasedSub = Mouse::OnButtonReleased().Subscribe(this, &PlatformerInputManager::HandleRelease);
 }
 
 // --- Level Bindings ---
 
-void PlatformerInputManager::Bind(Player &player, Falcon &falcon, Cursor *cursor)
+void PlatformerInputManager::Bind(Player &player, Falcon &falcon)
 {
     m_bindings.push_back(m_onMove.Subscribe(&player, &Player::SetDirection));
     m_bindings.push_back(m_onJump.Subscribe(&player, &Player::Jump));
@@ -28,14 +26,10 @@ void PlatformerInputManager::Bind(Player &player, Falcon &falcon, Cursor *cursor
     m_bindings.push_back(m_onRelease.Subscribe(&falcon, &Falcon::ReleaseAiming));
     m_bindings.push_back(m_onRetrieve.Subscribe(&falcon, &Falcon::Retrieve));
 
-    if (cursor)
-        m_bindings.push_back(m_onCursorMove.Subscribe(cursor, &Cursor::SetPosition));
-
     // Read from the keyboard, not the event history: a key held since before the window
     // opened never sent its press.
     m_horizontalInput = ReadHorizontalInput();
     m_onMove.Notify(Vec2{m_horizontalInput, 0.0f});
-    m_onCursorMove.Notify(Mouse::GetWorldPosition());
 }
 
 void PlatformerInputManager::Unbind()
@@ -115,11 +109,6 @@ void PlatformerInputManager::HandleKeyRelease(const Key &key)
     default:
         break;
     }
-}
-
-void PlatformerInputManager::HandleCursorMove(const Vec2 &position)
-{
-    m_onCursorMove.Notify(position);
 }
 
 void PlatformerInputManager::HandleClick(const Engine::MouseButton &button)

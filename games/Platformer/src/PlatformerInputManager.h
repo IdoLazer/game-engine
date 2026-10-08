@@ -5,7 +5,6 @@
 // --- Forward Declarations ---
 class Player;
 class Falcon;
-class Cursor;
 
 class PlatformerInputManager
 {
@@ -15,8 +14,8 @@ public:
     ~PlatformerInputManager() = default;
 
     // --- Level Bindings ---
-    // Routes input to a level's entities until Unbind. `cursor` may be null.
-    void Bind(Player &player, Falcon &falcon, Cursor *cursor);
+    // Routes input to a level's entities until Unbind.
+    void Bind(Player &player, Falcon &falcon);
     void Unbind();
 
     // --- Events ---
@@ -27,7 +26,6 @@ public:
     Engine::EventSubscriber<>&             OnPreviousLevel()  { return m_onPreviousLevel; }
     Engine::EventSubscriber<>&             OnReloadLevel()    { return m_onReloadLevel; }
     Engine::EventSubscriber<>&             OnQuit()           { return m_onQuit; }
-    Engine::EventSubscriber<Engine::Vec2>& OnCursorMove()     { return m_onCursorMove; }
     Engine::EventSubscriber<>&             OnAim()            { return m_onAim; }
     Engine::EventSubscriber<>&             OnRelease()        { return m_onRelease; }
     Engine::EventSubscriber<>&             OnRetrieve()       { return m_onRetrieve; }
@@ -39,14 +37,12 @@ private:
     float ReadHorizontalInput() const;
     void HandleKeyPress(const Engine::Key &key);
     void HandleKeyRelease(const Engine::Key &key);
-    void HandleCursorMove(const Engine::Vec2 &position);
     void HandleClick(const Engine::MouseButton &button);
     void HandleRelease(const Engine::MouseButton &button);
 
     // --- Subscriptions ---
     Engine::Subscription m_keyPressedSub;
     Engine::Subscription m_keyReleaseSub;
-    Engine::Subscription m_cursorMoveSub;
     Engine::Subscription m_mouseButtonPressedSub;
     Engine::Subscription m_mouseButtonReleasedSub;
     std::vector<Engine::Subscription> m_bindings;
@@ -62,7 +58,6 @@ private:
     Engine::Event<>             m_onPreviousLevel;
     Engine::Event<>             m_onReloadLevel;
     Engine::Event<>             m_onQuit;
-    Engine::Event<Engine::Vec2> m_onCursorMove;
     Engine::Event<>             m_onAim;
     Engine::Event<>             m_onRelease;
     Engine::Event<>             m_onRetrieve;

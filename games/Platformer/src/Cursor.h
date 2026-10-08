@@ -12,9 +12,6 @@ private:
 
 // --- Lifecycle ---
 public:
+    void Update(float deltaTime) override;
     void Render() const override;
-
-// --- Setters ---
-public:
-    void SetPosition(const Engine::Vec2 &position) { m_worldPosition = position; }
 };
