@@ -2,6 +2,8 @@
 #include <Engine.h>
 #include <Core/EntryPoint.h>
 
+#include <optional>
+
 // --- Forward Declarations ---
 class PlatformerInputManager;
 class PlatformerWorld;
@@ -26,18 +28,31 @@ public:
 private:
     // --- Game Logic ---
     void InstantiateCurrentLevel(const LevelSet &levelSet);
-    void GoToNextLevel(int row);
-    void GoToPreviousLevel(int row);
-    void ReloadCurrentLevel();
 
-    enum class SpawnType { Entry, Return };
+    // Which of a level's spawn points the player appears at.
+    struct Spawn
+    {
+        std::string name;                  // Empty picks the level's first SpawnPoint
+        std::optional<Engine::Vec2> carry; // Where in the exit the player left it, 0 to 1 per axis
+    };
+
+    // A LevelExit with its anchor resolved against the level's tile grid.
+    struct ExitZone
+    {
+        Engine::Rect bounds;
+        std::string targetLevel;
+        std::string targetSpawn;
+    };
+
+    void GoToLevel(const std::string &level, Spawn spawn);
+    void GoToListedLevel(int step);
+    void ReloadCurrentLevel();
 
     // --- Fields ---
     std::vector<std::string> m_levelPaths;
-    int m_currentLevel = 0;
-    bool m_hasSpawnOverride = false;
-    SpawnType m_spawnType{SpawnType::Entry};
-    int m_spawnRow{0};
+    std::string m_currentLevel;
+    Spawn m_spawn;
+    std::vector<ExitZone> m_exits;
 
     // Built in the constructor: Initialize and Shutdown run for every level load.
     std::unique_ptr<PlatformerInputManager> m_inputManager;

@@ -61,7 +61,7 @@ games/
     └── src/
         ├── Platformer.h/cpp            # Application subclass + level navigation
         ├── PlatformerConstants.h       # Tuning constants
-        ├── PlatformerWorld.h/cpp       # Tile world: solidity, sweeps, spawns
+        ├── PlatformerWorld.h/cpp       # Tile world: solidity, sweeps
         ├── PlatformerInputManager.h/cpp # Keyboard/mouse routing → events, bound to the level's entities
         ├── Player.h/cpp                # Player body: velocity, collision, physics primitives
         ├── Falcon.h/cpp                # Falcon body: flight, aiming, drawing primitives
@@ -69,9 +69,11 @@ games/
         ├── TileType.h                  # Tile enum
         ├── Commands/                   # Deferred player and falcon inputs (Command pattern)
         ├── Levels/                     # Level loading
-        │   ├── TileGrid.h/cpp          # Tile rows + PropertyParser specialization
-        │   ├── TileLegend.h            # Character ↔ TileType table
-        │   └── LevelSet.h/cpp          # Entity carrying the level list from a document
+        │   ├── TileGrid.h/cpp          # Tile rows and anchors + PropertyParser specialization
+        │   ├── TileLegend.h            # Character ↔ TileType table; other characters are anchors
+        │   ├── LevelSet.h/cpp          # Entity carrying the level list from a document
+        │   ├── SpawnPoint.h/cpp        # Entity naming where the player can appear
+        │   └── LevelExit.h/cpp         # Entity naming a region that leads to another level
         └── StateMachine/               # Hierarchical state machine + Player's and Falcon's states
             ├── State.h                 # Generic state node: lifecycle + tree structure
             ├── StateMachine.h          # Generic machine: transitions, dispatch, root-to-leaf update

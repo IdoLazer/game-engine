@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-// The level documents of a set, in play order.
+// The level documents of a set: the game starts at the first, and the debug keys step through them.
 class LevelSet : public Engine::Entity
 {
     DECLARE_TYPE(LevelSet, Entity)
