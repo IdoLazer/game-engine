@@ -244,7 +244,6 @@ void Player::HandleCollisions(float deltaTime)
     SetGridPosition(position);
 
     m_stateMachine.ContactsResolved(ProbeContacts(position));
-    CheckChangeLevel(position);
 }
 
 // Sweeps the full combined velocity for this frame in one pass, clipping and sliding along
@@ -297,28 +296,6 @@ PlayerContacts Player::ProbeContacts(const Vec2 &position) const
 
     return contacts;
 }
-
-void Player::CheckChangeLevel(const Engine::Vec2 &position)
-{
-    Vec2 cell = GetGrid()->GetCellFromGridPosition(position);
-    int row = static_cast<int>(cell.y);
-
-    if (m_world->IsNextLevel(cell))
-    {
-        m_velocity.x = 0;
-        m_nextLevelEvent.Notify(row);
-    }
-    else if (m_world->IsPreviousLevel(cell))
-    {
-        m_velocity.x = 0;
-        m_previousLevelEvent.Notify(row);
-    }
-    else if (m_world->IsDeadly(cell))
-    {
-        m_reloadLevelEvent.Notify();
-    }
-}
-
 
 // --- Falcon Interaction ---
 

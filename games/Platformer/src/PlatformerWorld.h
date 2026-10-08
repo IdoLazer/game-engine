@@ -16,8 +16,6 @@ public:
 // --- Collision Interface ---
 public:
     bool IsSolid(const Engine::Vec2 &cell) const;
-    bool IsNextLevel(const Engine::Vec2 &cell) const;
-    bool IsPreviousLevel(const Engine::Vec2 &cell) const;
     bool IsDeadly(const Engine::Vec2 &cell) const;
 
     // Swept collision against solid tiles - the shared basis for all entity-vs-world collision.
@@ -30,9 +28,9 @@ public:
     // SweepSolid, which excludes that case (see Sweep.cpp). `direction` must be normalized.
     bool TouchesSolid(const Engine::Rect &box, const Engine::Vec2 &direction) const;
 
-    Engine::Vec2 FindEntrySpawn(int row) const;
-    Engine::Vec2 FindReturnSpawn(int row) const;
-    Engine::Vec2 FindDefaultSpawn() const;
+// --- Accessors ---
+public:
+    const TileGrid &GetTileGrid() const { return m_tileGrid; }
 
 // --- TileMap Interface ---
 protected:

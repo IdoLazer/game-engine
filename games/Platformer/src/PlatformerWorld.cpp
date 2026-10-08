@@ -25,19 +25,9 @@ bool PlatformerWorld::IsSolid(const Engine::Vec2 &cell) const
     return TileAt(cell) == TileType::Solid;
 }
 
-bool PlatformerWorld::IsNextLevel(const Engine::Vec2 &cell) const
-{
-    return TileAt(cell) == TileType::NextLevel;
-}
-
 bool PlatformerWorld::IsDeadly(const Engine::Vec2 &cell) const
 {
     return TileAt(cell) == TileType::Death;
-}
-
-bool PlatformerWorld::IsPreviousLevel(const Engine::Vec2 &cell) const
-{
-    return TileAt(cell) == TileType::PreviousLevel;
 }
 
 bool PlatformerWorld::OverlapsSolid(const Engine::Rect &box) const
@@ -136,41 +126,6 @@ Engine::SweepHit PlatformerWorld::RaycastSolid(const Engine::Vec2 &origin, const
         Engine::Rect rayPoint(origin, Engine::Vec2::Zero);
         return Engine::SweepRectVsRect(rayPoint, direction * maxDistance, m_coordSystem->GetCellRect(cell));
     }
-}
-
-Engine::Vec2 PlatformerWorld::FindEntrySpawn(int row) const
-{
-    for (int x = 0; x < m_tileGrid.GetColumnCount(); ++x)
-    {
-        if (m_tileGrid.At(x, row) == TileType::EntrySpawn)
-            return Engine::Vec2(static_cast<float>(x), static_cast<float>(row));
-    }
-    return FindDefaultSpawn();
-}
-
-Engine::Vec2 PlatformerWorld::FindReturnSpawn(int row) const
-{
-    for (int x = 0; x < m_tileGrid.GetColumnCount(); ++x)
-    {
-        if (m_tileGrid.At(x, row) == TileType::ReturnSpawn)
-            return Engine::Vec2(static_cast<float>(x), static_cast<float>(row));
-    }
-    return FindDefaultSpawn();
-}
-
-Engine::Vec2 PlatformerWorld::FindDefaultSpawn() const
-{
-    for (int y = 0; y < m_tileGrid.GetRowCount(); ++y)
-        for (int x = 0; x < m_tileGrid.GetColumnCount(); ++x)
-            if (m_tileGrid.At(x, y) == TileType::DefaultSpawn)
-                return Engine::Vec2(static_cast<float>(x), static_cast<float>(y));
-
-    for (int y = 0; y < m_tileGrid.GetRowCount(); ++y)
-        for (int x = 0; x < m_tileGrid.GetColumnCount(); ++x)
-            if (m_tileGrid.At(x, y) == TileType::EntrySpawn)
-                return Engine::Vec2(static_cast<float>(x), static_cast<float>(y));
-
-    return Engine::Vec2(1.0f, 1.0f);
 }
 
 void PlatformerWorld::RenderTile(int x, int y, const Engine::Vec2 &worldPos, const Engine::Vec2 &worldSize) const

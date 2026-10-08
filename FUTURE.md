@@ -128,13 +128,6 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 
 ## Levels
 
-### Spawn points and level triggers are still tile values
-
-**Current:** `TileType` mixes geometry (`Empty`, `Solid`, `Death`) with markers that aren't tiles at all: `EntrySpawn`, `ReturnSpawn`, `DefaultSpawn`, `NextLevel`, `PreviousLevel`. A level transition has to be painted down a whole column to act as one trigger, and `FindEntrySpawn(int row)` scans a row for a magic value.
-**Concern:** A spawn is a position and a transition is a volume; both are entities wearing a tile's clothes, because the grid was the only data a level had. This is what breaks first if levels stop being a single screen.
-**Future:** Give them their own entity types placed in the level document alongside `PlatformerWorld`, and replace `Player`'s per-cell `IsNextLevel`/`IsPreviousLevel` checks with a query against those entities. The document format already allows it - they would just be more sections.
-**When:** When a level needs two exits on the same row, a trigger that isn't cell-aligned, or when levels stop being one screen each.
-
 ### Level size is fixed by GRID_WORLD_SIZE
 
 **Current:** `TileGrid` reports its own row and column counts, and the document format imposes no size. But `Platformer::Initialize` still builds `m_grid` from `PlatformerConstants::GRID_WORLD_SIZE` (30x20), and the camera shows exactly that.
@@ -148,6 +141,20 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 **Concern:** An objective that changes the world - a sluice opened in one level, a conversation that differs on the way back - needs state that outlives the level it happened in, and that a death does not undo.
 **Future:** A small game-state object owned by `Platformer`, handed to the entities that need it when a level is wired.
 **When:** When the first objective has to be remembered across a level load.
+
+### Only Platformer knows how to place an anchored entity
+
+**Current:** `SpawnPoint` and `LevelExit` name an anchor, and `Platformer` looks the anchor up in the tile grid when it loads a level. The entities themselves hold no position.
+**Concern:** The next level object - a platform, a control, a sign - needs the same lookup, plus a position of its own to update and draw at.
+**Future:** A small base for anchored level entities that takes its bounds from the tile grid when the level is wired, so a new type only adds its behaviour.
+**When:** When the first level entity that has to draw or move is added.
+
+### An exit's target is checked only when the player reaches it
+
+**Current:** A `LevelExit` names its target level and spawn point as text, and nothing reads them until the player enters the exit. A level path that does not load throws out of `Initialize` and ends the game; a spawn name the target lacks is reported and the player appears at the target's first `SpawnPoint`.
+**Concern:** A typo in an exit is found only by playing to it, and a wrong path costs a restart.
+**Future:** Check every exit's target when its level loads, and report it alongside the anchor problems.
+**When:** When there are more exits than are walked through in a normal playtest.
 
 ---
 
