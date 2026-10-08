@@ -192,7 +192,7 @@ void Platformer::Initialize()
 
     falcon->SetCursor(m_cursor);
 
-    m_inputManager->Bind(*player, *falcon, m_cursor);
+    m_inputManager->Bind(*player, *falcon);
 }
 
 void Platformer::Update(float deltaTime)
