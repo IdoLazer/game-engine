@@ -3,19 +3,19 @@
 
 [LevelSet]
 Levels = |
-assets/scenes/falcon_gliding_testing.scene
+assets/scenes/falcon_test/falcon_gliding_testing.scene
 
 // The movement set, to play instead of the falcon set:
-// assets/scenes/movement_training_level_1.scene
-// assets/scenes/movement_training_level_2.scene
-// assets/scenes/movement_training_level_3.scene
-// assets/scenes/movement_training_level_4.scene
-// assets/scenes/movement_training_level_5.scene
-// assets/scenes/movement_training_level_6.scene
-// assets/scenes/movement_level_1.scene
-// assets/scenes/movement_level_2.scene
-// assets/scenes/movement_level_3.scene
-// assets/scenes/movement_level_4.scene
+// assets/scenes/movement_test/movement_training_level_1.scene
+// assets/scenes/movement_test/movement_training_level_2.scene
+// assets/scenes/movement_test/movement_training_level_3.scene
+// assets/scenes/movement_test/movement_training_level_4.scene
+// assets/scenes/movement_test/movement_training_level_5.scene
+// assets/scenes/movement_test/movement_training_level_6.scene
+// assets/scenes/movement_test/movement_level_1.scene
+// assets/scenes/movement_test/movement_level_2.scene
+// assets/scenes/movement_test/movement_level_3.scene
+// assets/scenes/movement_test/movement_level_4.scene
 
 [Player]
 GridSize = 0.4, 0.4
