@@ -59,6 +59,20 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Add an earlier lifecycle hook (similar to Unity's `Awake()`) that runs immediately after `Instantiate()` + property assignment, before the first frame. `Initialize()` would then only contain logic that's safe to depend on all other entities being awake.  
 **When:** When the implicit initialization order causes bugs or when cross-entity setup becomes too complex to reason about.
 
+### Input reaches entities only as presses and releases
+
+**Current:** `PlatformerInputManager` publishes press and release events. `Player` and `Falcon` keep one-slot command queues to remember that a button is still down - a glide or an aim asked for too early, a jump released during its minimum arc - and a level load drops a held glide or aim, because the new entities never saw the press.
+**Concern:** Every mechanic driven by a held button adds another queue and another place that has to clear it.
+**Future:** Let the input manager also expose current state (move direction; jump, glide and aim held) for a state to read when it becomes able to act. Whether a held button should act without a fresh press is a feel decision per input, not only a refactor.
+**When:** When a new held-input mechanic needs another queue, or the dropped input at a level transition is noticed in play.
+
+### A scene and the application share one lifecycle
+
+**Current:** `Application::ReloadScene` runs `Shutdown`, clears the scene and runs `Initialize`, so a game's `Initialize` and `Shutdown` bracket one scene, not the run. What has to outlive a scene is built in the game's constructor, as the Platformer does with its input manager, before the engine's subsystems exist.
+**Concern:** Something that outlives a scene but needs the window, the renderer or a resource has nowhere to be created.
+**Future:** Run `Initialize` and `Shutdown` once, and add hooks the engine calls around every scene build. Snake and Chess would move their scene setup into the new hook.
+**When:** When a game needs such an object.
+
 ---
 
 ## Collision
@@ -127,6 +141,13 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 **Concern:** A differently sized level would parse correctly and then render and collide against the wrong grid.
 **Future:** Build the `Grid` from the loaded `TileGrid`'s dimensions. That is a few lines; the open question is what the camera should do, since showing a bigger level whole means smaller cells.
 **When:** When a level wants to be a size other than 30x20, which likely arrives with a scrolling camera.
+
+### Level entities cannot reach anything that outlives the level
+
+**Current:** A level load destroys every entity and builds the next level's. `Platformer` itself persists, but entities only see the `Scene`, so nothing they can reach survives the load.
+**Concern:** An objective that changes the world - a sluice opened in one level, a conversation that differs on the way back - needs state that outlives the level it happened in, and that a death does not undo.
+**Future:** A small game-state object owned by `Platformer`, handed to the entities that need it when a level is wired.
+**When:** When the first objective has to be remembered across a level load.
 
 ---
 
