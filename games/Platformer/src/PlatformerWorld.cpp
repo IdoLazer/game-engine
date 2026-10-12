@@ -1,7 +1,11 @@
 #include "PlatformerWorld.h"
+#include "Levels/LevelExit.h"
+#include "Levels/SpawnPoint.h"
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <limits>
+#include <map>
 
 namespace
 {
@@ -25,19 +29,9 @@ bool PlatformerWorld::IsSolid(const Engine::Vec2 &cell) const
     return TileAt(cell) == TileType::Solid;
 }
 
-bool PlatformerWorld::IsNextLevel(const Engine::Vec2 &cell) const
-{
-    return TileAt(cell) == TileType::NextLevel;
-}
-
 bool PlatformerWorld::IsDeadly(const Engine::Vec2 &cell) const
 {
     return TileAt(cell) == TileType::Death;
-}
-
-bool PlatformerWorld::IsPreviousLevel(const Engine::Vec2 &cell) const
-{
-    return TileAt(cell) == TileType::PreviousLevel;
 }
 
 bool PlatformerWorld::OverlapsSolid(const Engine::Rect &box) const
@@ -138,39 +132,57 @@ Engine::SweepHit PlatformerWorld::RaycastSolid(const Engine::Vec2 &origin, const
     }
 }
 
-Engine::Vec2 PlatformerWorld::FindEntrySpawn(int row) const
+// --- Level Regions ---
+
+void PlatformerWorld::PlaceRegions()
 {
-    for (int x = 0; x < m_tileGrid.GetColumnCount(); ++x)
+    std::map<char, Engine::Rect> unnamed = m_tileGrid.GetAnchors();
+
+    for (LevelRegion *region : GetScene()->GetAllEntitiesOfType<LevelRegion>())
     {
-        if (m_tileGrid.At(x, row) == TileType::EntrySpawn)
-            return Engine::Vec2(static_cast<float>(x), static_cast<float>(row));
+        if (!region->Place(m_tileGrid))
+            continue;
+
+        unnamed.erase(region->GetAnchor());
+
+        if (auto *spawnPoint = dynamic_cast<SpawnPoint *>(region))
+            m_spawnPoints.push_back(spawnPoint);
+        else if (auto *levelExit = dynamic_cast<LevelExit *>(region))
+            m_exits.push_back(levelExit);
     }
-    return FindDefaultSpawn();
+
+    for (const auto &[glyph, bounds] : unnamed)
+        std::cerr << "PlatformerWorld: '" << glyph << "' is drawn in the picture, but no entity names it" << std::endl;
 }
 
-Engine::Vec2 PlatformerWorld::FindReturnSpawn(int row) const
+Engine::Vec2 PlatformerWorld::FindSpawnCell(const std::string &spawnName, const std::optional<Engine::Vec2> &exitCell) const
 {
-    for (int x = 0; x < m_tileGrid.GetColumnCount(); ++x)
+    if (m_spawnPoints.empty())
     {
-        if (m_tileGrid.At(x, row) == TileType::ReturnSpawn)
-            return Engine::Vec2(static_cast<float>(x), static_cast<float>(row));
+        std::cerr << "PlatformerWorld: the level has no SpawnPoint, placing the player at 1, 1" << std::endl;
+        return Engine::Vec2(1.0f, 1.0f);
     }
-    return FindDefaultSpawn();
+
+    for (const SpawnPoint *spawnPoint : m_spawnPoints)
+    {
+        if (spawnPoint->GetName() == spawnName)
+            return spawnPoint->GetSpawnCell(exitCell);
+    }
+
+    if (!spawnName.empty())
+        std::cerr << "PlatformerWorld: no SpawnPoint named '" << spawnName << "', using the level's first" << std::endl;
+
+    return m_spawnPoints.front()->GetSpawnCell(exitCell);
 }
 
-Engine::Vec2 PlatformerWorld::FindDefaultSpawn() const
+const LevelExit *PlatformerWorld::FindExitAt(const Engine::Vec2 &cell) const
 {
-    for (int y = 0; y < m_tileGrid.GetRowCount(); ++y)
-        for (int x = 0; x < m_tileGrid.GetColumnCount(); ++x)
-            if (m_tileGrid.At(x, y) == TileType::DefaultSpawn)
-                return Engine::Vec2(static_cast<float>(x), static_cast<float>(y));
-
-    for (int y = 0; y < m_tileGrid.GetRowCount(); ++y)
-        for (int x = 0; x < m_tileGrid.GetColumnCount(); ++x)
-            if (m_tileGrid.At(x, y) == TileType::EntrySpawn)
-                return Engine::Vec2(static_cast<float>(x), static_cast<float>(y));
-
-    return Engine::Vec2(1.0f, 1.0f);
+    for (const LevelExit *levelExit : m_exits)
+    {
+        if (levelExit->Contains(cell))
+            return levelExit;
+    }
+    return nullptr;
 }
 
 void PlatformerWorld::RenderTile(int x, int y, const Engine::Vec2 &worldPos, const Engine::Vec2 &worldSize) const

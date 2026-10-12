@@ -4,8 +4,11 @@
 #include "Player.h"
 #include "PlatformerInputManager.h"
 #include "Levels/LevelSet.h"
+#include "Levels/LevelExit.h"
 #include "Cursor.h"
 #include "Falcon.h"
+
+#include <algorithm>
 
 using namespace Engine;
 
@@ -24,8 +27,8 @@ namespace
 Platformer::Platformer()
     : m_inputManager(std::make_unique<PlatformerInputManager>())
 {
-    m_inputSubscriptions.push_back(m_inputManager->OnNextLevel().Subscribe([this]()     { GoToNextLevel(-1); }));
-    m_inputSubscriptions.push_back(m_inputManager->OnPreviousLevel().Subscribe([this]() { GoToPreviousLevel(-1); }));
+    m_inputSubscriptions.push_back(m_inputManager->OnNextLevel().Subscribe([this]()     { GoToListedLevel(1); }));
+    m_inputSubscriptions.push_back(m_inputManager->OnPreviousLevel().Subscribe([this]() { GoToListedLevel(-1); }));
     m_inputSubscriptions.push_back(m_inputManager->OnReloadLevel().Subscribe([this]()   { ReloadCurrentLevel(); }));
     m_inputSubscriptions.push_back(m_inputManager->OnQuit().Subscribe([this]()          { Close(); }));
 }
@@ -58,17 +61,14 @@ void Platformer::Initialize()
         gridEntity->SetGrid(&m_grid);
 
     m_world->SetCoordSystem(&m_grid.GetCoordinateSystem());
+    m_world->PlaceRegions();
 
     m_player->SetWorld(m_world);
     falcon->SetWorld(m_world);
     m_player->SetFalcon(falcon);
     
-    Vec2 spawnPos = m_hasSpawnOverride
-        ? (m_spawnType == SpawnType::Entry
-            ? m_world->FindEntrySpawn(m_spawnRow)
-            : m_world->FindReturnSpawn(m_spawnRow))
-        : m_world->FindDefaultSpawn();
-    m_hasSpawnOverride = false;
+    Vec2 spawnPos = m_world->FindSpawnCell(m_spawnName, m_exitCell);
+    m_exitCell.reset();
 
     if (m_world->IsSolid(Vec2(spawnPos.x, spawnPos.y + 1.0f)))
         spawnPos.y += 0.5f - m_player->GetGridSize().y / 2.0f;
@@ -90,14 +90,18 @@ void Platformer::Update(float deltaTime)
         return;
 
     Vec2 cell = m_grid.GetCellFromGridPosition(m_player->GetGridPosition());
-    int row = static_cast<int>(cell.y);
 
-    if (m_world->IsNextLevel(cell))
-        GoToNextLevel(row);
-    else if (m_world->IsPreviousLevel(cell))
-        GoToPreviousLevel(row);
+    if (const LevelExit *levelExit = m_world->FindExitAt(cell))
+    {
+        if (levelExit->GetTargetLevel().empty())
+            Close();
+        else
+            GoToLevel(levelExit->GetTargetLevel(), levelExit->GetTargetSpawn(), cell);
+    }
     else if (m_world->IsDeadly(cell))
+    {
         ReloadCurrentLevel();
+    }
 }
 
 void Platformer::Shutdown()
@@ -115,14 +119,12 @@ void Platformer::InstantiateCurrentLevel(const LevelSet &levelSet)
     if (m_levelPaths.empty())
         throw std::runtime_error(std::string("No LevelSet levels in ") + PLATFORMER_SCENE);
 
-    // A level deleted from the list between reloads can leave the index past the end.
-    if (m_currentLevel >= static_cast<int>(m_levelPaths.size()))
-        m_currentLevel = static_cast<int>(m_levelPaths.size()) - 1;
+    if (m_currentLevel.empty())
+        m_currentLevel = m_levelPaths.front();
 
-    const std::string &levelPath = m_levelPaths[m_currentLevel];
-    SceneData *levelScene = ResourceManager::Load<SceneData>(levelPath, SCENE_CACHE_MODE);
+    SceneData *levelScene = ResourceManager::Load<SceneData>(m_currentLevel, SCENE_CACHE_MODE);
     if (!levelScene || levelScene->IsEmpty())
-        throw std::runtime_error("Failed to load level " + levelPath);
+        throw std::runtime_error("Failed to load level " + m_currentLevel);
 
     for (const Scene::EntityInfo &entityInfo : levelScene->GetEntities())
         GetScene()->Instantiate(entityInfo);
@@ -130,43 +132,29 @@ void Platformer::InstantiateCurrentLevel(const LevelSet &levelSet)
 
 // --- Level Navigation ---
 
-void Platformer::GoToNextLevel(int row)
+void Platformer::GoToLevel(const std::string &level, const std::string &spawnName, const std::optional<Vec2> &exitCell)
 {
-    m_currentLevel++;
-    if (m_currentLevel < static_cast<int>(m_levelPaths.size()))
-    {
-        if (row >= 0)
-        {
-            m_hasSpawnOverride = true;
-            m_spawnType = SpawnType::Entry;
-            m_spawnRow = row;
-        }
-        ReloadScene();
-    }
-    else
-        Close();
+    m_currentLevel = level;
+    m_spawnName = spawnName;
+    m_exitCell = exitCell;
+    ReloadScene();
 }
 
-void Platformer::GoToPreviousLevel(int row)
+// Steps through the root document's level list, for the debug keys.
+void Platformer::GoToListedLevel(int step)
 {
-    m_currentLevel--;
-    if (m_currentLevel >= 0)
-    {
-        if (row >= 0)
-        {
-            m_hasSpawnOverride = true;
-            m_spawnType = SpawnType::Return;
-            m_spawnRow = row;
-        }
-        ReloadScene();
-    }
-    else
-        m_currentLevel = 0;
+    auto current = std::find(m_levelPaths.begin(), m_levelPaths.end(), m_currentLevel);
+    int index = current == m_levelPaths.end() ? -1 : static_cast<int>(current - m_levelPaths.begin());
+    int target = index + step;
+
+    if (target < 0 || target >= static_cast<int>(m_levelPaths.size()))
+        return;
+
+    GoToLevel(m_levelPaths[target]);
 }
 
 void Platformer::ReloadCurrentLevel()
 {
-    m_spawnType = SpawnType::Entry;
     ReloadScene();
 }
 

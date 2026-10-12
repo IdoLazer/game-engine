@@ -29,3 +29,25 @@ TileGrid = |
 ..#..####...#..###########...#
 ..#..#..#...#..#.........#...#
 #############xx###############
+
+[SpawnPoint]
+Name = start
+Anchor = @
+
+[SpawnPoint]
+Name = fromPrevious
+Anchor = e
+
+[SpawnPoint]
+Name = fromNext
+Anchor = r
+
+[LevelExit]
+Anchor = <
+TargetLevel = assets/scenes/movement_level_1.scene
+TargetSpawn = fromNext
+
+[LevelExit]
+Anchor = >
+TargetLevel = assets/scenes/movement_level_3.scene
+TargetSpawn = fromPrevious
