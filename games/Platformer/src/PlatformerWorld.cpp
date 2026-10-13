@@ -146,9 +146,14 @@ void PlatformerWorld::PlaceRegions()
         unnamed.erase(region->GetAnchor());
 
         if (auto *spawnPoint = dynamic_cast<SpawnPoint *>(region))
+        {
+            unnamed.erase(spawnPoint->GetDefaultAnchor());
             m_spawnPoints.push_back(spawnPoint);
+        }
         else if (auto *levelExit = dynamic_cast<LevelExit *>(region))
+        {
             m_exits.push_back(levelExit);
+        }
     }
 
     for (const auto &[glyph, bounds] : unnamed)

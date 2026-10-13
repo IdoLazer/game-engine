@@ -37,6 +37,7 @@ Anchor = @
 [SpawnPoint]
 Name = fromPrevious
 Anchor = e
+DefaultAnchor = @
 
 [SpawnPoint]
 Name = fromNext

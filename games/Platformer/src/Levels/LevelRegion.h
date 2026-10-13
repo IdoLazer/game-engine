@@ -14,7 +14,7 @@ class LevelRegion : public Engine::GridEntity
 // --- Public Interface ---
 public:
     // Covers the cells drawn with the region's anchor. False when `tiles` has no such anchor.
-    bool Place(const TileGrid &tiles);
+    virtual bool Place(const TileGrid &tiles);
     bool Contains(const Engine::Vec2 &cell) const;
 
     // '\0' unless the document gave exactly one character.

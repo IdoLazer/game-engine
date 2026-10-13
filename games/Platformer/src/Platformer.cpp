@@ -70,6 +70,7 @@ void Platformer::Initialize()
     Vec2 spawnPos = m_world->FindSpawnCell(m_spawnName, m_exitCell);
     m_exitCell.reset();
 
+    // If the spawn cell is right above a solid tile, spawn the player on the ground instead of in the middle of the cell
     if (m_world->IsSolid(Vec2(spawnPos.x, spawnPos.y + 1.0f)))
         spawnPos.y += 0.5f - m_player->GetGridSize().y / 2.0f;
 
