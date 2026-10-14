@@ -33,3 +33,10 @@ TileGrid = |
 #............................#
 #............................#
 #xxxxxxxxxxxxxxxxxxxxxxxxxxxx#
+
+[SpawnPoint]
+Name = start
+Anchor = @
+
+[LevelExit]
+Anchor = >

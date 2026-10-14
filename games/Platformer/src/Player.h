@@ -35,9 +35,6 @@ public:
     void StopJump();
     void Glide();
     void StopGlide();
-    Engine::EventSubscriber<int> &OnNextLevel() { return m_nextLevelEvent; }
-    Engine::EventSubscriber<int> &OnPreviousLevel() { return m_previousLevelEvent; }
-    Engine::EventSubscriber<> &OnReloadLevel() { return m_reloadLevelEvent; }
 
 // --- Movement States ---
     // Defined in StateMachine/PlayerStates.h. Nested so they can reach the
@@ -73,7 +70,6 @@ private:
     void HandleCollisions(float deltaTime);
     void MoveAndSlide(Engine::Vec2 &position, float deltaTime);
     PlayerContacts ProbeContacts(const Engine::Vec2 &position) const;
-    void CheckChangeLevel(const Engine::Vec2 &position);
     bool CanGlide() const;
 
 // --- Jump Buffer ---
@@ -132,8 +128,5 @@ private:
     PlatformerWorld *m_world{nullptr};
     Falcon *m_falcon{nullptr};
     Engine::Vec2 m_halfExtents{};
-    Engine::Event<int> m_nextLevelEvent;
-    Engine::Event<int> m_previousLevelEvent;
-    Engine::Event<> m_reloadLevelEvent;
     Engine::Subscription m_falconReturnedSubscription;
 };
