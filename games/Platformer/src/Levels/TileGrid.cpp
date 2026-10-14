@@ -3,9 +3,10 @@
 
 #include <algorithm>
 #include <iostream>
+#include <limits>
 
-TileGrid::TileGrid(std::vector<std::vector<int>> rows)
-    : m_rows(std::move(rows))
+TileGrid::TileGrid(std::vector<std::vector<int>> rows, std::map<char, Engine::Rect> anchors)
+    : m_rows(std::move(rows)), m_anchors(std::move(anchors))
 {
 }
 
@@ -17,14 +18,51 @@ TileType TileGrid::At(int x, int y) const
     return static_cast<TileType>(m_rows[y][x]);
 }
 
+std::optional<Engine::Rect> TileGrid::FindAnchor(char glyph) const
+{
+    auto anchor = m_anchors.find(glyph);
+    if (anchor == m_anchors.end())
+        return std::nullopt;
+
+    return anchor->second;
+}
+
 namespace Engine
 {
+    namespace
+    {
+        // The smallest and largest column and row a glyph is drawn in.
+        struct CellExtent
+        {
+            int minX{std::numeric_limits<int>::max()};
+            int minY{std::numeric_limits<int>::max()};
+            int maxX{std::numeric_limits<int>::min()};
+            int maxY{std::numeric_limits<int>::min()};
+
+            void Include(int x, int y)
+            {
+                minX = std::min(minX, x);
+                minY = std::min(minY, y);
+                maxX = std::max(maxX, x);
+                maxY = std::max(maxY, y);
+            }
+        };
+
+        // A cell at column x, row y is centered on x, y and reaches half a cell in each direction.
+        Rect BoundingRect(const CellExtent &extent)
+        {
+            return Rect(Vec2((extent.minX + extent.maxX) * 0.5f, (extent.minY + extent.maxY) * 0.5f),
+                        Vec2((extent.maxX - extent.minX + 1) * 0.5f, (extent.maxY - extent.minY + 1) * 0.5f));
+        }
+    }
+
     std::optional<TileGrid> PropertyParser<TileGrid>::Parse(std::string_view text)
     {
         if (text.empty())
             return std::nullopt;
 
         std::vector<std::vector<int>> rows;
+        std::map<char, CellExtent> extents;
         std::size_t lineStart = 0;
         int lineNumber = 0;
 
@@ -41,11 +79,20 @@ namespace Engine
 
             for (std::size_t column = 0; column < line.size(); ++column)
             {
-                std::optional<TileType> tile = TileLegend::FromChar(line[column]);
+                char glyph = line[column];
+
+                if (TileLegend::IsAnchor(glyph))
+                {
+                    extents[glyph].Include(static_cast<int>(column), static_cast<int>(rows.size()));
+                    row.push_back(static_cast<int>(TileType::Empty));
+                    continue;
+                }
+
+                std::optional<TileType> tile = TileLegend::FromChar(glyph);
                 if (!tile)
                 {
                     std::cerr << "TileGrid: row " << lineNumber << ", column " << column + 1
-                              << ": '" << line[column] << "' is not in the tile legend" << std::endl;
+                              << ": '" << glyph << "' is not in the tile legend" << std::endl;
                     return std::nullopt;
                 }
                 row.push_back(static_cast<int>(*tile));
@@ -69,6 +116,10 @@ namespace Engine
         for (std::vector<int> &row : rows)
             row.resize(widest, static_cast<int>(TileType::Empty));
 
-        return TileGrid(std::move(rows));
+        std::map<char, Rect> anchors;
+        for (const auto &[glyph, extent] : extents)
+            anchors.emplace(glyph, BoundingRect(extent));
+
+        return TileGrid(std::move(rows), std::move(anchors));
     }
 }

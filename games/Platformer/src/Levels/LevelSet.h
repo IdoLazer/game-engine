@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-// The level documents of a set, in play order.
+// The level documents of a set.
 class LevelSet : public Engine::Entity
 {
     DECLARE_TYPE(LevelSet, Entity)

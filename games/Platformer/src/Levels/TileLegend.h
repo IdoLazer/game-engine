@@ -17,11 +17,6 @@ namespace TileLegend
         {'.', TileType::Empty},
         {'#', TileType::Solid},
         {'x', TileType::Death},
-        {'@', TileType::DefaultSpawn},
-        {'>', TileType::NextLevel},
-        {'<', TileType::PreviousLevel},
-        {'e', TileType::EntrySpawn},
-        {'r', TileType::ReturnSpawn},
     };
 
     constexpr std::optional<TileType> FromChar(char glyph)
@@ -32,5 +27,11 @@ namespace TileLegend
                 return entry.tile;
         }
         return std::nullopt;
+    }
+
+    // Any other visible character is an anchor: an empty cell an entity names to say where it is.
+    constexpr bool IsAnchor(char glyph)
+    {
+        return glyph > ' ' && glyph <= '~' && !FromChar(glyph);
     }
 }
