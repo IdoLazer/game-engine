@@ -10,6 +10,12 @@ END_TYPE_REGISTER()
 
 // --- Lifecycle ---
 
+void Cursor::Update(float deltaTime)
+{
+    // Every frame, since the camera can move while the mouse stays still.
+    m_worldPosition = Renderer2D::GetCamera().ScreenToWorld(m_screenPosition);
+}
+
 void Cursor::Render() const
 {
     Renderer2D::DrawCircle(m_worldPosition, m_radius, m_color);

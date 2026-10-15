@@ -59,12 +59,12 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Add an earlier lifecycle hook (similar to Unity's `Awake()`) that runs immediately after `Instantiate()` + property assignment, before the first frame. `Initialize()` would then only contain logic that's safe to depend on all other entities being awake.  
 **When:** When the implicit initialization order causes bugs or when cross-entity setup becomes too complex to reason about.
 
-### Input reaches entities only as presses and releases
+### Input reaches entities only as events
 
-**Current:** `PlatformerInputManager` publishes press and release events. `Player` and `Falcon` keep one-slot command queues to remember that a button is still down - a glide or an aim asked for too early, a jump released during its minimum arc - and a level load drops a held glide or aim, because the new entities never saw the press.
-**Concern:** Every mechanic driven by a held button adds another queue and another place that has to clear it.
-**Future:** Let the input manager also expose current state (move direction; jump, glide and aim held) for a state to read when it becomes able to act. Whether a held button should act without a fresh press is a feel decision per input, not only a refactor.
-**When:** When a new held-input mechanic needs another queue, or the dropped input at a level transition is noticed in play.
+**Current:** `PlatformerInputManager` publishes events: presses and releases, and the cursor's screen position when the mouse moves. `Player` and `Falcon` keep one-slot command queues to remember that a button is still down - a glide or an aim asked for too early, a jump released during its minimum arc - and a level load drops a held glide or aim, because the new entities never saw the press.
+**Concern:** Every mechanic driven by a held button adds another queue and another place that has to clear it. A gamepad cannot be added this way at all: GLFW reports a gamepad's sticks and buttons only when polled, and nothing the game owns updates before the scene's entities.
+**Future:** Let the input manager also expose current state (move direction; jump, glide and aim held) for a state to read when it becomes able to act, and give it an update that runs before the scene's, where it can poll a gamepad. Whether a held button should act without a fresh press is a feel decision per input, not only a refactor, and so is whether a stick moves the cursor or aims the falcon along its direction.
+**When:** When a new held-input mechanic needs another queue, the dropped input at a level transition is noticed in play, or controller support begins.
 
 ### A scene and the application share one lifecycle
 

@@ -1,5 +1,6 @@
 // The root scene document: the level list, and the entities every level shares.
-// Entities draw in the order listed here; the current level's take LevelSet's place.
+// Entities update and draw in the order listed here; the current level's take LevelSet's place.
+// The cursor is listed before the falcon, which aims at it.
 
 [LevelSet]
 Levels = |
@@ -43,6 +44,10 @@ WallGravityScale = 0.15
 GlideMaxSpeed = 3
 GlideGravityScale = 0.1
 
+[Cursor]
+Radius = 0.05
+Color = 1, 1, 1, 1
+
 [Falcon]
 GridSize = 0.25, 0.25
 Color = 1, 1, 1, 1
@@ -51,7 +56,3 @@ Speed = 12
 RetrieveSpeed = 20
 SnapRadius = 0.1
 GlideOffsetFromPlayer = 0, -0.3
-
-[Cursor]
-Radius = 0.05
-Color = 1, 1, 1, 1
