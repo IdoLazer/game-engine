@@ -90,7 +90,7 @@ namespace Engine
     void Mouse::CursorPositionCallback(GLFWwindow *window, double xpos, double ypos)
     {
         m_currentPosition = Vec2(static_cast<float>(xpos), static_cast<float>(ypos));
-        s_moved.Notify(GetWorldPosition());
+        s_moved.Notify(m_currentPosition);
     }
 
     void Mouse::ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
