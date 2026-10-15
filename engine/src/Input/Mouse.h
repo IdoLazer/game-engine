@@ -35,7 +35,7 @@ namespace Engine
         // --- Events ---
         static EventSubscriber<MouseButton> &OnButtonPressed() { return s_buttonPressed; }
         static EventSubscriber<MouseButton> &OnButtonReleased() { return s_buttonReleased; }
-        static EventSubscriber<Vec2> &OnMoved() { return s_moved; }
+        static EventSubscriber<Vec2> &OnMoved() { return s_moved; } // Screen pixels
         static EventSubscriber<Vec2> &OnScrolled() { return s_scrolled; }
 
     private:
