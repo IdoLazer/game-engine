@@ -48,6 +48,10 @@ public:
     // The exit `cell` is in, or null.
     const LevelExit *FindExitAt(const Engine::Vec2 &cell) const;
 
+// --- Accessors ---
+public:
+    Engine::Vec2 GetCellCount() const { return Engine::Vec2(m_tileGrid.GetColumnCount(), m_tileGrid.GetRowCount()); }
+
 // --- TileMap Interface ---
 protected:
     void RenderTile(int x, int y, const Engine::Vec2 &worldPos, const Engine::Vec2 &worldSize) const override;

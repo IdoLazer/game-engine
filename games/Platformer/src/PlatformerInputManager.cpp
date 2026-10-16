@@ -29,13 +29,13 @@ void PlatformerInputManager::Bind(Player &player, Falcon &falcon, Cursor *cursor
     m_bindings.push_back(m_onRetrieve.Subscribe(&falcon, &Falcon::Retrieve));
 
     if (cursor)
-        m_bindings.push_back(m_onCursorMove.Subscribe(cursor, &Cursor::SetPosition));
+        m_bindings.push_back(m_onCursorMove.Subscribe(cursor, &Cursor::SetScreenPosition));
 
     // Read from the keyboard, not the event history: a key held since before the window
     // opened never sent its press.
     m_horizontalInput = ReadHorizontalInput();
     m_onMove.Notify(Vec2{m_horizontalInput, 0.0f});
-    m_onCursorMove.Notify(Mouse::GetWorldPosition());
+    m_onCursorMove.Notify(Mouse::GetPosition());
 }
 
 void PlatformerInputManager::Unbind()
