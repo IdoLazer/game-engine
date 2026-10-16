@@ -10,6 +10,11 @@ END_TYPE_REGISTER()
 
 // --- Lifecycle ---
 
+void Cursor::Update(float deltaTime)
+{
+    m_worldPosition = Renderer2D::GetCamera().ScreenToWorld(m_screenPosition);
+}
+
 void Cursor::Render() const
 {
     Renderer2D::DrawCircle(m_worldPosition, m_radius, m_color);

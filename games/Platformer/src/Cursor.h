@@ -9,12 +9,14 @@ class Cursor : public Engine::Entity
 // --- Fields ---
 private:
     float m_radius{0.0f};
+    Engine::Vec2 m_screenPosition{};
 
 // --- Lifecycle ---
 public:
+    void Update(float deltaTime) override;
     void Render() const override;
 
 // --- Setters ---
 public:
-    void SetPosition(const Engine::Vec2 &position) { m_worldPosition = position; }
+    void SetScreenPosition(const Engine::Vec2 &screenPosition) { m_screenPosition = screenPosition; }
 };

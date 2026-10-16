@@ -59,12 +59,12 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Add an earlier lifecycle hook (similar to Unity's `Awake()`) that runs immediately after `Instantiate()` + property assignment, before the first frame. `Initialize()` would then only contain logic that's safe to depend on all other entities being awake.  
 **When:** When the implicit initialization order causes bugs or when cross-entity setup becomes too complex to reason about.
 
-### Input reaches entities only as presses and releases
+### Input reaches entities only as events
 
-**Current:** `PlatformerInputManager` publishes press and release events. `Player` and `Falcon` keep one-slot command queues to remember that a button is still down - a glide or an aim asked for too early, a jump released during its minimum arc - and a level load drops a held glide or aim, because the new entities never saw the press.
-**Concern:** Every mechanic driven by a held button adds another queue and another place that has to clear it.
-**Future:** Let the input manager also expose current state (move direction; jump, glide and aim held) for a state to read when it becomes able to act. Whether a held button should act without a fresh press is a feel decision per input, not only a refactor.
-**When:** When a new held-input mechanic needs another queue, or the dropped input at a level transition is noticed in play.
+**Current:** `PlatformerInputManager` publishes events: presses and releases, and the cursor's screen position when the mouse moves. `Player` and `Falcon` keep one-slot command queues to remember that a button is still down - a glide or an aim asked for too early, a jump released during its minimum arc - and a level load drops a held glide or aim, because the new entities never saw the press.
+**Concern:** Every mechanic driven by a held button adds another queue and another place that has to clear it. A gamepad cannot be added this way at all: GLFW reports a gamepad's sticks and buttons only when polled, and nothing the game owns updates before the scene's entities.
+**Future:** Let the input manager also expose current state (move direction; jump, glide and aim held) for a state to read when it becomes able to act, and give it an update that runs before the scene's, where it can poll a gamepad. Whether a held button should act without a fresh press is a feel decision per input, not only a refactor, and so is whether a stick moves the cursor or aims the falcon along its direction.
+**When:** When a new held-input mechanic needs another queue, the dropped input at a level transition is noticed in play, or controller support begins.
 
 ### A scene and the application share one lifecycle
 
@@ -128,13 +128,6 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 
 ## Levels
 
-### Level size is fixed by GRID_WORLD_SIZE
-
-**Current:** `TileGrid` reports its own row and column counts, and the document format imposes no size. But `Platformer::Initialize` still builds `m_grid` from `PlatformerConstants::GRID_WORLD_SIZE` (30x20), and the camera shows exactly that.
-**Concern:** A differently sized level would parse correctly and then render and collide against the wrong grid.
-**Future:** Build the `Grid` from the loaded `TileGrid`'s dimensions. That is a few lines; the open question is what the camera should do, since showing a bigger level whole means smaller cells.
-**When:** When a level wants to be a size other than 30x20, which likely arrives with a scrolling camera.
-
 ### Level entities cannot reach anything that outlives the level
 
 **Current:** A level load destroys every entity and builds the next level's. `Platformer` itself persists, but entities only see the `Scene`, so nothing they can reach survives the load.
@@ -162,6 +155,20 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 **Concern:** `Grid::GetEntitiesAt` would miss a region everywhere but its middle cell.
 **Future:** Register a grid entity in every cell it covers, and let the world ask the grid instead of keeping lists.
 **When:** When something needs to ask which regions are at a cell.
+
+### Camera follow is rigid
+
+**Current:** `LevelCamera` centers the view on the player every frame and stops at the level's edges.
+**Concern:** With no dead zone, smoothing or look-ahead, the whole view moves with every step and jump in a level larger than the screen.
+**Future:** A dead zone around the player, smoothing, or look-ahead in the direction of travel, inside `LevelCamera`.
+**When:** When a level larger than the screen is played and the motion is uncomfortable.
+
+### A level's sky is a hand-sized quad
+
+**Current:** Each level document carries a `[Tile]` with `WorldSize = 30, 20` as its sky, because the engine's clear color is fixed. It is in world units, so it covers a level of up to 60 by 40 cells.
+**Concern:** A level's size now comes from its picture, but its backdrop does not.
+**Future:** Let `PlatformerWorld` draw a backdrop sized from its own bounds, or replace the flat sky when art arrives.
+**When:** When a level outgrows the quad, or art replaces the flat color.
 
 ---
 
@@ -236,7 +243,7 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 
 ### Draw order is instantiation order
 
-**Current:** `Scene` renders entities in the order they were instantiated, so the order of a document's sections decides what draws on top. The Platformer's root document lists `LevelSet` first so that the level it pulls in lands behind Player, Falcon and Cursor.
+**Current:** `Scene` renders entities in the order they were instantiated, so the order of a document's sections decides what draws on top. The Platformer's root document lists `LevelSet` first so that the level it pulls in lands behind Player, Falcon and Cursor. Update order is the same order, and the root document relies on that too: the camera after the player, the cursor after the camera, the falcon after the cursor.
 **Concern:** Position in a file is an implicit way of saying "behind". Reordering sections for readability changes what covers what, and an entity spawned mid-game can only ever land on top.
 **Future:** An explicit layer (or order) property on `Entity` that `Scene::Render` sorts by, so depth is stated in the document rather than implied by it.
 **When:** When something spawned at runtime has to draw behind an existing entity, or a document's reading order and its draw order need to differ.
