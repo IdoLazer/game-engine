@@ -60,13 +60,14 @@ games/
     ├── assets/scenes/                  # platformer.scene (root) + one document per level
     └── src/
         ├── Platformer.h/cpp            # Application subclass + level navigation
-        ├── PlatformerWorld.h/cpp       # Tile world: solidity, sweeps, level regions
+        ├── PlatformerWorld.h/cpp       # Tile world: tiles, level regions, and the level's Physics
         ├── PlatformerInputManager.h/cpp # Keyboard/mouse routing → events, bound to the level's entities
-        ├── Player.h/cpp                # Player body: velocity, collision, physics primitives
+        ├── Player.h/cpp                # Player body: velocity and physics primitives, moved through its Collider
         ├── Falcon.h/cpp                # Falcon body: flight, aiming, drawing primitives
         ├── Cursor.h/cpp                # Aiming cursor
         ├── LevelCamera.h/cpp           # Camera that follows the player within the level
         ├── TileType.h                  # Tile enum
+        ├── PlatformerLayers.h          # Collision layers
         ├── Commands/                   # Deferred player and falcon inputs (Command pattern)
         ├── Levels/                     # Level loading
         │   ├── TileGrid.h/cpp          # Tile rows and anchors + PropertyParser specialization
@@ -75,6 +76,9 @@ games/
         │   ├── LevelRegion.h/cpp       # Entity placed on the anchor it names
         │   ├── SpawnPoint.h/cpp        # Region where the player can appear
         │   └── LevelExit.h/cpp         # Region that leads to another level
+        ├── Physics/                    # Collision
+        │   ├── Physics.h/cpp           # Level collision: tiles and colliders, sweeps and raycasts
+        │   └── Collider.h/cpp          # Component: a box an entity collides with
         └── StateMachine/               # Hierarchical state machine + Player's and Falcon's states
             ├── State.h                 # Generic state node: lifecycle + tree structure
             ├── StateMachine.h          # Generic machine: transitions, dispatch, root-to-leaf update

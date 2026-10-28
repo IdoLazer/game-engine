@@ -3,6 +3,7 @@
 #include <Engine.h>
 #include "TileType.h"
 #include "Levels/TileGrid.h"
+#include "Physics/Physics.h"
 
 #include <optional>
 #include <string>
@@ -21,20 +22,14 @@ public:
     PlatformerWorld() = default;
     ~PlatformerWorld() override = default;
 
+// --- Lifecycle ---
+public:
+    void Initialize() override;
+
 // --- Collision Interface ---
 public:
     bool IsSolid(const Engine::Vec2 &cell) const;
     bool IsDeadly(const Engine::Vec2 &cell) const;
-
-    // Swept collision against solid tiles - the shared basis for all entity-vs-world collision.
-    // `direction` must be normalized; RaycastSolid's `maxDistance` scales it.
-    bool OverlapsSolid(const Engine::Rect &box) const;
-    Engine::SweepHit SweepSolid(const Engine::Rect &movingRect, const Engine::Vec2 &delta) const;
-    Engine::SweepHit RaycastSolid(const Engine::Vec2 &origin, const Engine::Vec2 &direction, float maxDistance) const;
-
-    // Static contact test: true if `box` is touching solid, even flush with no overlap - unlike
-    // SweepSolid, which excludes that case (see Sweep.cpp). `direction` must be normalized.
-    bool TouchesSolid(const Engine::Rect &box, const Engine::Vec2 &direction) const;
 
 // --- Level Regions ---
 public:
@@ -51,6 +46,7 @@ public:
 // --- Accessors ---
 public:
     Engine::Vec2 GetCellCount() const { return Engine::Vec2(m_tileGrid.GetColumnCount(), m_tileGrid.GetRowCount()); }
+    Physics &GetPhysics() { return m_physics; }
 
 // --- TileMap Interface ---
 protected:
@@ -68,6 +64,7 @@ private:
 
 // --- Private Fields ---
 private:
+    Physics m_physics;
     std::vector<SpawnPoint *> m_spawnPoints;
     std::vector<LevelExit *> m_exits;
 };

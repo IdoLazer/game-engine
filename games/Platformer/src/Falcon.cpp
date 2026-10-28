@@ -2,6 +2,7 @@
 #include "Player.h"
 #include "Cursor.h"
 #include "PlatformerWorld.h"
+#include "PlatformerLayers.h"
 #include "Commands/FalconCommands.h"
 #include "StateMachine/FalconStates.h"
 
@@ -118,7 +119,7 @@ void Falcon::SetAimPoint(const Engine::Vec2 &aimPoint)
     Vec2 toAimPoint = aimPoint - playerOrigin;
     float maxDistance = toAimPoint.Length();
     Vec2 rayDirection = toAimPoint.Normalized();
-    SweepHit hit = m_world->RaycastSolid(playerOrigin, rayDirection, maxDistance);
+    PhysicsHit hit = m_world->GetPhysics().Raycast(playerOrigin, rayDirection, maxDistance, Layer::Terrain);
 
     if (hit.hit)
     {
