@@ -11,6 +11,7 @@
 #include <vector>
 
 // --- Forward Declarations ---
+class ILevelNavigator;
 class LevelExit;
 class SpawnPoint;
 
@@ -51,6 +52,8 @@ public:
 public:
     Engine::Vec2 GetCellCount() const { return Engine::Vec2(m_tileGrid.GetColumnCount(), m_tileGrid.GetRowCount()); }
     Physics &GetPhysics() { return m_physics; }
+    void SetNavigator(ILevelNavigator *navigator) { m_navigator = navigator; }
+    ILevelNavigator &GetNavigator() const { return *m_navigator; }
 
 // --- TileMap Interface ---
 protected:
@@ -59,6 +62,7 @@ protected:
 // --- Internal ---
 private:
     TileType TileAt(const Engine::Vec2 &cell) const;
+    void OnColliderCrushed(const Collider &collider);
 
 // --- Configuration ---
 private:
@@ -69,7 +73,9 @@ private:
 // --- Private Fields ---
 private:
     Physics m_physics;
+    Engine::Subscription m_crushedSubscription; // After m_physics, so it unsubscribes while the event still exists.
     std::set<char> m_claimedAnchors;
     std::vector<SpawnPoint *> m_spawnPoints;
     std::vector<LevelExit *> m_exits;
+    ILevelNavigator *m_navigator{nullptr};
 };

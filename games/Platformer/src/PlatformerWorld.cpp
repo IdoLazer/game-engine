@@ -1,4 +1,5 @@
 #include "PlatformerWorld.h"
+#include "ILevelNavigator.h"
 #include "PlatformerLayers.h"
 #include "Levels/LevelExit.h"
 #include "Levels/SpawnPoint.h"
@@ -14,6 +15,13 @@ void PlatformerWorld::Initialize()
 {
     TileMap::Initialize();
     m_physics.SetTiles(*m_coordSystem, [this](const Engine::Vec2 &cell) { return IsSolid(cell); }, Layer::Terrain);
+    m_crushedSubscription = m_physics.OnCrushed().Subscribe(this, &PlatformerWorld::OnColliderCrushed);
+}
+
+void PlatformerWorld::OnColliderCrushed(const Collider &collider)
+{
+    if (collider.GetLayer() & Layer::Player)
+        GetNavigator().ReloadCurrentLevel();
 }
 
 TileType PlatformerWorld::TileAt(const Engine::Vec2 &cell) const

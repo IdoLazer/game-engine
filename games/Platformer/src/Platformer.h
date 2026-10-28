@@ -1,6 +1,7 @@
 #pragma once
 #include <Engine.h>
 #include <Core/EntryPoint.h>
+#include "ILevelNavigator.h"
 
 #include <optional>
 
@@ -12,7 +13,7 @@ class Cursor;
 class LevelSet;
 
 // --- Platformer Application ---
-class Platformer : public Engine::Application
+class Platformer : public Engine::Application, public ILevelNavigator
 {
 public:
     // --- Constructors & Destructors ---
@@ -25,13 +26,14 @@ public:
 
     Engine::WindowConfig GetWindowConfig() const override;
 
+    // --- ILevelNavigator ---
+    void GoToLevel(const std::string &level, const std::string &spawnName, const std::optional<Engine::Vec2> &exitCell) override;
+    void ReloadCurrentLevel() override;
+
 private:
     // --- Game Logic ---
     void InstantiateCurrentLevel(const LevelSet &levelSet);
-    void GoToLevel(const std::string &level, const std::string &spawnName = "",
-                   const std::optional<Engine::Vec2> &exitCell = std::nullopt);
     void GoToListedLevel(int step);
-    void ReloadCurrentLevel();
 
     // --- Fields ---
     std::vector<std::string> m_levelPaths;

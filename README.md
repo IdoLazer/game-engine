@@ -60,6 +60,7 @@ games/
     ├── assets/scenes/                  # platformer.scene (root) + one document per level
     └── src/
         ├── Platformer.h/cpp            # Application subclass + level navigation
+        ├── ILevelNavigator.h           # What a level can ask of the game
         ├── PlatformerWorld.h/cpp       # Tile world: tiles, level regions, and the level's Physics
         ├── PlatformerInputManager.h/cpp # Keyboard/mouse routing → events, bound to the level's entities
         ├── Player.h/cpp                # Player body: velocity and physics primitives, moved through its Collider
@@ -77,7 +78,7 @@ games/
         │   ├── SpawnPoint.h/cpp        # Region where the player can appear
         │   └── LevelExit.h/cpp         # Region that leads to another level
         ├── Physics/                    # Collision
-        │   ├── Physics.h/cpp           # Level collision: tiles and colliders, sweeps and raycasts
+        │   ├── Physics.h/cpp           # Level collision: tiles and colliders, sweeps, raycasts and pushes
         │   └── Collider.h/cpp          # Component: a box an entity collides with
         └── StateMachine/               # Hierarchical state machine + Player's and Falcon's states
             ├── State.h                 # Generic state node: lifecycle + tree structure

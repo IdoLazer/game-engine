@@ -9,13 +9,45 @@ using namespace Engine;
 
 namespace
 {
-    // Float precision slack for TouchesSolid - not a tunable detection distance.
+    // Float precision slack for contact and overlap tests - not a tunable detection distance.
     constexpr float kContactEpsilon = 1e-4f;
 
     // The earlier of two hits; `first` wins a tie.
     PhysicsHit Earlier(const PhysicsHit &first, const PhysicsHit &second)
     {
         return second.hit && second.t < first.t ? second : first;
+    }
+
+    // Boxes that only touch don't overlap; the slack absorbs the float error that would make them.
+    bool Overlap(const Rect &first, const Rect &second)
+    {
+        Vec2 reach = first.halfExtents + second.halfExtents;
+        float apartX = std::abs(first.center.x - second.center.x);
+        float apartY = std::abs(first.center.y - second.center.y);
+        return reach.x - apartX > kContactEpsilon && reach.y - apartY > kContactEpsilon;
+    }
+
+    // True when `box` rests on top of `platform`: a hairline sweep down hits it.
+    bool IsStandingOn(const Rect &box, const Rect &platform)
+    {
+        return SweepRectVsRect(box, Vec2(0.0f, kContactEpsilon), platform).hit;
+    }
+
+    // Where `box`'s center ends up when `pusher`, having moved by `step`, pushes it clear: on the pusher's
+    // far face grown by the box's half-size. Placed exactly there, float error can't leave it a hair
+    // inside the pusher, where it would be stuck against every move along the face.
+    Vec2 PushedCenter(const Rect &pusher, const Rect &box, const Vec2 &step)
+    {
+        Rect reach = pusher.Expanded(box.halfExtents);
+        Vec2 farFace = step.x + step.y > 0.0f ? reach.Max() : reach.Min();
+        return Vec2(step.x != 0.0f ? farFace.x : box.center.x,
+                    step.y != 0.0f ? farFace.y : box.center.y);
+    }
+
+    // Where `box`'s center rests exactly on top of `platform`.
+    Vec2 RestingCenter(const Rect &platform, const Rect &box)
+    {
+        return Vec2(box.center.x, platform.Expanded(box.halfExtents).Min().y);
     }
 }
 
@@ -118,6 +150,58 @@ MoveResult Physics::MoveAndSlide(Collider &collider, const Vec2 &delta)
     return result;
 }
 
+// The pusher moves the whole delta, one axis at a time: what it runs into is pushed clear, and what
+// rides on it is carried. Riders are found first, because moving the pusher breaks the contact.
+void Physics::MoveAndPush(Collider &pusher, const Vec2 &delta)
+{
+    struct Candidate
+    {
+        Collider *collider;
+        bool isRider;
+    };
+
+    std::vector<Candidate> candidates;
+    for (Collider *other : m_colliders)
+    {
+        if (other != &pusher && (other->GetMask() & pusher.GetLayer()))
+            candidates.push_back({other, IsStandingOn(other->GetRect(), pusher.GetRect())});
+    }
+
+    m_pusher = &pusher;
+
+    for (const Vec2 &step : {Vec2(delta.x, 0.0f), Vec2(0.0f, delta.y)})
+    {
+        if (step == Vec2::Zero)
+            continue;
+
+        GridEntity &owner = pusher.GetOwner();
+        owner.SetGridPosition(owner.GetGridPosition() + step);
+
+        Rect pusherBox = pusher.GetRect();
+
+        for (const Candidate &candidate : candidates)
+        {
+            Collider &collider = *candidate.collider;
+            Rect box = collider.GetRect();
+
+            if (Overlap(box, pusherBox))
+            {
+                MoveAndSlide(collider, PushedCenter(pusherBox, box, step) - box.center);
+
+                if (Overlap(collider.GetRect(), pusherBox))
+                    m_onCrushedEvent.Notify(collider);
+            }
+            else if (candidate.isRider)
+            {
+                bool movedVertically = step.y != 0.0f;
+                MoveAndSlide(collider, movedVertically ? RestingCenter(pusherBox, box) - box.center : step);
+            }
+        }
+    }
+
+    m_pusher = nullptr;
+}
+
 // --- Internal ---
 
 bool Physics::CollidesWithTiles(LayerMask mask) const
@@ -151,7 +235,7 @@ PhysicsHit Physics::SweepColliders(const Rect &box, const Vec2 &delta, LayerMask
     PhysicsHit bestHit;
     for (const Collider *other : m_colliders)
     {
-        if (other == ignore || !(other->GetLayer() & mask))
+        if (other == ignore || other == m_pusher || !(other->GetLayer() & mask))
             continue;
 
         SweepHit hit = SweepRectVsRect(box, delta, other->GetRect());

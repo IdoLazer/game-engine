@@ -36,6 +36,17 @@ MoveResult Collider::MoveAndSlide(const Vec2 &delta)
     return m_physics->MoveAndSlide(*this, delta);
 }
 
+void Collider::MoveAndPush(const Vec2 &delta)
+{
+    if (!m_physics)
+    {
+        m_owner.SetGridPosition(m_owner.GetGridPosition() + delta);
+        return;
+    }
+
+    m_physics->MoveAndPush(*this, delta);
+}
+
 bool Collider::TouchesSolid(const Vec2 &direction) const
 {
     return m_physics && m_physics->TouchesSolid(GetRect(), direction, m_mask, this);

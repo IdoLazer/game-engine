@@ -37,6 +37,9 @@ public:
 public:
     // Moves the owner, blocked by solid tiles and colliders on a layer in the mask, sliding along them.
     MoveResult MoveAndSlide(const Engine::Vec2 &delta);
+    // Moves the owner the full delta. Colliders whose mask includes this layer are pushed out of the
+    // way, carried when standing on top, and crushed when they can't get out.
+    void MoveAndPush(const Engine::Vec2 &delta);
     // True when flush against something solid in the mask, on the side `direction` points to.
     bool TouchesSolid(const Engine::Vec2 &direction) const;
 
