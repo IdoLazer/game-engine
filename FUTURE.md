@@ -77,19 +77,19 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 
 ## Collision
 
-### Non-tile static colliders
-
-**Current:** `PlatformerWorld`'s collision broad phase (`SweepSolid`/`RaycastSolid`/`OverlapsSolid`) only enumerates candidate `Rect`s derived from the tile grid.  
-**Concern:** A hand-placed `Rect` that isn't cell-aligned or cell-sized (e.g. a narrow platform or a switch) has no way to participate in Player/Falcon collision sweeps today.  
-**Future:** Extend `PlatformerWorld` (or a small sibling holding `std::vector<Rect>`) with manually-placed static colliders, and extend the candidate-gathering step in `SweepSolid`/`RaycastSolid`/`OverlapsSolid` to test both sources. The narrow-phase math (`Rect`, `SweepRectVsRect`) already supports this with zero changes - only broad-phase candidate-gathering needs extending.  
-**When:** When the first non-tile collider entity is actually designed.
-
 ### Falcon flight collision
 
 **Current:** Neither flight collides per-frame. `Falcon::ReturnToPlayer` flies straight back to the player with no check at all. `MoveToGoal` (outbound) flies straight to `m_latchPoint`, a point validated once by `SetGoal`'s aim-time raycast - not re-checked while flying, so it can't stop partway on incidental geometry a per-frame sweep would catch.  
 **Concern:** Inconsistent with how solid the rest of the world behaves - nothing stops the falcon mid-flight in either direction, only the outbound aim itself is validated.  
 **Future:** If flying through walls (return trip) or through geometry that appeared after aiming (outbound) actually causes a problem, give both flights a per-frame check - once there's a clear answer for what it should do when blocked (stop and wait, slide along the obstacle, something else).  
 **When:** When flying through walls on retrieval, or through changed geometry mid-flight outbound, actually causes a problem in practice, or when we want a consistently physical world.
+
+### Physics is game-local
+
+**Current:** `Physics` and `Collider` live in `games/Platformer/src/Physics/` and include only engine headers.  
+**Concern:** `tests/` covers engine modules only, so playing is the only check on the code most likely to hide edge cases.  
+**Future:** Move the folder to `engine/src/Physics/`, wrap it in `namespace Engine`, and test sliding, pushing, carrying, crushing and trigger events.  
+**When:** Once the moving-solid and trigger rules have held up in play.
 
 ---
 
@@ -122,7 +122,7 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 **Concept:** When the falcon is latched into the floor (`m_latchDirection` pointing down), it flaps its wings to give a nearby player an upward dash of momentum - an area effect near the falcon rather than a stand-on-it platform, so it's usable off a run-up instead of requiring a precise landing on its body.  
 **Why:** Reframed from an earlier "magic air vortex" idea into a physical wing-flap, so all four latch states stay in the same "physical consequence of the falcon's pose" register instead of one of them being an arbitrary elemental effect.
 
-**Open questions for implementation:** exact glide/dash speed and duration tuning; how the updraft's trigger area is detected (radius check? a `Rect` near the falcon?); whether Perch/Rope/Updraft need real collision registration in `PlatformerWorld` (see "Non-tile static colliders" above) or can be handled bespoke in `Player`/`Falcon` since they're tied to a single entity rather than level geometry.
+**Open questions for implementation:** exact glide/dash speed and duration tuning; how the updraft's trigger area is detected (radius check? a `Rect` near the falcon?); whether Perch/Rope/Updraft need a `Collider` of their own or can be handled bespoke in `Player`/`Falcon` since they're tied to a single entity rather than level geometry.
 
 ---
 

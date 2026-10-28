@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Engine.h>
+#include "PlatformerLayers.h"
+#include "Physics/Collider.h"
 #include "StateMachine/PlayerStateMachine.h"
 
 // --- Forward Declarations ---
@@ -68,8 +70,7 @@ private:
     void StopAgainstWall(int wallDirection);
     void ForgetWallJumpHistory();
     void HandleCollisions(float deltaTime);
-    void MoveAndSlide(Engine::Vec2 &position, float deltaTime);
-    PlayerContacts ProbeContacts(const Engine::Vec2 &position) const;
+    PlayerContacts ProbeContacts() const;
     bool CanGlide() const;
 
 // --- Jump Buffer ---
@@ -125,8 +126,7 @@ private:
     Engine::CommandQueue m_jumpCommandQueue;
     Engine::CommandQueue m_glideCommandQueue;
     Engine::Timer m_jumpBufferTimer;
-    PlatformerWorld *m_world{nullptr};
     Falcon *m_falcon{nullptr};
-    Engine::Vec2 m_halfExtents{};
+    Collider m_collider{*this, Layer::Player, Layer::Terrain};
     Engine::Subscription m_falconReturnedSubscription;
 };

@@ -41,7 +41,6 @@ using namespace Engine;
 void Player::Initialize()
 {
     GridEntity::Initialize();
-    m_halfExtents = GetGridSize() / 2.0f;
 
     m_jumpBufferTimer = Timer(m_jumpBufferTime, [this]() { m_jumpCommandQueue.Clear(); }, false);
     m_jumpBufferTimer.Stop();
@@ -99,7 +98,7 @@ void Player::SetDirection(const Vec2 &dir)
 
 void Player::SetWorld(PlatformerWorld *world)
 {
-    m_world = world;
+    world->GetPhysics().Add(m_collider);
 }
 
 void Player::SetFalcon(Falcon *falcon)
@@ -239,59 +238,31 @@ void Player::ForgetWallJumpHistory()
 
 void Player::HandleCollisions(float deltaTime)
 {
-    Vec2 position = GetGridPosition();
-    MoveAndSlide(position, deltaTime);
-    SetGridPosition(position);
+    MoveResult result = m_collider.MoveAndSlide(m_velocity * deltaTime);
 
-    m_stateMachine.ContactsResolved(ProbeContacts(position));
-}
+    // Vertical hits stop outright (floor/ceiling). Horizontal hits deliberately leave velocity.x untouched -
+    // m_wallHitDecCoeff handles the slowdown next frame instead of an instant stop.
+    if (result.blockedY)
+        m_velocity.y = 0.0f;
 
-// Sweeps the full combined velocity for this frame in one pass, clipping and sliding along
-// whatever it hits rather than resolving X and Y as two independent 1D sweeps - a separated
-// sweep can let a diagonal approach slip into a corner before either axis, checked against the
-// other's stale position, ever sees it coming.
-void Player::MoveAndSlide(Vec2 &position, float deltaTime)
-{
-    Vec2 remaining = m_velocity * deltaTime;
-
-    constexpr int kMaxSlideIterations = 4;
-    for (int i = 0; i < kMaxSlideIterations && remaining != Vec2::Zero; ++i)
-    {
-        Rect box(position, m_halfExtents);
-        SweepHit hit = m_world->SweepSolid(box, remaining);
-        position += remaining * hit.t;
-
-        if (!hit.hit)
-            break;
-
-        // Vertical hits stop outright (floor/ceiling). Horizontal hits deliberately leave
-        // velocity.x untouched - m_wallHitDecCoeff handles the slowdown next frame instead of
-        // an instant stop.
-        if (hit.normal.y != 0.0f)
-            m_velocity.y = 0.0f;
-
-        // Slide: keep only the leftover movement perpendicular to what was hit.
-        Vec2 leftover = remaining * (1.0f - hit.t);
-        remaining = leftover - hit.normal * leftover.Dot(hit.normal);
-    }
+    m_stateMachine.ContactsResolved(ProbeContacts());
 }
 
 // Contact is an explicit query rather than something inferred from which direction the player
 // happened to be moving, so it correctly persists as long as any part of the body still overlaps
 // a solid, not just the center point.
-PlayerContacts Player::ProbeContacts(const Vec2 &position) const
+PlayerContacts Player::ProbeContacts() const
 {
-    Rect box(position, m_halfExtents);
     PlayerContacts contacts;
 
     // Ground is never reported while ascending. Without this, a jump that resolves within an
     // unusually short frame - before the player has moved meaningfully away from the ground -
     // would still find contact and cancel the jump that was just started.
-    contacts.ground = m_velocity.y >= 0.0f && m_world->TouchesSolid(box, Vec2(0.0f, 1.0f));
+    contacts.ground = m_velocity.y >= 0.0f && m_collider.TouchesSolid(Vec2(0.0f, 1.0f));
 
-    if (m_world->TouchesSolid(box, Vec2(-1.0f, 0.0f)))
+    if (m_collider.TouchesSolid(Vec2(-1.0f, 0.0f)))
         contacts.wall = -1;
-    else if (m_world->TouchesSolid(box, Vec2(1.0f, 0.0f)))
+    else if (m_collider.TouchesSolid(Vec2(1.0f, 0.0f)))
         contacts.wall = 1;
 
     return contacts;
