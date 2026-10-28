@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include "Math/Vec2.h"
 
+#include <sstream>
+
 using namespace Engine;
 
 // --- Construction ---
@@ -90,6 +92,15 @@ TEST(Vec2Test, DivideEquals)
     Vec2 v(6.0f, 9.0f);
     v /= 3.0f;
     EXPECT_EQ(v, Vec2(2.0f, 3.0f));
+}
+
+// --- Stream output ---
+
+TEST(Vec2Test, StreamOutput)
+{
+    std::ostringstream stream;
+    stream << Vec2(1, 2);
+    EXPECT_EQ(stream.str(), "(1, 2)");
 }
 
 // --- Math functions ---

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 namespace Engine
 {
     class Vec2
@@ -29,6 +31,13 @@ namespace Engine
         // --- Friend operators ---
         friend Vec2 operator*(float scalar, const Vec2 &vec);
         friend Vec2 operator/(float scalar, const Vec2 &vec);
+
+        // --- Stream output ---
+        friend std::ostream &operator<<(std::ostream &os, const Vec2 &vec)
+        {
+            os << "(" << vec.x << ", " << vec.y << ")";
+            return os;
+        }
 
         // --- Mathematical functions ---
         float Length() const;
