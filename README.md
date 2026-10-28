@@ -70,6 +70,8 @@ games/
         ├── TileType.h                  # Tile enum
         ├── PlatformerLayers.h          # Collision layers
         ├── Commands/                   # Deferred player and falcon inputs (Command pattern)
+        ├── Elements/                   # Level pieces built from components
+        │   └── MovablePlatform.h/cpp   # Solid that moves toward its end anchor while switched on
         ├── Levels/                     # Level loading
         │   ├── TileGrid.h/cpp          # Tile rows and anchors + PropertyParser specialization
         │   ├── TileLegend.h            # Character ↔ TileType table; other characters are anchors

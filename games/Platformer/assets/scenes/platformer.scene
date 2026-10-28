@@ -20,6 +20,10 @@
 // assets/scenes/movement_test/movement_level_3.scene
 // assets/scenes/movement_test/movement_level_4.scene
 
+// The mechanics test set:
+// Levels = |
+// assets/scenes/mechanics_test/moving_platforms.scene
+
 // The vertical slice Levels
 Levels = |
 assets/scenes/vertical_slice/sluice_0.scene
