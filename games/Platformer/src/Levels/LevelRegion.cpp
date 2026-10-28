@@ -1,5 +1,5 @@
 #include "LevelRegion.h"
-#include "TileGrid.h"
+#include "../PlatformerWorld.h"
 
 #include <iostream>
 #include <optional>
@@ -14,9 +14,11 @@ END_TYPE_REGISTER()
 
 // --- Public Interface ---
 
-bool LevelRegion::Place(const TileGrid &tiles)
+bool LevelRegion::Place(PlatformerWorld &world)
 {
-    std::optional<Rect> bounds = tiles.FindAnchor(GetAnchor());
+    m_world = &world;
+
+    std::optional<Rect> bounds = world.ClaimAnchor(GetAnchor());
     if (!bounds)
     {
         std::cerr << "LevelRegion: Anchor '" << m_anchor << "' is not a character drawn in the level's picture" << std::endl;

@@ -12,7 +12,7 @@ class SpawnPoint : public LevelRegion
 
 // --- Public Interface ---
 public:
-    bool Place(const TileGrid &tiles) override;
+    bool Place(PlatformerWorld &world) override;
 
     const std::string &GetName() const { return m_name; }
 

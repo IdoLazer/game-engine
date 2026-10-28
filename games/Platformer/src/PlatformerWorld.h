@@ -6,6 +6,7 @@
 #include "Physics/Physics.h"
 
 #include <optional>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -36,6 +37,9 @@ public:
     // Places every LevelRegion in the scene on its anchor. Call once the level's entities exist.
     void PlaceRegions();
 
+    // The box of the cells drawn with `glyph`, marked as named. Empty when none are.
+    std::optional<Engine::Rect> ClaimAnchor(char glyph);
+
     // The cell the player appears in: at the SpawnPoint called `spawnName`, or at the level's
     // first when the name is empty. `exitCell` is where the player left the previous level.
     Engine::Vec2 FindSpawnCell(const std::string &spawnName, const std::optional<Engine::Vec2> &exitCell) const;
@@ -65,6 +69,7 @@ private:
 // --- Private Fields ---
 private:
     Physics m_physics;
+    std::set<char> m_claimedAnchors;
     std::vector<SpawnPoint *> m_spawnPoints;
     std::vector<LevelExit *> m_exits;
 };
