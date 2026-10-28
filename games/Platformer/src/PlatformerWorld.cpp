@@ -1,9 +1,9 @@
 #include "PlatformerWorld.h"
+#include "ILevelNavigator.h"
 #include "PlatformerLayers.h"
 #include "Levels/LevelExit.h"
 #include "Levels/SpawnPoint.h"
 #include <iostream>
-#include <map>
 
 BEGIN_TYPE_REGISTER(PlatformerWorld)
     REGISTER_PROPERTY(TileGrid, TileGrid, &PlatformerWorld::m_tileGrid)
@@ -15,6 +15,13 @@ void PlatformerWorld::Initialize()
 {
     TileMap::Initialize();
     m_physics.SetTiles(*m_coordSystem, [this](const Engine::Vec2 &cell) { return IsSolid(cell); }, Layer::Terrain);
+    m_crushedSubscription = m_physics.OnCrushed().Subscribe(this, &PlatformerWorld::OnColliderCrushed);
+}
+
+void PlatformerWorld::OnColliderCrushed(const Collider &collider)
+{
+    if (collider.GetLayer() & Layer::Player)
+        GetNavigator().ReloadCurrentLevel();
 }
 
 TileType PlatformerWorld::TileAt(const Engine::Vec2 &cell) const
@@ -36,28 +43,31 @@ bool PlatformerWorld::IsDeadly(const Engine::Vec2 &cell) const
 
 void PlatformerWorld::PlaceRegions()
 {
-    std::map<char, Engine::Rect> unnamed = m_tileGrid.GetAnchors();
-
     for (LevelRegion *region : GetScene()->GetAllEntitiesOfType<LevelRegion>())
     {
-        if (!region->Place(m_tileGrid))
+        if (!region->Place(*this))
             continue;
 
-        unnamed.erase(region->GetAnchor());
-
         if (auto *spawnPoint = dynamic_cast<SpawnPoint *>(region))
-        {
-            unnamed.erase(spawnPoint->GetDefaultAnchor());
             m_spawnPoints.push_back(spawnPoint);
-        }
         else if (auto *levelExit = dynamic_cast<LevelExit *>(region))
-        {
             m_exits.push_back(levelExit);
-        }
     }
 
-    for (const auto &[glyph, bounds] : unnamed)
-        std::cerr << "PlatformerWorld: '" << glyph << "' is drawn in the picture, but no entity names it" << std::endl;
+    for (const auto &[glyph, bounds] : m_tileGrid.GetAnchors())
+    {
+        if (!m_claimedAnchors.contains(glyph))
+            std::cerr << "PlatformerWorld: '" << glyph << "' is drawn in the picture, but no entity names it" << std::endl;
+    }
+}
+
+std::optional<Engine::Rect> PlatformerWorld::ClaimAnchor(char glyph)
+{
+    std::optional<Engine::Rect> bounds = m_tileGrid.FindAnchor(glyph);
+    if (bounds)
+        m_claimedAnchors.insert(glyph);
+
+    return bounds;
 }
 
 Engine::Vec2 PlatformerWorld::FindSpawnCell(const std::string &spawnName, const std::optional<Engine::Vec2> &exitCell) const

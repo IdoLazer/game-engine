@@ -91,6 +91,20 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Move the folder to `engine/src/Physics/`, wrap it in `namespace Engine`, and test sliding, pushing, carrying, crushing and trigger events.  
 **When:** Once the moving-solid and trigger rules have held up in play.
 
+### Riders don't keep a platform's speed
+
+**Current:** A rider moves with a platform, but jumping off adds nothing of the platform's motion.  
+**Concern:** Jumping off a fast-rising platform feels short.  
+**Future:** Remember each collider's last push and add it to a jump that leaves it, like Celeste's lift speed.  
+**When:** When a level relies on jumping off a moving platform.
+
+### Sliding colliders don't carry riders
+
+**Current:** Only `MoveAndPush` carries what stands on a collider.  
+**Concern:** A crate the player pushes, or an enemy it rides, moves with `MoveAndSlide` and would leave its rider behind.  
+**Future:** Carry riders on slides too.  
+**When:** With the first pushable or rideable mover.
+
 ---
 
 ## Falcon Gameplay Systems

@@ -42,11 +42,17 @@ public:
     // The first tile or collider on a layer in `mask` along the ray. `direction` must be normalized.
     PhysicsHit Raycast(const Engine::Vec2 &origin, const Engine::Vec2 &direction, float maxDistance, LayerMask mask) const;
 
+// --- Events ---
+public:
+    // Raised for a collider that a MoveAndPush leaves overlapping its pusher.
+    Engine::EventSubscriber<Collider> &OnCrushed() { return m_onCrushedEvent; }
+
 // --- Internal ---
 private:
     friend class Collider;
 
     MoveResult MoveAndSlide(Collider &collider, const Engine::Vec2 &delta);
+    void MoveAndPush(Collider &pusher, const Engine::Vec2 &delta);
 
     bool CollidesWithTiles(LayerMask mask) const;
     PhysicsHit SweepTiles(const Engine::Rect &box, const Engine::Vec2 &delta) const;
@@ -59,4 +65,6 @@ private:
     std::function<bool(const Engine::Vec2 &cell)> m_isTileSolid;
     LayerMask m_tileLayer{0};
     std::vector<Collider *> m_colliders;
+    const Collider *m_pusher{nullptr}; // The collider mid-MoveAndPush, which sweeps pass through.
+    Engine::Event<Collider> m_onCrushedEvent;
 };

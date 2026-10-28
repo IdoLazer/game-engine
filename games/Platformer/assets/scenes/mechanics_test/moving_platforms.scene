@@ -1,0 +1,68 @@
+// Moving platforms: every platform heads for its end as soon as the level loads, so press R to replay one.
+// Lowercase letters mark where a platform starts, uppercase ones where it ends.
+//   u rises from the floor to the bridge, and d sinks from the bridge to the floor: step on and ride.
+//   c rises through the bridge into the slab above it: ride it and the slab crushes you.
+//   s slides toward the left wall: stay in the pocket between them and it crushes you.
+// A crush reloads the level.
+
+[Tile]
+WorldPosition = 0, 0
+WorldSize = 30, 20
+Color = 0.5, 0.7, 1, 1
+
+[PlatformerWorld]
+StaticTileColor = 0.3, 0.3, 0.3, 1
+DeathTileColor = 0.7, 0.1, 0.1, 1
+TileGrid = |
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#.................#####......#
+#..................CCC.......#
+#SSS.@...sss.................#
+##############ddd##...##UUU###
+#............................#
+#............................#
+#............................#
+#............................#
+#..................ccc.......#
+#............................#
+#............................#
+#............................#
+#............................#
+##############DDD#######uuu###
+##############################
+
+[SpawnPoint]
+Name = start
+Anchor = @
+
+[MovablePlatform]
+Anchor = u
+EndAnchor = U
+MoveSpeed = 1.5
+SwitchedOn = true
+Color = 0.85, 0.65, 0.25, 1
+
+[MovablePlatform]
+Anchor = d
+EndAnchor = D
+MoveSpeed = 1.5
+SwitchedOn = true
+Color = 0.85, 0.65, 0.25, 1
+
+[MovablePlatform]
+Anchor = c
+EndAnchor = C
+MoveSpeed = 1.5
+SwitchedOn = true
+Color = 0.55, 0.15, 0.15, 1
+
+[MovablePlatform]
+Anchor = s
+EndAnchor = S
+MoveSpeed = 1.5
+SwitchedOn = true
+Color = 0.55, 0.15, 0.15, 1

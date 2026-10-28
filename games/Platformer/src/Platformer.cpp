@@ -64,6 +64,7 @@ void Platformer::Initialize()
         gridEntity->SetGrid(&m_grid);
 
     m_world->SetCoordSystem(&m_grid.GetCoordinateSystem());
+    m_world->SetNavigator(this);
     m_world->PlaceRegions();
 
     m_player->SetWorld(m_world);
@@ -101,10 +102,7 @@ void Platformer::Update(float deltaTime)
 
     if (const LevelExit *levelExit = m_world->FindExitAt(cell))
     {
-        if (levelExit->GetTargetLevel().empty())
-            Close();
-        else
-            GoToLevel(levelExit->GetTargetLevel(), levelExit->GetTargetSpawn(), cell);
+        GoToLevel(levelExit->GetTargetLevel(), levelExit->GetTargetSpawn(), cell);
     }
     else if (m_world->IsDeadly(cell))
     {
@@ -142,6 +140,12 @@ void Platformer::InstantiateCurrentLevel(const LevelSet &levelSet)
 
 void Platformer::GoToLevel(const std::string &level, const std::string &spawnName, const std::optional<Vec2> &exitCell)
 {
+    if (level.empty())
+    {
+        Close();
+        return;
+    }
+
     m_currentLevel = level;
     m_spawnName = spawnName;
     m_exitCell = exitCell;
@@ -158,7 +162,7 @@ void Platformer::GoToListedLevel(int step)
     if (target < 0 || target >= static_cast<int>(m_levelPaths.size()))
         return;
 
-    GoToLevel(m_levelPaths[target]);
+    GoToLevel(m_levelPaths[target], "", std::nullopt);
 }
 
 void Platformer::ReloadCurrentLevel()

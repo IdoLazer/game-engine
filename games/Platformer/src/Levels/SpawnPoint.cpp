@@ -1,5 +1,5 @@
 #include "SpawnPoint.h"
-#include "TileGrid.h"
+#include "../PlatformerWorld.h"
 
 #include <algorithm>
 #include <cmath>
@@ -16,15 +16,15 @@ END_TYPE_REGISTER()
 
 // --- Public Interface ---
 
-bool SpawnPoint::Place(const TileGrid &tiles)
+bool SpawnPoint::Place(PlatformerWorld &world)
 {
-    if (!LevelRegion::Place(tiles))
+    if (!LevelRegion::Place(world))
         return false;
 
     if (m_defaultAnchor.empty())
         return true;
 
-    std::optional<Rect> bounds = tiles.FindAnchor(GetDefaultAnchor());
+    std::optional<Rect> bounds = world.ClaimAnchor(GetDefaultAnchor());
     if (bounds)
         m_defaultCell = Vec2(std::floor(bounds->center.x), std::floor(bounds->center.y));
     else
