@@ -34,6 +34,8 @@ namespace Engine
         float Length() const;
         Vec2 Normalized() const;
         float Dot(const Vec2 &other) const;
+        // The point `maxDistance` closer to `target`, or `target` itself when it is nearer than that.
+        Vec2 MoveTowards(const Vec2 &target, float maxDistance) const;
 
         // --- Constants ---
         static const Vec2 Zero;
