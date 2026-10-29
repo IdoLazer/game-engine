@@ -32,6 +32,11 @@ namespace Engine
 
     std::optional<std::string> FileSystem::ReadTextFile(const std::filesystem::path &path)
     {
+        // Some platforms open a directory as if it were an empty file.
+        std::error_code error;
+        if (!std::filesystem::is_regular_file(path, error))
+            return std::nullopt;
+
         std::ifstream file(path);
         if (!file)
             return std::nullopt;
