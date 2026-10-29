@@ -8,7 +8,8 @@ namespace Engine
     class BitmapFont;
 
     // An entity that renders a text string using a BitmapFont.
-    // Position is the top-left corner of the text in world coordinates.
+    // Position is the top-left corner of the text in world coordinates, unless ScreenSpace is set:
+    // then ScreenPosition (pixels from the window's top-left) places it, however the camera moves.
     class TextEntity : public Entity
     {
         DECLARE_TYPE(TextEntity, Entity)
@@ -20,10 +21,13 @@ namespace Engine
         std::string m_text;
         float m_charHeight = 0.5f;
         Color m_backgroundColor = Color::Transparent;
+        bool m_screenSpace = false;
+        Vec2 m_screenPosition = Vec2::Zero;
     
     // --- Lifecycle ---
     public:
         void Initialize() override;
+        void Update(float deltaTime) override;
         void Render() const override;
 
     // --- Accessors ---

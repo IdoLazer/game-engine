@@ -10,12 +10,20 @@ namespace Engine
         REGISTER_PROPERTY(std::string, Text, &TextEntity::m_text)
         REGISTER_PROPERTY(float, CharHeight, &TextEntity::m_charHeight)
         REGISTER_PROPERTY(Color, BackgroundColor, &TextEntity::m_backgroundColor)
+        REGISTER_PROPERTY(bool, ScreenSpace, &TextEntity::m_screenSpace)
+        REGISTER_PROPERTY(Vec2, ScreenPosition, &TextEntity::m_screenPosition)
     END_TYPE_REGISTER()
 
     void TextEntity::Initialize()
     {
         if (!m_fontPath.empty() && !m_font)
             m_font = ResourceManager::Load<BitmapFont>(m_fontPath);
+    }
+
+    void TextEntity::Update(float deltaTime)
+    {
+        if (m_screenSpace)
+            m_worldPosition = Renderer2D::GetCamera().ScreenToWorld(m_screenPosition);
     }
 
     void TextEntity::Render() const

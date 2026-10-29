@@ -17,7 +17,7 @@ engine/
     │   ├── Entity.h                    # Base entity class (with Scene access for spawning)
     │   ├── GridEntity.h                # Grid-based entity with coordinate management
     │   ├── GridTile.h                  # Simple renderable grid tile
-    │   └── TextEntity.h                # Text label entity using BitmapFont
+    │   └── TextEntity.h                # Text label entity using BitmapFont, in world or screen space
     ├── Events/                         # Observer pattern event system
     │   ├── Event.h                     # Event<Args...> / EventSubscriber<Args...>
     │   └── Subscription.h              # RAII subscription handle
@@ -67,7 +67,8 @@ tests/                                  # Google Test suite
 ├── PropertyParsingTest.cpp             # Text → property value parsing tests
 ├── TypeRegistryTest.cpp                # Type registration, property lookup and parsing tests
 ├── Camera2DTest.cpp                    # Camera world, screen and OpenGL conversion tests
-└── SceneDataTest.cpp                   # Scene document parsing and entity building tests
+├── SceneDataTest.cpp                   # Scene document parsing and entity building tests
+└── TextEntityTest.cpp                  # TextEntity screen-space positioning tests
 ```
 
 ## How It Works
@@ -146,6 +147,8 @@ label->SetWorldPosition(Vec2(-3.0f, 4.0f));
 
 The font atlas is a PNG with characters in a 16-column × 6-row grid (ASCII 32–127). `Renderer2D::DrawText()` is also available for direct draw calls.
 
+A label sits at its world position by default. Set its `ScreenSpace` property and it stays at `ScreenPosition` (pixels from the window's top-left) as the camera moves, which suits HUD text such as a coin counter. Both are properties, so a scene document can set them.
+
 ## Entity System
 
 All game objects inherit from `Entity`. The engine provides a hierarchy for grid-based games:
@@ -221,6 +224,8 @@ Color = 0.3, 0.3, 0.3
 FontPath = assets/font.png
 Text = Hello!
 CharHeight = 0.5
+ScreenSpace = true
+ScreenPosition = 16, 16
 ```
 
 `SceneData` is a `Resource`, so a document loads and reloads like any other asset:
