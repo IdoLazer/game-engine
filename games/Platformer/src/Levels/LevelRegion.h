@@ -19,6 +19,8 @@ public:
     // '\0' unless the document gave exactly one character.
     char GetAnchor() const { return m_anchor.size() == 1 ? m_anchor[0] : '\0'; }
 
+    const std::string &GetName() const { return m_name; }
+
 // --- Subclass Interface ---
 protected:
     PlatformerWorld &GetWorld() const { return *m_world; }
@@ -26,6 +28,7 @@ protected:
 // --- Configuration (data-driven via type registry) ---
 private:
     std::string m_anchor;
+    std::string m_name;
 
 // --- Private Fields ---
 private:

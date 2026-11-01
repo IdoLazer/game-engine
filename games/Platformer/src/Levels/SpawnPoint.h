@@ -14,8 +14,6 @@ class SpawnPoint : public LevelRegion
 public:
     bool Place(PlatformerWorld &world) override;
 
-    const std::string &GetName() const { return m_name; }
-
     // '\0' unless the document gave exactly one character.
     char GetDefaultAnchor() const { return m_defaultAnchor.size() == 1 ? m_defaultAnchor[0] : '\0'; }
 
@@ -26,7 +24,6 @@ public:
 
 // --- Configuration (data-driven via type registry) ---
 private:
-    std::string m_name;
     std::string m_defaultAnchor;
 
 // --- Private Fields ---

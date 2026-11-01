@@ -10,6 +10,7 @@ using namespace Engine;
 
 BEGIN_TYPE_REGISTER(LevelRegion)
     REGISTER_PROPERTY(std::string, Anchor, &LevelRegion::m_anchor)
+    REGISTER_PROPERTY(std::string, Name, &LevelRegion::m_name)
 END_TYPE_REGISTER()
 
 // --- Public Interface ---

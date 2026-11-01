@@ -80,7 +80,7 @@ games/
         │   ├── TileGrid.h/cpp          # Tile rows and anchors + PropertyParser specialization
         │   ├── TileLegend.h            # Character ↔ TileType table; other characters are anchors
         │   ├── LevelSet.h/cpp          # Entity carrying the level list from a document
-        │   ├── LevelRegion.h/cpp       # Entity placed on the anchor it names; keeps its world
+        │   ├── LevelRegion.h/cpp       # Entity placed on the anchor it names; keeps its world and its name
         │   ├── SpawnPoint.h/cpp        # Region where the player can appear
         │   └── LevelExit.h/cpp         # Trigger region that leads to another level
         ├── Physics/                    # Collision

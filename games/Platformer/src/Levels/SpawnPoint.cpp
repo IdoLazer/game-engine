@@ -10,7 +10,6 @@ using namespace Engine;
 // --- Type Registration ---
 
 BEGIN_TYPE_REGISTER(SpawnPoint)
-    REGISTER_PROPERTY(std::string, Name, &SpawnPoint::m_name)
     REGISTER_PROPERTY(std::string, DefaultAnchor, &SpawnPoint::m_defaultAnchor)
 END_TYPE_REGISTER()
 
