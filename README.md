@@ -68,7 +68,7 @@ tests/                                  # Google Test suite
 ├── TypeRegistryTest.cpp                # Type registration, property lookup and parsing tests
 ├── Camera2DTest.cpp                    # Camera world, screen and OpenGL conversion tests
 ├── SceneDataTest.cpp                   # Scene document parsing and entity building tests
-└── TextEntityTest.cpp                  # TextEntity screen-space positioning tests
+└── TextEntityTest.cpp                  # TextEntity screen and world position tests
 ```
 
 ## How It Works
