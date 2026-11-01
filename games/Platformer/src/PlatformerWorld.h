@@ -12,6 +12,7 @@
 
 // --- Forward Declarations ---
 class ILevelNavigator;
+class Session;
 class SpawnPoint;
 
 class PlatformerWorld : public Engine::TileMap
@@ -50,6 +51,8 @@ public:
     Physics &GetPhysics() { return m_physics; }
     void SetNavigator(ILevelNavigator *navigator) { m_navigator = navigator; }
     ILevelNavigator &GetNavigator() const { return *m_navigator; }
+    void SetSession(Session *session) { m_session = session; }
+    Session &GetSession() const { return *m_session; }
 
 // --- TileMap Interface ---
 protected:
@@ -77,4 +80,5 @@ private:
     std::set<char> m_claimedAnchors;
     std::vector<SpawnPoint *> m_spawnPoints;
     ILevelNavigator *m_navigator{nullptr};
+    Session *m_session{nullptr};
 };

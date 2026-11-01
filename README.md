@@ -57,21 +57,25 @@ games/
 │   │   └── Pieces/                     # Piece hierarchy (Pawn, Rook, Bishop, Knight, Queen, King)
 │   └── assets/                         # Game-specific assets (copied to build dir)
 └── Platformer/                         # Platformer game
+    ├── assets/fonts/                   # Bitmap font for the coin counter
     ├── assets/scenes/                  # platformer.scene (root) + one document per level
     └── src/
-        ├── Platformer.h/cpp            # Application subclass + level navigation
+        ├── Platformer.h/cpp            # Application subclass: level navigation and the session
         ├── ILevelNavigator.h           # What a level can ask of the game
+        ├── Session.h/cpp               # What outlives a level: the coins taken in each
         ├── PlatformerWorld.h/cpp       # Tile world: tiles, level regions, and the level's Physics
         ├── PlatformerInputManager.h/cpp # Keyboard/mouse routing → events, bound to the level's entities
         ├── Player.h/cpp                # Player body: velocity and physics primitives, moved through its Collider
         ├── Falcon.h/cpp                # Falcon body: flight, aiming, drawing primitives
         ├── Cursor.h/cpp                # Aiming cursor
         ├── LevelCamera.h/cpp           # Camera that follows the player within the level
+        ├── CoinCounter.h/cpp           # Screen-space label showing the session's coin count
         ├── TileType.h                  # Tile enum
         ├── PlatformerLayers.h          # Collision layers
         ├── Commands/                   # Deferred player and falcon inputs (Command pattern)
         ├── Elements/                   # Level pieces built from components
-        │   └── MovablePlatform.h/cpp   # Solid that moves toward its end anchor while switched on
+        │   ├── MovablePlatform.h/cpp   # Solid that moves toward its end anchor while switched on
+        │   └── Coin.h/cpp              # Trigger the player collects; the session remembers it
         ├── Levels/                     # Level loading
         │   ├── TileGrid.h/cpp          # Tile rows and anchors + PropertyParser specialization
         │   ├── TileLegend.h            # Character ↔ TileType table; other characters are anchors

@@ -4,6 +4,7 @@
 #include "PlatformerInputManager.h"
 #include "Levels/LevelSet.h"
 #include "Cursor.h"
+#include "CoinCounter.h"
 #include "LevelCamera.h"
 #include "Falcon.h"
 
@@ -64,6 +65,12 @@ void Platformer::Initialize()
 
     m_world->SetCoordSystem(&m_grid.GetCoordinateSystem());
     m_world->SetNavigator(this);
+
+    m_session.EnterLevel(m_currentLevel);
+    m_world->SetSession(&m_session);
+    if (auto *coinCounter = GetScene()->GetFirstEntityOfType<CoinCounter>())
+        coinCounter->SetSession(&m_session);
+
     m_world->PlaceRegions();
 
     m_player->SetWorld(m_world);

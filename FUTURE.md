@@ -149,13 +149,6 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 
 ## Levels
 
-### Level entities cannot reach anything that outlives the level
-
-**Current:** A level load destroys every entity and builds the next level's. `Platformer` itself persists, but entities only see the `Scene`, so nothing they can reach survives the load.
-**Concern:** An objective that changes the world - a sluice opened in one level, a conversation that differs on the way back - needs state that outlives the level it happened in, and that a death does not undo.
-**Future:** A small game-state object owned by `Platformer`, handed to the entities that need it when a level is wired.
-**When:** When the first objective has to be remembered across a level load.
-
 ### An exit's target is checked only when the player reaches it
 
 **Current:** A `LevelExit` names its target level and spawn point as text, and nothing reads them until the player enters the exit. A level path that does not load throws out of `Initialize` and ends the game; a spawn name the target lacks is reported and the player appears at the target's first `SpawnPoint`.

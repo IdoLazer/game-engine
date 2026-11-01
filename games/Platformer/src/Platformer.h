@@ -2,6 +2,7 @@
 #include <Engine.h>
 #include <Core/EntryPoint.h>
 #include "ILevelNavigator.h"
+#include "Session.h"
 
 #include <optional>
 
@@ -40,6 +41,7 @@ private:
     std::string m_currentLevel;
     std::string m_spawnName;                // The SpawnPoint to appear at; empty for the level's first
     std::optional<Engine::Vec2> m_exitCell; // Where the player left the previous level
+    Session m_session;
 
     std::unique_ptr<PlatformerInputManager> m_inputManager;
     std::vector<Engine::Subscription> m_inputSubscriptions;

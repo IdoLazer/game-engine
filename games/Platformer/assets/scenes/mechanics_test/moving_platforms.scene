@@ -4,6 +4,7 @@
 //   c rises through the bridge into the slab above it: ride it and the slab crushes you.
 //   s slides toward the left wall: stay in the pocket between them and it crushes you.
 // A crush reloads the level.
+// The exit at the right end of the upper deck leads to triggers.scene, whose exit leads back here.
 
 [Tile]
 WorldPosition = 0, 0
@@ -20,8 +21,8 @@ TileGrid = |
 #............................#
 #............................#
 #.................#####......#
-#..................CCC.......#
-#SSS.@...sss.................#
+#..................CCC.......>
+#SSS.@...sss................r>
 ##############ddd##...##UUU###
 #............................#
 #............................#
@@ -38,6 +39,15 @@ TileGrid = |
 [SpawnPoint]
 Name = start
 Anchor = @
+
+[SpawnPoint]
+Name = fromTriggers
+Anchor = r
+
+[LevelExit]
+Anchor = >
+TargetLevel = assets/scenes/mechanics_test/triggers.scene
+TargetSpawn = fromPlatforms
 
 [MovablePlatform]
 Anchor = u

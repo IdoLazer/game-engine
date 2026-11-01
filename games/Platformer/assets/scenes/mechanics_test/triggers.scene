@@ -1,0 +1,57 @@
+// Triggers: coins, death tiles and an exit.
+// Coins 1, 2 and 3 are collected once and stay collected after a death and after leaving and coming back.
+//   1 lies on the floor, 2 hangs over the pit and 3 over the spikes.
+// Touching the pit or the spikes reloads the level.
+// The exit on the right leads to moving_platforms.scene, whose exit leads back here.
+
+[Tile]
+WorldPosition = 0, 0
+WorldSize = 30, 20
+Color = 0.5, 0.7, 1, 1
+
+[PlatformerWorld]
+StaticTileColor = 0.3, 0.3, 0.3, 1
+DeathTileColor = 0.7, 0.1, 0.1, 1
+TileGrid = |
+##############################
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............2........3......>
+#............................>
+#.@...1...............xx....r>
+###########xxxxx##############
+###########xxxxx##############
+
+[SpawnPoint]
+Name = start
+Anchor = @
+
+[SpawnPoint]
+Name = fromPlatforms
+Anchor = r
+
+[LevelExit]
+Anchor = >
+TargetLevel = assets/scenes/mechanics_test/moving_platforms.scene
+TargetSpawn = fromTriggers
+
+[Coin]
+Anchor = 1
+
+[Coin]
+Anchor = 2
+
+[Coin]
+Anchor = 3

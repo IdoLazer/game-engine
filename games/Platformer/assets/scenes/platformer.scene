@@ -22,6 +22,7 @@
 
 // The mechanics test set:
 // Levels = |
+// assets/scenes/mechanics_test/triggers.scene
 // assets/scenes/mechanics_test/moving_platforms.scene
 
 // The vertical slice Levels
@@ -73,3 +74,12 @@ Speed = 12
 RetrieveSpeed = 20
 SnapRadius = 0.1
 GlideOffsetFromPlayer = 0, -0.3
+
+// The coin counter is drawn over everything, so it comes last.
+[CoinCounter]
+FontPath = assets/fonts/font.png
+Text = Coins: {0}
+CharHeight = 0.3
+Color = 1, 1, 1, 1
+ScreenSpace = true
+ScreenPosition = 20, 20
