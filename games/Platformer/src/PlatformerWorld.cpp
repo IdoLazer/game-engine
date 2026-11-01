@@ -1,7 +1,6 @@
 #include "PlatformerWorld.h"
 #include "ILevelNavigator.h"
 #include "PlatformerLayers.h"
-#include "Levels/LevelExit.h"
 #include "Levels/SpawnPoint.h"
 #include <iostream>
 
@@ -14,8 +13,14 @@ END_TYPE_REGISTER()
 void PlatformerWorld::Initialize()
 {
     TileMap::Initialize();
-    m_physics.SetTiles(*m_coordSystem, [this](const Engine::Vec2 &cell) { return IsSolid(cell); }, Layer::Terrain);
+    m_physics.SetTiles(*m_coordSystem, [this](const Engine::Vec2 &cell) { return CollisionAt(cell); }, Layer::Terrain, Layer::Player);
     m_crushedSubscription = m_physics.OnCrushed().Subscribe(this, &PlatformerWorld::OnColliderCrushed);
+    m_tileEnteredSubscription = m_physics.OnTileEntered().Subscribe(this, &PlatformerWorld::OnColliderEnteredTile);
+}
+
+void PlatformerWorld::Update(float deltaTime)
+{
+    m_physics.Update();
 }
 
 void PlatformerWorld::OnColliderCrushed(const Collider &collider)
@@ -24,19 +29,32 @@ void PlatformerWorld::OnColliderCrushed(const Collider &collider)
         GetNavigator().ReloadCurrentLevel();
 }
 
+void PlatformerWorld::OnColliderEnteredTile(const Collider &collider, const Engine::Vec2 &cell)
+{
+    GetNavigator().ReloadCurrentLevel();
+}
+
 TileType PlatformerWorld::TileAt(const Engine::Vec2 &cell) const
 {
     return m_tileGrid.At(static_cast<int>(cell.x), static_cast<int>(cell.y));
 }
 
+TileCollision PlatformerWorld::CollisionAt(const Engine::Vec2 &cell) const
+{
+    switch (TileAt(cell))
+    {
+    case TileType::Solid:
+        return TileCollision::Solid;
+    case TileType::Death:
+        return TileCollision::Trigger;
+    default:
+        return TileCollision::None;
+    }
+}
+
 bool PlatformerWorld::IsSolid(const Engine::Vec2 &cell) const
 {
     return TileAt(cell) == TileType::Solid;
-}
-
-bool PlatformerWorld::IsDeadly(const Engine::Vec2 &cell) const
-{
-    return TileAt(cell) == TileType::Death;
 }
 
 // --- Level Regions ---
@@ -50,8 +68,6 @@ void PlatformerWorld::PlaceRegions()
 
         if (auto *spawnPoint = dynamic_cast<SpawnPoint *>(region))
             m_spawnPoints.push_back(spawnPoint);
-        else if (auto *levelExit = dynamic_cast<LevelExit *>(region))
-            m_exits.push_back(levelExit);
     }
 
     for (const auto &[glyph, bounds] : m_tileGrid.GetAnchors())
@@ -88,16 +104,6 @@ Engine::Vec2 PlatformerWorld::FindSpawnCell(const std::string &spawnName, const 
         std::cerr << "PlatformerWorld: no SpawnPoint named '" << spawnName << "', using the level's first" << std::endl;
 
     return m_spawnPoints.front()->GetSpawnCell(exitCell);
-}
-
-const LevelExit *PlatformerWorld::FindExitAt(const Engine::Vec2 &cell) const
-{
-    for (const LevelExit *levelExit : m_exits)
-    {
-        if (levelExit->Contains(cell))
-            return levelExit;
-    }
-    return nullptr;
 }
 
 void PlatformerWorld::RenderTile(int x, int y, const Engine::Vec2 &worldPos, const Engine::Vec2 &worldSize) const

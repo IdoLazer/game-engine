@@ -78,10 +78,10 @@ games/
         │   ├── LevelSet.h/cpp          # Entity carrying the level list from a document
         │   ├── LevelRegion.h/cpp       # Entity placed on the anchor it names; keeps its world
         │   ├── SpawnPoint.h/cpp        # Region where the player can appear
-        │   └── LevelExit.h/cpp         # Region that leads to another level
+        │   └── LevelExit.h/cpp         # Trigger region that leads to another level
         ├── Physics/                    # Collision
-        │   ├── Physics.h/cpp           # Level collision: tiles and colliders, sweeps, raycasts and pushes
-        │   └── Collider.h/cpp          # Component: a box an entity collides with
+        │   ├── Physics.h/cpp           # Level collision: tiles and colliders, sweeps, raycasts, pushes and trigger events
+        │   └── Collider.h/cpp          # Component: a box an entity collides with, or a trigger that reports what overlaps it
         └── StateMachine/               # Hierarchical state machine + Player's and Falcon's states
             ├── State.h                 # Generic state node: lifecycle + tree structure
             ├── StateMachine.h          # Generic machine: transitions, dispatch, root-to-leaf update

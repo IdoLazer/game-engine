@@ -3,6 +3,7 @@
 #include <Engine.h>
 
 #include <cstdint>
+#include <vector>
 
 // --- Forward Declarations ---
 class Physics;
@@ -33,6 +34,16 @@ public:
     LayerMask GetLayer() const { return m_layer; }
     LayerMask GetMask() const { return m_mask; }
 
+    // A trigger blocks nothing and is moved by nothing: it reports the colliders on a layer in its mask.
+    bool IsTrigger() const { return m_isTrigger; }
+    void SetTrigger(bool isTrigger) { m_isTrigger = isTrigger; }
+
+// --- Events ---
+public:
+    // Raised from Physics::Update for a collider that starts overlapping this trigger, and for one that stops.
+    Engine::EventSubscriber<Collider> &OnEntered() { return m_onEnteredEvent; }
+    Engine::EventSubscriber<Collider> &OnExited() { return m_onExitedEvent; }
+
 // --- Movement & Contact ---
 public:
     // Moves the owner, blocked by solid tiles and colliders on a layer in the mask, sliding along them.
@@ -50,5 +61,12 @@ private:
     Engine::GridEntity &m_owner;
     LayerMask m_layer;
     LayerMask m_mask;
+    bool m_isTrigger{false};
     Physics *m_physics{nullptr};
+
+    std::vector<const Collider *> m_overlapping; // What Physics::Update last found inside this trigger.
+    bool m_inTriggerTile{false};                  // Whether Physics::Update last found this in a trigger cell.
+
+    Engine::Event<Collider> m_onEnteredEvent;
+    Engine::Event<Collider> m_onExitedEvent;
 };

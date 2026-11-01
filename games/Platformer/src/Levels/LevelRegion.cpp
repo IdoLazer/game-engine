@@ -29,8 +29,3 @@ bool LevelRegion::Place(PlatformerWorld &world)
     SetGridSize(bounds->halfExtents * 2.0f);
     return true;
 }
-
-bool LevelRegion::Contains(const Vec2 &cell) const
-{
-    return Rect(GetGridPosition(), GetGridSize() * 0.5f).Contains(cell);
-}

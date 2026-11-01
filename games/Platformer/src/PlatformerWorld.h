@@ -12,7 +12,6 @@
 
 // --- Forward Declarations ---
 class ILevelNavigator;
-class LevelExit;
 class SpawnPoint;
 
 class PlatformerWorld : public Engine::TileMap
@@ -27,11 +26,11 @@ public:
 // --- Lifecycle ---
 public:
     void Initialize() override;
+    void Update(float deltaTime) override;
 
 // --- Collision Interface ---
 public:
     bool IsSolid(const Engine::Vec2 &cell) const;
-    bool IsDeadly(const Engine::Vec2 &cell) const;
 
 // --- Level Regions ---
 public:
@@ -44,9 +43,6 @@ public:
     // The cell the player appears in: at the SpawnPoint called `spawnName`, or at the level's
     // first when the name is empty. `exitCell` is where the player left the previous level.
     Engine::Vec2 FindSpawnCell(const std::string &spawnName, const std::optional<Engine::Vec2> &exitCell) const;
-
-    // The exit `cell` is in, or null.
-    const LevelExit *FindExitAt(const Engine::Vec2 &cell) const;
 
 // --- Accessors ---
 public:
@@ -62,7 +58,9 @@ protected:
 // --- Internal ---
 private:
     TileType TileAt(const Engine::Vec2 &cell) const;
+    TileCollision CollisionAt(const Engine::Vec2 &cell) const;
     void OnColliderCrushed(const Collider &collider);
+    void OnColliderEnteredTile(const Collider &collider, const Engine::Vec2 &cell);
 
 // --- Configuration ---
 private:
@@ -73,9 +71,10 @@ private:
 // --- Private Fields ---
 private:
     Physics m_physics;
-    Engine::Subscription m_crushedSubscription; // After m_physics, so it unsubscribes while the event still exists.
+    // After m_physics, so they unsubscribe while its events still exist.
+    Engine::Subscription m_crushedSubscription;
+    Engine::Subscription m_tileEnteredSubscription;
     std::set<char> m_claimedAnchors;
     std::vector<SpawnPoint *> m_spawnPoints;
-    std::vector<LevelExit *> m_exits;
     ILevelNavigator *m_navigator{nullptr};
 };

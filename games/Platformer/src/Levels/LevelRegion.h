@@ -15,7 +15,6 @@ class LevelRegion : public Engine::GridEntity
 public:
     // Covers the cells drawn with the region's anchor. False when `world` has no such anchor.
     virtual bool Place(PlatformerWorld &world);
-    bool Contains(const Engine::Vec2 &cell) const;
 
     // '\0' unless the document gave exactly one character.
     char GetAnchor() const { return m_anchor.size() == 1 ? m_anchor[0] : '\0'; }

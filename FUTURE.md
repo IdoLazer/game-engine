@@ -105,6 +105,13 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Future:** Carry riders on slides too.  
 **When:** With the first pushable or rideable mover.
 
+### Triggers report a frame late
+
+**Current:** `PlatformerWorld` updates before the entities in it, so `Physics::Update` reports the overlaps of the previous frame's positions.  
+**Concern:** A trigger reacts one frame after the overlap. That is invisible at 60 fps, but a fast mover can cross a thin trigger between two updates.  
+**Future:** Run `Physics::Update` after every entity has moved, once the scene has a step for that.  
+**When:** When something fast has to hit a thin trigger.
+
 ---
 
 ## Falcon Gameplay Systems
@@ -165,9 +172,9 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 
 ### The grid indexes a region by one cell
 
-**Current:** A `LevelRegion` is a `GridEntity`, and `Grid` registers a grid entity at the single cell under its position. A region covering many cells is listed only at its middle one, so `PlatformerWorld` keeps its own lists of spawn points and exits.
+**Current:** A `LevelRegion` is a `GridEntity`, and `Grid` registers a grid entity at the single cell under its position. A region covering many cells is listed only at its middle one, so `PlatformerWorld` keeps its own list of spawn points.
 **Concern:** `Grid::GetEntitiesAt` would miss a region everywhere but its middle cell.
-**Future:** Register a grid entity in every cell it covers, and let the world ask the grid instead of keeping lists.
+**Future:** Register a grid entity in every cell it covers, and let the world ask the grid instead of keeping a list.
 **When:** When something needs to ask which regions are at a cell.
 
 ### Camera follow is rigid

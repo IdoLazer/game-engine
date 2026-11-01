@@ -27,6 +27,11 @@ namespace
         return reach.x - apartX > kContactEpsilon && reach.y - apartY > kContactEpsilon;
     }
 
+    bool Includes(const std::vector<const Collider *> &colliders, const Collider *collider)
+    {
+        return std::ranges::find(colliders, collider) != colliders.end();
+    }
+
     // True when `box` rests on top of `platform`: a hairline sweep down hits it.
     bool IsStandingOn(const Rect &box, const Rect &platform)
     {
@@ -61,11 +66,13 @@ Physics::~Physics()
 
 // --- Setup ---
 
-void Physics::SetTiles(const GridCoordinateSystem &coords, std::function<bool(const Vec2 &cell)> isSolid, LayerMask layer)
+void Physics::SetTiles(const GridCoordinateSystem &coords, std::function<TileCollision(const Vec2 &cell)> collisionAt,
+                       LayerMask layer, LayerMask triggerMask)
 {
     m_coords = &coords;
-    m_isTileSolid = std::move(isSolid);
+    m_tileCollisionAt = std::move(collisionAt);
     m_tileLayer = layer;
+    m_tileTriggerMask = triggerMask;
 }
 
 void Physics::Add(Collider &collider)
@@ -76,14 +83,80 @@ void Physics::Add(Collider &collider)
     if (collider.m_physics)
         collider.m_physics->Remove(collider);
 
+    collider.m_overlapping.clear();
+    collider.m_inTriggerTile = false;
+
     m_colliders.push_back(&collider);
     collider.m_physics = this;
 }
 
 void Physics::Remove(Collider &collider)
 {
-    if (std::erase(m_colliders, &collider) > 0)
-        collider.m_physics = nullptr;
+    if (std::erase(m_colliders, &collider) == 0)
+        return;
+
+    collider.m_physics = nullptr;
+
+    for (Collider *trigger : m_colliders)
+        std::erase(trigger->m_overlapping, &collider);
+}
+
+// --- Update ---
+
+// What entered or left each trigger, and what stepped into a trigger cell, is worked out first and
+// raised after, so no handler runs while the colliders are being scanned.
+void Physics::Update()
+{
+    struct ColliderEvent
+    {
+        Collider *trigger;
+        const Collider *other;
+    };
+    struct TileEvent
+    {
+        const Collider *collider;
+        Vec2 cell;
+    };
+
+    std::vector<ColliderEvent> entered;
+    std::vector<ColliderEvent> exited;
+    std::vector<TileEvent> tileEntered;
+
+    for (Collider *collider : m_colliders)
+    {
+        if (collider->IsTrigger())
+        {
+            std::vector<const Collider *> overlapping = FindOverlaps(*collider);
+
+            for (const Collider *other : overlapping)
+            {
+                if (!Includes(collider->m_overlapping, other))
+                    entered.push_back({collider, other});
+            }
+            for (const Collider *other : collider->m_overlapping)
+            {
+                if (!Includes(overlapping, other))
+                    exited.push_back({collider, other});
+            }
+
+            collider->m_overlapping = std::move(overlapping);
+        }
+        else if (collider->GetLayer() & m_tileTriggerMask)
+        {
+            std::optional<Vec2> cell = FindTriggerCell(collider->GetRect());
+            if (cell && !collider->m_inTriggerTile)
+                tileEntered.push_back({collider, *cell});
+
+            collider->m_inTriggerTile = cell.has_value();
+        }
+    }
+
+    for (const ColliderEvent &event : entered)
+        event.trigger->m_onEnteredEvent.Notify(*event.other);
+    for (const ColliderEvent &event : exited)
+        event.trigger->m_onExitedEvent.Notify(*event.other);
+    for (const TileEvent &event : tileEntered)
+        m_onTileEnteredEvent.Notify(*event.collider, event.cell);
 }
 
 // --- Queries ---
@@ -91,7 +164,7 @@ void Physics::Remove(Collider &collider)
 PhysicsHit Physics::SweepSolid(const Rect &box, const Vec2 &delta, LayerMask mask, const Collider *ignore) const
 {
     PhysicsHit tileHit = CollidesWithTiles(mask) ? SweepTiles(box, delta) : PhysicsHit{};
-    return Earlier(tileHit, SweepColliders(box, delta, mask, ignore));
+    return Earlier(tileHit, SweepColliders(box, delta, mask, ignore, Triggers::Skip));
 }
 
 bool Physics::TouchesSolid(const Rect &box, const Vec2 &direction, LayerMask mask, const Collider *ignore) const
@@ -112,7 +185,7 @@ PhysicsHit Physics::Raycast(const Vec2 &origin, const Vec2 &direction, float max
 
     // A zero-size box swept along the ray, as the tile path does, so both hits' `t` compare directly.
     Rect rayPoint(origin, Vec2::Zero);
-    return Earlier(tileHit, SweepColliders(rayPoint, direction * maxDistance, mask, nullptr));
+    return Earlier(tileHit, SweepColliders(rayPoint, direction * maxDistance, mask, nullptr, Triggers::Include));
 }
 
 // --- Movement ---
@@ -163,7 +236,7 @@ void Physics::MoveAndPush(Collider &pusher, const Vec2 &delta)
     std::vector<Candidate> candidates;
     for (Collider *other : m_colliders)
     {
-        if (other != &pusher && (other->GetMask() & pusher.GetLayer()))
+        if (other != &pusher && !other->IsTrigger() && (other->GetMask() & pusher.GetLayer()))
             candidates.push_back({other, IsStandingOn(other->GetRect(), pusher.GetRect())});
     }
 
@@ -209,6 +282,11 @@ bool Physics::CollidesWithTiles(LayerMask mask) const
     return m_coords && (m_tileLayer & mask);
 }
 
+bool Physics::IsTileSolid(const Vec2 &cell) const
+{
+    return m_tileCollisionAt(cell) == TileCollision::Solid;
+}
+
 PhysicsHit Physics::SweepTiles(const Rect &box, const Vec2 &delta) const
 {
     CellRange range = m_coords->GetSweptCellRange(box, delta);
@@ -219,7 +297,7 @@ PhysicsHit Physics::SweepTiles(const Rect &box, const Vec2 &delta) const
         for (int x = static_cast<int>(range.minCell.x); x <= static_cast<int>(range.maxCell.x); ++x)
         {
             Vec2 cell(x, y);
-            if (!m_isTileSolid(cell))
+            if (!IsTileSolid(cell))
                 continue;
 
             SweepHit hit = SweepRectVsRect(box, delta, m_coords->GetCellRect(cell));
@@ -230,12 +308,15 @@ PhysicsHit Physics::SweepTiles(const Rect &box, const Vec2 &delta) const
     return bestHit;
 }
 
-PhysicsHit Physics::SweepColliders(const Rect &box, const Vec2 &delta, LayerMask mask, const Collider *ignore) const
+PhysicsHit Physics::SweepColliders(const Rect &box, const Vec2 &delta, LayerMask mask, const Collider *ignore, Triggers triggers) const
 {
     PhysicsHit bestHit;
     for (const Collider *other : m_colliders)
     {
         if (other == ignore || other == m_pusher || !(other->GetLayer() & mask))
+            continue;
+
+        if (other->IsTrigger() && triggers == Triggers::Skip)
             continue;
 
         SweepHit hit = SweepRectVsRect(box, delta, other->GetRect());
@@ -245,13 +326,47 @@ PhysicsHit Physics::SweepColliders(const Rect &box, const Vec2 &delta, LayerMask
     return bestHit;
 }
 
+// The colliders on a layer in the trigger's mask that strictly overlap it, other than its owner's.
+std::vector<const Collider *> Physics::FindOverlaps(const Collider &trigger) const
+{
+    std::vector<const Collider *> overlaps;
+    Rect box = trigger.GetRect();
+
+    for (const Collider *other : m_colliders)
+    {
+        bool isReported = !other->IsTrigger() && &other->GetOwner() != &trigger.GetOwner() && (other->GetLayer() & trigger.GetMask());
+        if (isReported && Overlap(box, other->GetRect()))
+            overlaps.push_back(other);
+    }
+    return overlaps;
+}
+
+// A trigger cell that `box` strictly overlaps, if any.
+std::optional<Vec2> Physics::FindTriggerCell(const Rect &box) const
+{
+    if (!m_coords)
+        return std::nullopt;
+
+    CellRange range = m_coords->GetSweptCellRange(box, Vec2::Zero);
+    for (int y = static_cast<int>(range.minCell.y); y <= static_cast<int>(range.maxCell.y); ++y)
+    {
+        for (int x = static_cast<int>(range.minCell.x); x <= static_cast<int>(range.maxCell.x); ++x)
+        {
+            Vec2 cell(x, y);
+            if (m_tileCollisionAt(cell) == TileCollision::Trigger && Overlap(box, m_coords->GetCellRect(cell)))
+                return cell;
+        }
+    }
+    return std::nullopt;
+}
+
 // DDA ray march (Amanatides-Woo style, one cell boundary at a time) to find the first solid
 // tile along `direction`, then hands off to SweepRectVsRect for the exact hit point/normal -
 // the DDA is only the broad phase here, deciding which single cell to test.
 PhysicsHit Physics::RaycastTiles(const Vec2 &origin, const Vec2 &direction, float maxDistance) const
 {
     Vec2 cell = m_coords->GetCellFromGridPosition(origin);
-    if (m_isTileSolid(cell))
+    if (IsTileSolid(cell))
         return {}; // Starting inside solid ground - no valid hit
 
     constexpr float kInfinity = std::numeric_limits<float>::infinity();
@@ -285,7 +400,7 @@ PhysicsHit Physics::RaycastTiles(const Vec2 &origin, const Vec2 &direction, floa
         if (!m_coords->IsInBounds(cell))
             return {};
 
-        if (!m_isTileSolid(cell))
+        if (!IsTileSolid(cell))
             continue;
 
         Rect rayPoint(origin, Vec2::Zero);

@@ -3,7 +3,6 @@
 #include "Player.h"
 #include "PlatformerInputManager.h"
 #include "Levels/LevelSet.h"
-#include "Levels/LevelExit.h"
 #include "Cursor.h"
 #include "LevelCamera.h"
 #include "Falcon.h"
@@ -93,22 +92,7 @@ void Platformer::Initialize()
     m_inputManager->Bind(*m_player, *falcon, m_cursor);
 }
 
-void Platformer::Update(float deltaTime)
-{
-    if (!m_player || !m_world)
-        return;
-
-    Vec2 cell = m_grid.GetCellFromGridPosition(m_player->GetGridPosition());
-
-    if (const LevelExit *levelExit = m_world->FindExitAt(cell))
-    {
-        GoToLevel(levelExit->GetTargetLevel(), levelExit->GetTargetSpawn(), cell);
-    }
-    else if (m_world->IsDeadly(cell))
-    {
-        ReloadCurrentLevel();
-    }
-}
+void Platformer::Update(float deltaTime) {}
 
 void Platformer::Shutdown()
 {
