@@ -244,6 +244,13 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 **Future:** Use runtime TTF rasterization (stb_truetype or FreeType) to generate atlases at any size, or SDF/MSDF rendering for resolution-independent text (requires fragment shaders).  
 **When:** When we have a modern shader pipeline and need crisp text at arbitrary sizes (likely the 3D project).
 
+### Screen-space text draws through the world camera
+
+**Current:** A `TextEntity` with `ScreenSpace` set converts `ScreenPosition` to a world position when it renders, and ignores the world position every `Entity` has. `Renderer2D` draws it through the one camera, in world units.  
+**Concern:** `CharHeight` scales with the camera's world height, and HUD draw order is still instantiation order.  
+**Future:** A HUD pass that draws screen-space elements after the world, with its own projection and no world position, like Unity's Screen Space Overlay canvas or Godot's `CanvasLayer`.  
+**When:** When a second HUD element appears, or text has to ignore camera zoom.
+
 ---
 
 ## Serialization

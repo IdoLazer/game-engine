@@ -20,16 +20,12 @@ namespace Engine
             m_font = ResourceManager::Load<BitmapFont>(m_fontPath);
     }
 
-    void TextEntity::Update(float deltaTime)
-    {
-        if (m_screenSpace)
-            m_worldPosition = Renderer2D::GetCamera().ScreenToWorld(m_screenPosition);
-    }
-
     void TextEntity::Render() const
     {
         if (!m_font || m_text.empty())
             return;
+
+        Vec2 worldPosition = m_screenSpace ? Renderer2D::GetCamera().ScreenToWorld(m_screenPosition) : m_worldPosition;
 
         // Draw background tile if not fully transparent
         if (m_backgroundColor.a > 0.0f)
@@ -37,10 +33,10 @@ namespace Engine
             float charWidth = m_charHeight * m_font->GetAspectRatio();
             float totalWidth = charWidth * static_cast<float>(m_text.size());
             Vec2 bgSize(totalWidth, m_charHeight);
-            Vec2 bgCenter(m_worldPosition.x + totalWidth * 0.5f, m_worldPosition.y - m_charHeight * 0.5f);
+            Vec2 bgCenter(worldPosition.x + totalWidth * 0.5f, worldPosition.y - m_charHeight * 0.5f);
             Renderer2D::DrawTile(bgCenter, bgSize, m_backgroundColor);
         }
 
-        Renderer2D::DrawText(m_worldPosition, m_text, *m_font, m_charHeight, m_color);
+        Renderer2D::DrawText(worldPosition, m_text, *m_font, m_charHeight, m_color);
     }
 }

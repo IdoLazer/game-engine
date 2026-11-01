@@ -27,7 +27,6 @@ namespace Engine
     // --- Lifecycle ---
     public:
         void Initialize() override;
-        void Update(float deltaTime) override;
         void Render() const override;
 
     // --- Accessors ---
@@ -41,6 +40,7 @@ namespace Engine
         const std::string& GetText() const { return m_text; }
         float GetCharHeight() const { return m_charHeight; }
         const Color& GetBackgroundColor() const { return m_backgroundColor; }
+        Vec2 GetScreenPosition() const { return m_screenPosition; }
     
     };
 }
