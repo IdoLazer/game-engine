@@ -23,6 +23,14 @@ Rect Collider::GetRect() const
     return Rect(m_owner.GetGridPosition(), m_owner.GetGridSize() * 0.5f);
 }
 
+// --- Attachment ---
+
+void Collider::AttachTo(const Collider &target)
+{
+    if (m_physics && m_physics == target.m_physics)
+        m_attachedTo = &target;
+}
+
 // --- Movement & Contact ---
 
 MoveResult Collider::MoveAndSlide(const Vec2 &delta)

@@ -61,7 +61,10 @@ namespace
 Physics::~Physics()
 {
     for (Collider *collider : m_colliders)
+    {
         collider->m_physics = nullptr;
+        collider->m_attachedTo = nullptr;
+    }
 }
 
 // --- Setup ---
@@ -96,9 +99,24 @@ void Physics::Remove(Collider &collider)
         return;
 
     collider.m_physics = nullptr;
+    collider.m_attachedTo = nullptr;
 
     for (Collider *trigger : m_colliders)
         std::erase(trigger->m_overlapping, &collider);
+
+    // Detached first and told after, so no handler runs while the colliders are being scanned.
+    std::vector<Collider *> detached;
+    for (Collider *other : m_colliders)
+    {
+        if (other->m_attachedTo == &collider)
+        {
+            other->m_attachedTo = nullptr;
+            detached.push_back(other);
+        }
+    }
+
+    for (Collider *other : detached)
+        other->m_onDetachedEvent.Notify();
 }
 
 // --- Update ---
@@ -223,8 +241,9 @@ MoveResult Physics::MoveAndSlide(Collider &collider, const Vec2 &delta)
     return result;
 }
 
-// The pusher moves the whole delta, one axis at a time: what it runs into is pushed clear, and what
-// rides on it is carried. Riders are found first, because moving the pusher breaks the contact.
+// The pusher moves the whole delta, one axis at a time: what it runs into is pushed clear, what
+// rides on it is carried, and what is attached to it moves by the same step. Riders are found first,
+// because moving the pusher breaks the contact.
 void Physics::MoveAndPush(Collider &pusher, const Vec2 &delta)
 {
     struct Candidate
@@ -234,9 +253,12 @@ void Physics::MoveAndPush(Collider &pusher, const Vec2 &delta)
     };
 
     std::vector<Candidate> candidates;
+    std::vector<Collider *> attached;
     for (Collider *other : m_colliders)
     {
-        if (other != &pusher && !other->IsTrigger() && (other->GetMask() & pusher.GetLayer()))
+        if (other->m_attachedTo == &pusher)
+            attached.push_back(other);
+        else if (other != &pusher && !other->IsTrigger() && (other->GetMask() & pusher.GetLayer()))
             candidates.push_back({other, IsStandingOn(other->GetRect(), pusher.GetRect())});
     }
 
@@ -249,6 +271,12 @@ void Physics::MoveAndPush(Collider &pusher, const Vec2 &delta)
 
         GridEntity &owner = pusher.GetOwner();
         owner.SetGridPosition(owner.GetGridPosition() + step);
+
+        for (Collider *collider : attached)
+        {
+            GridEntity &attachedOwner = collider->GetOwner();
+            attachedOwner.SetGridPosition(attachedOwner.GetGridPosition() + step);
+        }
 
         Rect pusherBox = pusher.GetRect();
 

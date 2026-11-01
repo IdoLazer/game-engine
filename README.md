@@ -87,7 +87,7 @@ games/
         │   └── LevelExit.h/cpp         # Trigger region that leads to another level
         ├── Physics/                    # Collision
         │   ├── Physics.h/cpp           # Level collision: tiles and colliders, sweeps, raycasts, pushes and trigger events
-        │   └── Collider.h/cpp          # Component: a box an entity collides with, or a trigger that reports what overlaps it
+        │   └── Collider.h/cpp          # Component: a box an entity collides with, or a trigger that reports what overlaps it; it can attach to another collider and move with it
         └── StateMachine/               # Hierarchical state machine + Player's and Falcon's states
             ├── State.h                 # Generic state node: lifecycle + tree structure
             ├── StateMachine.h          # Generic machine: transitions, dispatch, root-to-leaf update

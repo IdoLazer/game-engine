@@ -38,18 +38,30 @@ public:
     bool IsTrigger() const { return m_isTrigger; }
     void SetTrigger(bool isTrigger) { m_isTrigger = isTrigger; }
 
+// --- Attachment ---
+public:
+    // An attached collider moves with what it's attached to.
+    // Ignored unless both colliders are in the same Physics.
+    void AttachTo(const Collider &target);
+    void Detach() { m_attachedTo = nullptr; }
+    const Collider *GetAttachedTo() const { return m_attachedTo; }
+
 // --- Events ---
 public:
     // Raised from Physics::Update for a collider that starts overlapping this trigger, and for one that stops.
     Engine::EventSubscriber<Collider> &OnEntered() { return m_onEnteredEvent; }
     Engine::EventSubscriber<Collider> &OnExited() { return m_onExitedEvent; }
 
+    // Raised when what it's attached to is removed from Physics.
+    Engine::EventSubscriber<> &OnDetached() { return m_onDetachedEvent; }
+
 // --- Movement & Contact ---
 public:
     // Moves the owner, blocked by solid tiles and colliders on a layer in the mask, sliding along them.
     MoveResult MoveAndSlide(const Engine::Vec2 &delta);
     // Moves the owner the full delta. Colliders whose mask includes this layer are pushed out of the
-    // way, carried when standing on top, and crushed when they can't get out.
+    // way, carried when standing on top, and crushed when they can't get out. Colliders attached to
+    // this one move by the same delta, without being swept.
     void MoveAndPush(const Engine::Vec2 &delta);
     // True when flush against something solid in the mask, on the side `direction` points to.
     bool TouchesSolid(const Engine::Vec2 &direction) const;
@@ -63,10 +75,12 @@ private:
     LayerMask m_mask;
     bool m_isTrigger{false};
     Physics *m_physics{nullptr};
+    const Collider *m_attachedTo{nullptr};
 
     std::vector<const Collider *> m_overlapping; // What Physics::Update last found inside this trigger.
     bool m_inTriggerTile{false};                  // Whether Physics::Update last found this in a trigger cell.
 
     Engine::Event<Collider> m_onEnteredEvent;
     Engine::Event<Collider> m_onExitedEvent;
+    Engine::Event<> m_onDetachedEvent;
 };
