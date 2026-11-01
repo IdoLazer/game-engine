@@ -1,6 +1,7 @@
 #include "PlatformerWorld.h"
 #include "ILevelNavigator.h"
 #include "PlatformerLayers.h"
+#include "Elements/ISwitchable.h"
 #include "Levels/SpawnPoint.h"
 #include <iostream>
 
@@ -104,6 +105,25 @@ Engine::Vec2 PlatformerWorld::FindSpawnCell(const std::string &spawnName, const 
         std::cerr << "PlatformerWorld: no SpawnPoint named '" << spawnName << "', using the level's first" << std::endl;
 
     return m_spawnPoints.front()->GetSpawnCell(exitCell);
+}
+
+void PlatformerWorld::Switch(const std::string &name, bool on)
+{
+    bool found = false;
+
+    for (LevelRegion *region : GetScene()->GetAllEntitiesOfType<LevelRegion>())
+    {
+        // Regions without a Name have an empty one, which no switch may match.
+        if (name.empty() || region->GetName() != name)
+            continue;
+
+        found = true;
+        if (auto *switchable = dynamic_cast<ISwitchable *>(region))
+            switchable->OnSwitched(on);
+    }
+
+    if (!found)
+        std::cerr << "PlatformerWorld: no region named '" << name << "' to switch" << std::endl;
 }
 
 void PlatformerWorld::RenderTile(int x, int y, const Engine::Vec2 &worldPos, const Engine::Vec2 &worldSize) const

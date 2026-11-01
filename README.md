@@ -74,7 +74,9 @@ games/
         ├── PlatformerLayers.h          # Collision layers
         ├── Commands/                   # Deferred player and falcon inputs (Command pattern)
         ├── Elements/                   # Level pieces built from components
+        │   ├── ISwitchable.h           # A region another can switch on and off
         │   ├── MovablePlatform.h/cpp   # Solid that moves toward its end anchor while switched on
+        │   ├── PressurePlate.h/cpp     # Trigger that switches the regions it names while the player is on it
         │   └── Coin.h/cpp              # Trigger the player collects; the session remembers it
         ├── Levels/                     # Level loading
         │   ├── TileGrid.h/cpp          # Tile rows and anchors + PropertyParser specialization

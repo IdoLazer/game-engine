@@ -45,6 +45,9 @@ public:
     // first when the name is empty. `exitCell` is where the player left the previous level.
     Engine::Vec2 FindSpawnCell(const std::string &spawnName, const std::optional<Engine::Vec2> &exitCell) const;
 
+    // Tells every switchable region called `name` to switch. Reports a name no region has.
+    void Switch(const std::string &name, bool on);
+
 // --- Accessors ---
 public:
     Engine::Vec2 GetCellCount() const { return Engine::Vec2(m_tileGrid.GetColumnCount(), m_tileGrid.GetRowCount()); }

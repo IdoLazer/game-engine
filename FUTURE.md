@@ -184,6 +184,13 @@ Four traversal mechanics tied to the Falcon's state, designed together so each o
 **Future:** Let `PlatformerWorld` draw a backdrop sized from its own bounds, or replace the flat sky when art arrives.
 **When:** When a level outgrows the quad, or art replaces the flat color.
 
+### A switch's target is checked only when it fires
+
+**Current:** `Switches` names regions as text, and nothing reads it until the switch fires. A name no region has is reported then.
+**Concern:** A typo is found only by playing to the switch.
+**Future:** Check every `Switches` name when the level loads, alongside the anchor report.
+**When:** When levels have more switches than a playtest reaches.
+
 ---
 
 ## Build System

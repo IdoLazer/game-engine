@@ -1,0 +1,70 @@
+// Switches: a pressure plate switches the regions its Switches value names, for as long as the player stands on it.
+// Each plate has the color of what it switches.
+//   1 is on the ledge: while you stand on it the lift rises to the ledge. Step onto the lift and it carries you down.
+//   2 opens both gates, which share the name gate: wait on it until they are up, then run through before they close.
+// A lift or gate that comes down on you crushes you, and the vault behind the gates has no way out: press R to try again.
+
+[Tile]
+WorldPosition = 0, 0
+WorldSize = 30, 20
+Color = 0.5, 0.7, 1, 1
+
+[PlatformerWorld]
+StaticTileColor = 0.3, 0.3, 0.3, 1
+DeathTileColor = 0.7, 0.1, 0.1, 1
+TileGrid = |
+##############################
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#................#############
+#................#G####H######
+#.@...111........#G####H######
+#########LLL.....#G####H######
+#########.........g....h.....#
+#########.........g....h.....#
+#########lll.222..g....h.....#
+##############################
+##############################
+
+[SpawnPoint]
+Name = start
+Anchor = @
+
+[PressurePlate]
+Anchor = 1
+Switches = lift
+Color = 0.25, 0.75, 0.7, 1
+
+[MovablePlatform]
+Name = lift
+Anchor = l
+EndAnchor = L
+MoveSpeed = 1.5
+Color = 0.25, 0.75, 0.7, 1
+
+[PressurePlate]
+Anchor = 2
+Switches = gate
+Color = 0.9, 0.5, 0.2, 1
+
+[MovablePlatform]
+Name = gate
+Anchor = g
+EndAnchor = G
+MoveSpeed = 1.5
+Color = 0.9, 0.5, 0.2, 1
+
+[MovablePlatform]
+Name = gate
+Anchor = h
+EndAnchor = H
+MoveSpeed = 1.5
+Color = 0.9, 0.5, 0.2, 1

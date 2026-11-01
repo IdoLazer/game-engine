@@ -46,3 +46,10 @@ bool MovablePlatform::Place(PlatformerWorld &world)
     world.GetPhysics().Add(m_collider);
     return true;
 }
+
+// --- ISwitchable ---
+
+void MovablePlatform::OnSwitched(bool on)
+{
+    m_switchedOn = on;
+}

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ISwitchable.h"
 #include "../Levels/LevelRegion.h"
 #include "../Physics/Collider.h"
 #include "../PlatformerLayers.h"
@@ -7,7 +8,7 @@
 #include <string>
 
 // A solid that moves toward its end while switched on, and back to its start while off.
-class MovablePlatform : public LevelRegion
+class MovablePlatform : public LevelRegion, public ISwitchable
 {
     DECLARE_TYPE(MovablePlatform, LevelRegion)
 
@@ -20,6 +21,10 @@ public:
 public:
     // Starts where the Anchor is drawn and ends at the center of the box drawn with the EndAnchor.
     bool Place(PlatformerWorld &world) override;
+
+// --- ISwitchable ---
+public:
+    void OnSwitched(bool on) override;
 
 // --- Internal ---
 private:
