@@ -21,11 +21,11 @@ namespace Engine
     {
     }
 
-    void Sprite::Render(const Vec2& position, const Vec2& size) const
+    void Sprite::Render(const Vec2& worldPosition, const Vec2& worldSize) const
     {
         if (!m_texture)
             return;
 
-        Renderer2D::DrawSprite(position, size, *m_texture, m_srcRect, m_tint);
+        Renderer2D::DrawSprite(worldPosition, worldSize, *m_texture, m_srcRect, m_tint);
     }
 }

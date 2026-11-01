@@ -23,7 +23,7 @@ namespace Engine
         Sprite(Texture2D* texture, const TextureRect& srcRect, Color tint = Color::White);
 
         // Draw the sprite at the given world position and size.
-        void Render(const Vec2& position, const Vec2& size) const;
+        void Render(const Vec2& worldPosition, const Vec2& worldSize) const;
 
         // --- Accessors ---
         Texture2D* GetTexture() const { return m_texture; }

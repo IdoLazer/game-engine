@@ -37,44 +37,44 @@ TEST_F(Camera2DTest, ViewCornerMapsToOpenGLCorner)
     EXPECT_FLOAT_EQ(openGL.y, 1.0f);
 }
 
-// --- SetPosition ---
+// --- SetWorldPosition ---
 
 TEST_F(Camera2DTest, PositionBecomesTheCenterOfTheView)
 {
-    Vec2 position(3.0f, -2.0f);
-    camera.SetPosition(position);
+    Vec2 worldPosition(3.0f, -2.0f);
+    camera.SetWorldPosition(worldPosition);
 
-    EXPECT_EQ(camera.GetPosition(), position);
+    EXPECT_EQ(camera.GetWorldPosition(), worldPosition);
 
-    Vec2 openGL = camera.WorldToOpenGL(position);
+    Vec2 openGL = camera.WorldToOpenGL(worldPosition);
     EXPECT_FLOAT_EQ(openGL.x, 0.0f);
     EXPECT_FLOAT_EQ(openGL.y, 0.0f);
 
-    Vec2 screen = camera.WorldToScreen(position);
+    Vec2 screen = camera.WorldToScreen(worldPosition);
     EXPECT_FLOAT_EQ(screen.x, 600.0f);
     EXPECT_FLOAT_EQ(screen.y, 400.0f);
 }
 
 TEST_F(Camera2DTest, ScreenToWorldIsRelativeToThePosition)
 {
-    Vec2 position(3.0f, -2.0f);
-    camera.SetPosition(position);
+    Vec2 worldPosition(3.0f, -2.0f);
+    camera.SetWorldPosition(worldPosition);
 
     Vec2 center = camera.ScreenToWorld(Vec2(600.0f, 400.0f));
-    EXPECT_FLOAT_EQ(center.x, position.x);
-    EXPECT_FLOAT_EQ(center.y, position.y);
+    EXPECT_FLOAT_EQ(center.x, worldPosition.x);
+    EXPECT_FLOAT_EQ(center.y, worldPosition.y);
 
     // Screen y grows downward, so the top-left pixel is above the center in world space.
     Vec2 topLeft = camera.ScreenToWorld(Vec2(0.0f, 0.0f));
-    EXPECT_FLOAT_EQ(topLeft.x, position.x - 7.5f);
-    EXPECT_FLOAT_EQ(topLeft.y, position.y + 5.0f);
+    EXPECT_FLOAT_EQ(topLeft.x, worldPosition.x - 7.5f);
+    EXPECT_FLOAT_EQ(topLeft.y, worldPosition.y + 5.0f);
 }
 
 // --- Round trip ---
 
 TEST_F(Camera2DTest, WorldToScreenThenScreenToWorldReturnsTheOriginalPoint)
 {
-    camera.SetPosition(Vec2(3.0f, -2.0f));
+    camera.SetWorldPosition(Vec2(3.0f, -2.0f));
 
     Vec2 original(1.25f, 2.5f);
     Vec2 roundTrip = camera.ScreenToWorld(camera.WorldToScreen(original));

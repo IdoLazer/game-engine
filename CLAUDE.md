@@ -88,6 +88,7 @@ Work is tracked in Notion as a ticketing system, where projects, tasks and pull 
 ## Code Style & Conventions
 
 - **Clarity over cleverness** — readable code beats clever code
+- **Names state their space** — a `Vec2` can't say what it measures, so its name does: `worldPosition`, `gridPosition`, `screenPosition`, `cell`. That holds for parameters, members, locals and accessors (`GetScreenPosition`, never a bare `GetPosition`). Pure math like `Rect` and `Sweep` stays space-agnostic
 - **Small, focused classes** over monolithic ones
 - **Engine namespace** — all engine code lives in `namespace Engine`
 - **RAII** — proper resource management via constructors/destructors
