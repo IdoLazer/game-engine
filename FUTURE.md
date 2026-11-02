@@ -79,7 +79,7 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 
 ### Falcon flight collision
 
-**Current:** Neither flight collides per-frame. `Falcon::ReturnToPlayer` flies straight back to the player with no check at all. `MoveToGoal` (outbound) flies straight to `m_latchPoint`, a point validated once by `SetGoal`'s aim-time raycast - not re-checked while flying, so it can't stop partway on incidental geometry a per-frame sweep would catch.  
+**Current:** Neither flight collides per-frame. `ReturningState` flies straight back to the player with no check at all. `FlyingState` (outbound) flies straight to `m_latchPoint`, a point validated once by `SetAimPoint`'s aim-time raycast - not re-checked while flying, so it can't stop partway on incidental geometry a per-frame sweep would catch. A latch point on a moving collider follows it, but the flight to it is still uncollided.  
 **Concern:** Inconsistent with how solid the rest of the world behaves - nothing stops the falcon mid-flight in either direction, only the outbound aim itself is validated.  
 **Future:** If flying through walls (return trip) or through geometry that appeared after aiming (outbound) actually causes a problem, give both flights a per-frame check - once there's a clear answer for what it should do when blocked (stop and wait, slide along the obstacle, something else).  
 **When:** When flying through walls on retrieval, or through changed geometry mid-flight outbound, actually causes a problem in practice, or when we want a consistently physical world.
@@ -111,6 +111,13 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 **Concern:** A trigger reacts one frame after the overlap. That is invisible at 60 fps, but a fast mover can cross a thin trigger between two updates.  
 **Future:** Run `Physics::Update` after every entity has moved, once the scene has a step for that.  
 **When:** When something fast has to hit a thin trigger.
+
+### A destroyed collider leaves triggers without an exit
+
+**Current:** A collider removed from `Physics` drops out of every trigger's overlaps, and the trigger hears nothing.  
+**Concern:** A `PressurePlate` would stay pressed if what stood on it were destroyed.  
+**Future:** Raise `OnExited` as the collider is removed.  
+**When:** When something other than the player can stand on a plate and be destroyed.
 
 ---
 

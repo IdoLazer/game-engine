@@ -1,4 +1,5 @@
 #include "FalconStates.h"
+#include "../IFalconTarget.h"
 
 using namespace Engine;
 
@@ -7,6 +8,7 @@ using namespace Engine;
 void FalconState::Render() const
 {
     m_falcon.DrawBody();
+    m_falcon.DrawHighlight(m_falcon.m_collider.GetAttachedTo());
 }
 
 // --- On Shoulder ---
@@ -45,9 +47,14 @@ void Falcon::AimingState::Update(float deltaTime)
 bool Falcon::AimingState::OnAimReleased()
 {
     if (m_falcon.m_latchPoint)
+    {
+        m_falcon.AttachToAimedCollider();
         m_machine.TransitionTo(FalconStateId::Flying);
+    }
     else
+    {
         m_machine.TransitionTo(FalconStateId::OnShoulder);
+    }
 
     return true;
 }
@@ -63,19 +70,20 @@ void Falcon::AimingState::Render() const
 {
     m_falcon.DrawBody();
     m_falcon.DrawAimOverlay();
+    m_falcon.DrawHighlight(m_falcon.m_aimedCollider);
 }
 
 // --- Flying ---
 
 void Falcon::FlyingState::Update(float deltaTime)
 {
-    if (m_falcon.m_latchPoint && m_falcon.FlyTowards(*m_falcon.m_latchPoint, m_falcon.m_speed, deltaTime))
+    if (m_falcon.m_latchPoint && m_falcon.FlyTowards(m_falcon.GridLatchPoint(), m_falcon.m_speed, deltaTime))
         m_machine.TransitionTo(FalconStateId::Latched);
 }
 
 bool Falcon::FlyingState::OnRetrieveRequested()
 {
-    m_falcon.m_latchPoint.reset();
+    m_falcon.ClearLatch();
     m_machine.TransitionTo(FalconStateId::Returning);
     return true;
 }
@@ -94,11 +102,21 @@ void Falcon::LatchedState::Enter()
 {
     // Pointy end into the surface it hit.
     m_falcon.m_direction = m_falcon.m_latchDirection;
+
+    IFalconTarget *target = Falcon::FindTarget(m_falcon.m_collider.GetAttachedTo());
+    if (target && target->OnFalconArrived() == FalconResponse::Return)
+    {
+        m_falcon.ClearLatch();
+        m_machine.TransitionTo(FalconStateId::Returning);
+    }
 }
 
 bool Falcon::LatchedState::OnRetrieveRequested()
 {
-    m_falcon.m_latchPoint.reset();
+    if (IFalconTarget *target = Falcon::FindTarget(m_falcon.m_collider.GetAttachedTo()))
+        target->OnFalconLeft();
+
+    m_falcon.ClearLatch();
     m_machine.TransitionTo(FalconStateId::Returning);
     return true;
 }

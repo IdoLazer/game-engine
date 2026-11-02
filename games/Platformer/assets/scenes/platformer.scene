@@ -25,6 +25,7 @@
 // assets/scenes/mechanics_test/triggers.scene
 // assets/scenes/mechanics_test/moving_platforms.scene
 // assets/scenes/mechanics_test/switches.scene
+// assets/scenes/mechanics_test/falcon_targets.scene
 
 // The vertical slice Levels
 Levels = |

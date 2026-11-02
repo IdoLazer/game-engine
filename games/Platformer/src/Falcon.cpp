@@ -1,6 +1,7 @@
 #include "Falcon.h"
 #include "Player.h"
 #include "Cursor.h"
+#include "IFalconTarget.h"
 #include "PlatformerWorld.h"
 #include "PlatformerLayers.h"
 #include "Commands/FalconCommands.h"
@@ -14,7 +15,14 @@ BEGIN_TYPE_REGISTER(Falcon)
     REGISTER_PROPERTY(float, Speed, &Falcon::m_speed)
     REGISTER_PROPERTY(float, RetrieveSpeed, &Falcon::m_retrieveSpeed)
     REGISTER_PROPERTY(float, SnapRadius, &Falcon::m_snapRadius)
+    REGISTER_PROPERTY(Engine::Color, HighlightColor, &Falcon::m_highlightColor)
 END_TYPE_REGISTER()
+
+namespace
+{
+    // DrawRectOutline takes this as a fraction of the rect's half-size, not in world units.
+    constexpr float kHighlightThickness = 0.08f;
+}
 
 // --- Lifecycle ---
 
@@ -35,6 +43,8 @@ void Falcon::Initialize()
     }
 
     m_stateMachine.TransitionTo(FalconStateId::OnShoulder);
+
+    m_detachedSubscription = m_collider.OnDetached().Subscribe(this, &Falcon::Retrieve);
 }
 
 void Falcon::Update(float deltaTime)
@@ -47,7 +57,19 @@ void Falcon::Render() const
     m_stateMachine.Render();
 }
 
+void Falcon::Destroy()
+{
+    GridEntity::Destroy();
+    m_detachedSubscription.Unsubscribe();
+}
+
 // --- Public Interface ---
+
+void Falcon::SetWorld(PlatformerWorld *world)
+{
+    m_world = world;
+    world->GetPhysics().Add(m_collider);
+}
 
 void Falcon::StartAiming()
 {
@@ -111,6 +133,7 @@ void Falcon::SetAimPoint(const Engine::Vec2 &aimPoint)
     if (!m_world || !m_player)
     {
         m_latchPoint.reset();
+        m_aimedCollider = nullptr;
         return;
     }
 
@@ -119,7 +142,9 @@ void Falcon::SetAimPoint(const Engine::Vec2 &aimPoint)
     Vec2 toAimPoint = aimPoint - playerOrigin;
     float maxDistance = toAimPoint.Length();
     Vec2 rayDirection = toAimPoint.Normalized();
-    PhysicsHit hit = m_world->GetPhysics().Raycast(playerOrigin, rayDirection, maxDistance, Layer::Terrain);
+    PhysicsHit hit = m_world->GetPhysics().Raycast(playerOrigin, rayDirection, maxDistance, Layer::Terrain | Layer::Interactive);
+
+    m_aimedCollider = hit.collider;
 
     if (hit.hit)
     {
@@ -147,6 +172,37 @@ bool Falcon::FlyTowards(const Engine::Vec2 &target, float speed, float deltaTime
         return true;
     }
     return false;
+}
+
+// --- Latching ---
+
+// Attaches to the collider the aim hit, and remembers the latch point relative to its center.
+void Falcon::AttachToAimedCollider()
+{
+    if (!m_aimedCollider)
+        return;
+
+    m_collider.AttachTo(*m_aimedCollider);
+    m_gridLatchOffset = *m_latchPoint - m_aimedCollider->GetRect().center;
+}
+
+// Fixed on a tile; on a collider, wherever the collider has carried it.
+Vec2 Falcon::GridLatchPoint() const
+{
+    const Collider *attachedTo = m_collider.GetAttachedTo();
+    return attachedTo ? attachedTo->GetRect().center + m_gridLatchOffset : *m_latchPoint;
+}
+
+void Falcon::ClearLatch()
+{
+    m_collider.Detach();
+    m_latchPoint.reset();
+    m_aimedCollider = nullptr;
+}
+
+IFalconTarget *Falcon::FindTarget(const Collider *collider)
+{
+    return collider ? dynamic_cast<IFalconTarget *>(&collider->GetOwner()) : nullptr;
 }
 
 // --- Deferred Aim ---
@@ -227,4 +283,14 @@ void Falcon::DrawAimOverlay() const
     {
         Renderer2D::DrawLine(m_player->GetWorldPosition(), worldAimPoint, Color::Grey, 0.02f, LineStyle::Dashed);
     }
+}
+
+// An outline around the collider's owner, when the falcon can be sent to it.
+void Falcon::DrawHighlight(const Collider *collider) const
+{
+    if (!FindTarget(collider))
+        return;
+
+    const GridEntity &owner = collider->GetOwner();
+    Renderer2D::DrawRectOutline(owner.GetWorldPosition(), owner.GetWorldSize(), m_highlightColor, kHighlightThickness);
 }

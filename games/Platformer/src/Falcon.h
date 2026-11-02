@@ -1,6 +1,8 @@
 #pragma once
 
 #include <Engine.h>
+#include "PlatformerLayers.h"
+#include "Physics/Collider.h"
 #include "StateMachine/FalconStateMachine.h"
 #include <optional>
 
@@ -8,6 +10,7 @@
 class Player;
 class PlatformerWorld;
 class Cursor;
+class IFalconTarget;
 
 // The body: position, flight, aiming and drawing primitives. Which to apply,
 // and when, belongs to the states in StateMachine/FalconStates.h.
@@ -25,11 +28,12 @@ public:
     void Initialize() override;
     void Update(float deltaTime) override;
     void Render() const override;
+    void Destroy() override;
 
 // --- Public Interface ---
 public:
     void SetPlayer(Player *player) { m_player = player; }
-    void SetWorld(PlatformerWorld *world) { m_world = world; }
+    void SetWorld(PlatformerWorld *world);
     void SetCursor(Cursor *cursor) { m_cursor = cursor; }
     void StartAiming();
     void ReleaseAiming();
@@ -69,6 +73,13 @@ private:
     void SetAimPoint(const Engine::Vec2 &aimPoint);
     bool FlyTowards(const Engine::Vec2 &target, float speed, float deltaTime);
 
+// --- Latching ---
+private:
+    void AttachToAimedCollider();
+    Engine::Vec2 GridLatchPoint() const;
+    void ClearLatch();
+    static IFalconTarget *FindTarget(const Collider *collider);
+
 // --- Deferred Aim ---
 private:
     void QueueAimRequest();
@@ -80,6 +91,7 @@ private:
     void DrawBody() const;
     void DrawGlidingBody() const;
     void DrawAimOverlay() const;
+    void DrawHighlight(const Collider *collider) const;
 
 // --- Configuration (data-driven via type registry) ---
 private:
@@ -88,6 +100,7 @@ private:
     float m_speed{0.0f}; // Falcon's movement speed
     float m_retrieveSpeed{0.0f}; // Falcon's movement speed when returning to the player
     float m_snapRadius{0.0f}; // Distance to a flight target within which it's considered reached
+    Engine::Color m_highlightColor{Engine::Color::White}; // Outline around the target it aims at or holds
 
 // --- Private Fields ---
 private:
@@ -98,6 +111,10 @@ private:
     Engine::Vec2 m_aimPoint{0.0f, 0.0f}; // The point the falcon is currently aiming at
     std::optional<Engine::Vec2> m_latchPoint; // The point to fly to, if the current aim point is a valid latch target
     Engine::Vec2 m_latchDirection{1.0f, 0.0f}; // Direction to face once latched - embeds into the surface, opposite its hit normal
+    const Collider *m_aimedCollider{nullptr}; // The collider the current aim hits; null when it hits a tile or nothing
+    Engine::Vec2 m_gridLatchOffset{0.0f, 0.0f}; // The latch point relative to the center of the collider the falcon is attached to
     Engine::CommandQueue m_startAimingCommandQueue; // Queued command to start aiming, executed when the falcon is on the shoulder
     Engine::Event<> m_onReturnedEvent; // Notifies the player when the falcon has returned to its shoulder
+    Collider m_collider{*this, Layer::Falcon, 0};
+    Engine::Subscription m_detachedSubscription; // After m_collider, so it unsubscribes while the event still exists.
 };

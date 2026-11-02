@@ -1,0 +1,70 @@
+// Falcon targets: whatever the falcon is sent to decides what happens there.
+// A target glows while you aim at it, and while the falcon is on its way to it or holds it.
+//   1 is a lever on the wall: send the falcon to it and it holds on, and the lift l rises to L for as long as it does.
+//     Step onto the lift and ride it up to the mesa, then retrieve the falcon: the lift goes back down.
+//   2 is a plate: stand on it and the ferry f sails across the room to F.
+//     Send the falcon to the ferry while it sails and it travels with it. Step off the plate and the ferry carries it back.
+//   w is a breakable wall closing the corridor: send the falcon to it and it breaks, then the falcon flies straight back.
+// A lift that comes down on you crushes you: press R to try again.
+
+[Tile]
+WorldPosition = 0, 0
+WorldSize = 30, 20
+Color = 0.5, 0.7, 1, 1
+
+[PlatformerWorld]
+StaticTileColor = 0.3, 0.3, 0.3, 1
+DeathTileColor = 0.7, 0.1, 0.1, 1
+TileGrid = |
+##############################
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#............................#
+#...LLL#######...............#
+#......#######.fff.....FFF...#
+#......#######...............#
+#1.....#######...............#
+#......#######...............#
+#......#######........########
+#......#######........w......#
+#.@.lll#######..222...w......#
+##############################
+##############################
+
+[SpawnPoint]
+Name = start
+Anchor = @
+
+[Lever]
+Anchor = 1
+Switches = lift
+Color = 0.9, 0.5, 0.2, 1
+
+[MovablePlatform]
+Name = lift
+Anchor = l
+EndAnchor = L
+MoveSpeed = 2
+Color = 0.9, 0.5, 0.2, 1
+
+[PressurePlate]
+Anchor = 2
+Switches = ferry
+Color = 0.25, 0.75, 0.7, 1
+
+[MovablePlatform]
+Name = ferry
+Anchor = f
+EndAnchor = F
+MoveSpeed = 2
+Color = 0.25, 0.75, 0.7, 1
+
+[BreakableWall]
+Anchor = w
+Color = 0.65, 0.5, 0.35, 1

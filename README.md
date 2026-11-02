@@ -67,6 +67,7 @@ games/
         ├── PlatformerInputManager.h/cpp # Keyboard/mouse routing → events, bound to the level's entities
         ├── Player.h/cpp                # Player body: velocity and physics primitives, moved through its Collider
         ├── Falcon.h/cpp                # Falcon body: flight, aiming, drawing primitives
+        ├── IFalconTarget.h             # What the falcon can be sent to: it says whether the falcon latches on or comes back
         ├── Cursor.h/cpp                # Aiming cursor
         ├── LevelCamera.h/cpp           # Camera that follows the player within the level
         ├── CoinCounter.h/cpp           # Screen-space label showing the session's coin count
@@ -77,6 +78,8 @@ games/
         │   ├── ISwitchable.h           # A region another can switch on and off
         │   ├── MovablePlatform.h/cpp   # Solid that moves toward its end anchor while switched on
         │   ├── PressurePlate.h/cpp     # Trigger that switches the regions it names while the player is on it
+        │   ├── Lever.h/cpp             # Trigger the falcon holds on to: switches the regions it names while the falcon is latched to it
+        │   ├── BreakableWall.h/cpp     # Solid the falcon breaks by reaching it; the falcon flies back
         │   └── Coin.h/cpp              # Trigger the player collects; the session remembers it
         ├── Levels/                     # Level loading
         │   ├── TileGrid.h/cpp          # Tile rows and anchors + PropertyParser specialization
