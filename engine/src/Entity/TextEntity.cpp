@@ -10,6 +10,8 @@ namespace Engine
         REGISTER_PROPERTY(std::string, Text, &TextEntity::m_text)
         REGISTER_PROPERTY(float, CharHeight, &TextEntity::m_charHeight)
         REGISTER_PROPERTY(Color, BackgroundColor, &TextEntity::m_backgroundColor)
+        REGISTER_PROPERTY(bool, ScreenSpace, &TextEntity::m_screenSpace)
+        REGISTER_PROPERTY(Vec2, ScreenPosition, &TextEntity::m_screenPosition)
     END_TYPE_REGISTER()
 
     void TextEntity::Initialize()
@@ -23,16 +25,18 @@ namespace Engine
         if (!m_font || m_text.empty())
             return;
 
+        Vec2 worldPosition = m_screenSpace ? Renderer2D::GetCamera().ScreenToWorld(m_screenPosition) : m_worldPosition;
+
         // Draw background tile if not fully transparent
         if (m_backgroundColor.a > 0.0f)
         {
             float charWidth = m_charHeight * m_font->GetAspectRatio();
             float totalWidth = charWidth * static_cast<float>(m_text.size());
             Vec2 bgSize(totalWidth, m_charHeight);
-            Vec2 bgCenter(m_worldPosition.x + totalWidth * 0.5f, m_worldPosition.y - m_charHeight * 0.5f);
+            Vec2 bgCenter(worldPosition.x + totalWidth * 0.5f, worldPosition.y - m_charHeight * 0.5f);
             Renderer2D::DrawTile(bgCenter, bgSize, m_backgroundColor);
         }
 
-        Renderer2D::DrawText(m_worldPosition, m_text, *m_font, m_charHeight, m_color);
+        Renderer2D::DrawText(worldPosition, m_text, *m_font, m_charHeight, m_color);
     }
 }
