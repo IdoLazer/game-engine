@@ -89,4 +89,12 @@ namespace Engine
     {
         return this->x * other.x + this->y * other.y;
     }
+
+    Vec2 Vec2::MoveTowards(const Vec2 &target, float maxDistance) const
+    {
+        Vec2 toTarget = target - *this;
+        if (toTarget.Length() <= maxDistance)
+            return target;
+        return *this + toTarget.Normalized() * maxDistance;
+    }
 }

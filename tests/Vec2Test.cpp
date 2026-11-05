@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include "Math/Vec2.h"
 
+#include <sstream>
+
 using namespace Engine;
 
 // --- Construction ---
@@ -92,6 +94,15 @@ TEST(Vec2Test, DivideEquals)
     EXPECT_EQ(v, Vec2(2.0f, 3.0f));
 }
 
+// --- Stream output ---
+
+TEST(Vec2Test, StreamOutput)
+{
+    std::ostringstream stream;
+    stream << Vec2(1, 2);
+    EXPECT_EQ(stream.str(), "(1, 2)");
+}
+
 // --- Math functions ---
 
 TEST(Vec2Test, Length)
@@ -122,6 +133,35 @@ TEST(Vec2Test, DotProduct)
     EXPECT_FLOAT_EQ(a.Dot(b), 0.0f);
 
     EXPECT_FLOAT_EQ(Vec2(2.0f, 3.0f).Dot(Vec2(4.0f, 5.0f)), 23.0f);
+}
+
+TEST(Vec2Test, MoveTowardsShortStep)
+{
+    Vec2 start(1.0f, 1.0f);
+    Vec2 target(4.0f, 5.0f);
+    Vec2 moved = start.MoveTowards(target, 2.5f);
+    EXPECT_FLOAT_EQ(moved.x, 2.5f);
+    EXPECT_FLOAT_EQ(moved.y, 3.0f);
+}
+
+TEST(Vec2Test, MoveTowardsLongStepLandsOnTarget)
+{
+    Vec2 start(1.0f, 1.0f);
+    Vec2 target(4.0f, 5.0f);
+    EXPECT_EQ(start.MoveTowards(target, 10.0f), target);
+}
+
+TEST(Vec2Test, MoveTowardsFromTargetReturnsTarget)
+{
+    Vec2 target(2.0f, 3.0f);
+    EXPECT_EQ(target.MoveTowards(target, 1.0f), target);
+}
+
+TEST(Vec2Test, MoveTowardsZeroDistanceReturnsStart)
+{
+    Vec2 start(1.0f, 1.0f);
+    Vec2 target(4.0f, 5.0f);
+    EXPECT_EQ(start.MoveTowards(target, 0.0f), start);
 }
 
 // --- Constants ---

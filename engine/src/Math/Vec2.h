@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ostream>
+
 namespace Engine
 {
     class Vec2
@@ -30,10 +32,19 @@ namespace Engine
         friend Vec2 operator*(float scalar, const Vec2 &vec);
         friend Vec2 operator/(float scalar, const Vec2 &vec);
 
+        // --- Stream output ---
+        friend std::ostream &operator<<(std::ostream &os, const Vec2 &vec)
+        {
+            os << "(" << vec.x << ", " << vec.y << ")";
+            return os;
+        }
+
         // --- Mathematical functions ---
         float Length() const;
         Vec2 Normalized() const;
         float Dot(const Vec2 &other) const;
+        // The point `maxDistance` closer to `target`, or `target` itself when it is nearer than that.
+        Vec2 MoveTowards(const Vec2 &target, float maxDistance) const;
 
         // --- Constants ---
         static const Vec2 Zero;
