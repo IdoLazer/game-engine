@@ -34,7 +34,7 @@ This file tracks architectural decisions where we deliberately chose a simpler a
 
 **Current:** Entities have `Initialize()`, `Update()`, `Render()`, `Destroy()`. There are no events for `OnCreated`, `OnDestroyed`, `OnEnabled`, etc.  
 **Concern:** Some systems may want to react to entity lifecycle changes (e.g., a spatial index updating when an entity moves).  
-**Future:** Add lifecycle events using the existing `Event<>` system.  
+**Future:** Add lifecycle events using the existing `Event<void()>` system.  
 **When:** When something actually needs to observe entity lifecycle changes. Not worth adding speculatively.
 
 ---

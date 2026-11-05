@@ -52,20 +52,20 @@ namespace Engine
 
     // --- Drawing ---
 
-    void Renderer2D::DrawTile(const Vec2 &position, const Vec2 &size, const Color &color)
+    void Renderer2D::DrawTile(const Vec2 &worldPosition, const Vec2 &worldSize, const Color &color)
     {
         // Set the color for this tile
         glColor4f(color.r, color.g, color.b, color.a);
 
         // Calculate the corners of the rectangle in world coordinates
-        Vec2 halfSize = size * 0.5f;
+        Vec2 worldHalfSize = worldSize * 0.5f;
 
-        Vec2 bottomLeft = position - halfSize;
-        Vec2 topRight = position + halfSize;
+        Vec2 worldBottomLeft = worldPosition - worldHalfSize;
+        Vec2 worldTopRight = worldPosition + worldHalfSize;
 
         // Convert corners to OpenGL coordinates
-        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(bottomLeft);
-        Vec2 glTopRight = s_Camera.WorldToOpenGL(topRight);
+        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(worldBottomLeft);
+        Vec2 glTopRight = s_Camera.WorldToOpenGL(worldTopRight);
 
         // Draw a filled rectangle using OpenGL immediate mode
         glBegin(GL_QUADS);
@@ -76,15 +76,15 @@ namespace Engine
         glEnd();
     }
 
-    void Renderer2D::DrawCircle(const Vec2 &center, float radius, const Color &color)
+    void Renderer2D::DrawCircle(const Vec2 &worldCenter, float radius, const Color &color)
     {
         const int segments = 32; // Number of segments to approximate the circle
 
         // Set the color for this circle
         glColor4f(color.r, color.g, color.b, color.a);
 
-        // Convert center to OpenGL coordinates
-        Vec2 glCenter = s_Camera.WorldToOpenGL(center);
+        // Convert worldCenter to OpenGL coordinates
+        Vec2 glCenter = s_Camera.WorldToOpenGL(worldCenter);
         float glRadiusX = radius / (s_Camera.GetWorldWidth() * 0.5f);
         float glRadiusY = radius / (s_Camera.GetWorldHeight() * 0.5f);
 
@@ -101,15 +101,15 @@ namespace Engine
         glEnd();
     }
 
-    void Renderer2D::DrawTriangle(const Vec2 &point1, const Vec2 &point2, const Vec2 &point3, const Color &color)
+    void Renderer2D::DrawTriangle(const Vec2 &worldPoint1, const Vec2 &worldPoint2, const Vec2 &worldPoint3, const Color &color)
     {
         // Set the color for this triangle
         glColor4f(color.r, color.g, color.b, color.a);
 
         // Convert points to OpenGL coordinates
-        Vec2 glPoint1 = s_Camera.WorldToOpenGL(point1);
-        Vec2 glPoint2 = s_Camera.WorldToOpenGL(point2);
-        Vec2 glPoint3 = s_Camera.WorldToOpenGL(point3);
+        Vec2 glPoint1 = s_Camera.WorldToOpenGL(worldPoint1);
+        Vec2 glPoint2 = s_Camera.WorldToOpenGL(worldPoint2);
+        Vec2 glPoint3 = s_Camera.WorldToOpenGL(worldPoint3);
 
         // Draw a filled triangle using OpenGL immediate mode
         glBegin(GL_TRIANGLES);
@@ -119,13 +119,13 @@ namespace Engine
         glEnd();
     }
 
-    void Renderer2D::DrawLine(const Vec2 &start, const Vec2 &end, const Color &color, float thickness, LineStyle style)
+    void Renderer2D::DrawLine(const Vec2 &worldStart, const Vec2 &worldEnd, const Color &color, float thickness, LineStyle style)
     {
         // Set the color for this line
         glColor4f(color.r, color.g, color.b, color.a);
 
         // Calculate the direction vector of the line
-        Vec2 direction = end - start;
+        Vec2 direction = worldEnd - worldStart;
         float length = direction.Length();
 
         if (length == 0.0f)
@@ -146,16 +146,16 @@ namespace Engine
         {
             // Draw a solid line as a thick rectangle (quad)
             // Calculate the four corners of the thick line rectangle
-            Vec2 v1 = start + offset;
-            Vec2 v2 = start - offset;
-            Vec2 v3 = end - offset;
-            Vec2 v4 = end + offset;
+            Vec2 worldV1 = worldStart + offset;
+            Vec2 worldV2 = worldStart - offset;
+            Vec2 worldV3 = worldEnd - offset;
+            Vec2 worldV4 = worldEnd + offset;
 
             // Convert corners to OpenGL coordinates
-            Vec2 glV1 = s_Camera.WorldToOpenGL(v1);
-            Vec2 glV2 = s_Camera.WorldToOpenGL(v2);
-            Vec2 glV3 = s_Camera.WorldToOpenGL(v3);
-            Vec2 glV4 = s_Camera.WorldToOpenGL(v4);
+            Vec2 glV1 = s_Camera.WorldToOpenGL(worldV1);
+            Vec2 glV2 = s_Camera.WorldToOpenGL(worldV2);
+            Vec2 glV3 = s_Camera.WorldToOpenGL(worldV3);
+            Vec2 glV4 = s_Camera.WorldToOpenGL(worldV4);
 
             // Draw the thick line as a rectangle (quad)
             glBegin(GL_QUADS);
@@ -176,11 +176,11 @@ namespace Engine
             while (totalLength < length)
             {
                 float segmentLength = std::min(dashLength, length - totalLength);
-                Vec2 segmentStart = start + normalizedDir * totalLength;
-                Vec2 segmentEnd = segmentStart + normalizedDir * segmentLength;
+                Vec2 worldSegmentStart = worldStart + normalizedDir * totalLength;
+                Vec2 worldSegmentEnd = worldSegmentStart + normalizedDir * segmentLength;
 
                 // Draw the dash segment as a solid line
-                DrawLine(segmentStart, segmentEnd, color, thickness, Solid);
+                DrawLine(worldSegmentStart, worldSegmentEnd, color, thickness, Solid);
 
                 totalLength += segmentLength + gapLength;
             }
@@ -194,8 +194,8 @@ namespace Engine
 
             while (currentLength < length)
             {
-                Vec2 dotCenter = start + normalizedDir * currentLength;
-                DrawCircle(dotCenter, thickness * 0.5f, color);
+                Vec2 worldDotCenter = worldStart + normalizedDir * currentLength;
+                DrawCircle(worldDotCenter, thickness * 0.5f, color);
 
                 currentLength += dotSpacing;
             }
@@ -204,27 +204,27 @@ namespace Engine
         }
     }
 
-    void Renderer2D::DrawRectOutline(const Vec2 &position, const Vec2 &size, const Color &color, float thickness)
+    void Renderer2D::DrawRectOutline(const Vec2 &worldPosition, const Vec2 &worldSize, const Color &color, float thickness)
     {
         // Set the color for this outline
         glColor4f(color.r, color.g, color.b, color.a);
 
         // Calculate the corners of the rectangle in world coordinates
-        Vec2 halfSize = size * 0.5f;
+        Vec2 worldHalfSize = worldSize * 0.5f;
 
-        Vec2 bottomLeft = position - halfSize;
-        Vec2 topRight = position + halfSize;
-        Vec2 topLeft = Vec2(bottomLeft.x, topRight.y);
-        Vec2 bottomRight = Vec2(topRight.x, bottomLeft.y);
+        Vec2 worldBottomLeft = worldPosition - worldHalfSize;
+        Vec2 worldTopRight = worldPosition + worldHalfSize;
+        Vec2 worldTopLeft = Vec2(worldBottomLeft.x, worldTopRight.y);
+        Vec2 worldBottomRight = Vec2(worldTopRight.x, worldBottomLeft.y);
 
         // Convert corners to OpenGL coordinates
-        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(bottomLeft);
-        Vec2 glTopRight = s_Camera.WorldToOpenGL(topRight);
-        Vec2 glTopLeft = s_Camera.WorldToOpenGL(topLeft);
-        Vec2 glBottomRight = s_Camera.WorldToOpenGL(bottomRight);
+        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(worldBottomLeft);
+        Vec2 glTopRight = s_Camera.WorldToOpenGL(worldTopRight);
+        Vec2 glTopLeft = s_Camera.WorldToOpenGL(worldTopLeft);
+        Vec2 glBottomRight = s_Camera.WorldToOpenGL(worldBottomRight);
 
-        float thicknessX = thickness * halfSize.x;
-        float thicknessY = thickness * halfSize.y;
+        float thicknessX = thickness * worldHalfSize.x;
+        float thicknessY = thickness * worldHalfSize.y;
         float glThicknessX = thicknessX / (s_Camera.GetWorldWidth() * 0.5f);
         float glThicknessY = thicknessY / (s_Camera.GetWorldHeight() * 0.5f);
 
@@ -263,7 +263,7 @@ namespace Engine
 
     // --- Textured Drawing ---
 
-    void Renderer2D::DrawSprite(const Vec2 &position, const Vec2 &size, const Texture2D &texture, const Color &tint)
+    void Renderer2D::DrawSprite(const Vec2 &worldPosition, const Vec2 &worldSize, const Texture2D &texture, const Color &tint)
     {
         // Enable texturing, draw a full-texture quad, then disable.
         // We enable/disable per call so untextured drawing (DrawTile, etc.)
@@ -275,12 +275,12 @@ namespace Engine
         // White (1,1,1,1) = draw as-is. Any other color tints the texture.
         glColor4f(tint.r, tint.g, tint.b, tint.a);
 
-        Vec2 halfSize = size * 0.5f;
-        Vec2 bottomLeft = position - halfSize;
-        Vec2 topRight = position + halfSize;
+        Vec2 worldHalfSize = worldSize * 0.5f;
+        Vec2 worldBottomLeft = worldPosition - worldHalfSize;
+        Vec2 worldTopRight = worldPosition + worldHalfSize;
 
-        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(bottomLeft);
-        Vec2 glTopRight = s_Camera.WorldToOpenGL(topRight);
+        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(worldBottomLeft);
+        Vec2 glTopRight = s_Camera.WorldToOpenGL(worldTopRight);
 
         // UV coordinates: (0,0) = bottom-left, (1,1) = top-right of the texture.
         // stb_image flipped the image on load, so this matches screen orientation.
@@ -295,18 +295,18 @@ namespace Engine
         glDisable(GL_TEXTURE_2D);
     }
 
-    void Renderer2D::DrawSprite(const Vec2 &position, const Vec2 &size, const Texture2D &texture, const TextureRect &srcRect, const Color &tint)
+    void Renderer2D::DrawSprite(const Vec2 &worldPosition, const Vec2 &worldSize, const Texture2D &texture, const TextureRect &srcRect, const Color &tint)
     {
         glEnable(GL_TEXTURE_2D);
         texture.Bind();
         glColor4f(tint.r, tint.g, tint.b, tint.a);
 
-        Vec2 halfSize = size * 0.5f;
-        Vec2 bottomLeft = position - halfSize;
-        Vec2 topRight = position + halfSize;
+        Vec2 worldHalfSize = worldSize * 0.5f;
+        Vec2 worldBottomLeft = worldPosition - worldHalfSize;
+        Vec2 worldTopRight = worldPosition + worldHalfSize;
 
-        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(bottomLeft);
-        Vec2 glTopRight = s_Camera.WorldToOpenGL(topRight);
+        Vec2 glBottomLeft = s_Camera.WorldToOpenGL(worldBottomLeft);
+        Vec2 glTopRight = s_Camera.WorldToOpenGL(worldTopRight);
 
         // Convert pixel coordinates to normalized UV coordinates [0, 1].
         // srcRect is in pixel space: (x, y) = top-left corner, (width, height) = size.
@@ -333,7 +333,7 @@ namespace Engine
 
     // --- Text ---
 
-    void Renderer2D::DrawText(const Vec2 &position, const std::string &text, const BitmapFont &font, float charHeight, const Color &color)
+    void Renderer2D::DrawText(const Vec2 &worldPosition, const std::string &text, const BitmapFont &font, float charHeight, const Color &color)
     {
         const Texture2D* atlas = font.GetTexture();
         if (!atlas)
@@ -341,9 +341,9 @@ namespace Engine
 
         float charWidth = charHeight * font.GetAspectRatio();
 
-        // Position is top-left anchored. DrawSprite uses center, so offset by half.
-        float cursorX = position.x + charWidth * 0.5f;
-        float cursorY = position.y - charHeight * 0.5f;
+        // worldPosition is top-left anchored. DrawSprite uses center, so offset by half.
+        float cursorX = worldPosition.x + charWidth * 0.5f;
+        float cursorY = worldPosition.y - charHeight * 0.5f;
 
         Vec2 charSize(charWidth, charHeight);
 

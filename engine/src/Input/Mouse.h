@@ -22,9 +22,9 @@ namespace Engine
         static bool IsButtonReleased(MouseButton button);
 
         // --- Position Queries ---
-        static Vec2 GetPosition();
+        static Vec2 GetScreenPosition();
         static Vec2 GetWorldPosition();
-        static Vec2 GetDelta();
+        static Vec2 GetScreenDelta();
 
         // --- Scroll Queries ---
         static Vec2 GetScrollOffset();
@@ -33,18 +33,18 @@ namespace Engine
         static void SetCursorVisibility(bool visible);
 
         // --- Events ---
-        static EventSubscriber<MouseButton> &OnButtonPressed() { return s_buttonPressed; }
-        static EventSubscriber<MouseButton> &OnButtonReleased() { return s_buttonReleased; }
-        static EventSubscriber<Vec2> &OnMoved() { return s_moved; }
-        static EventSubscriber<Vec2> &OnScrolled() { return s_scrolled; }
+        static EventSubscriber<void(MouseButton button)> &OnButtonPressed() { return s_buttonPressed; }
+        static EventSubscriber<void(MouseButton button)> &OnButtonReleased() { return s_buttonReleased; }
+        static EventSubscriber<void(Vec2 screenPosition)> &OnMoved() { return s_moved; }
+        static EventSubscriber<void(Vec2 scrollOffset)> &OnScrolled() { return s_scrolled; }
 
     private:
         // --- Fields ---
         static GLFWwindow *m_window;
         static std::unordered_map<int, bool> m_currentButtonState;
         static std::unordered_map<int, bool> m_previousButtonState;
-        static Vec2 m_currentPosition;
-        static Vec2 m_previousPosition;
+        static Vec2 m_currentScreenPosition;
+        static Vec2 m_previousScreenPosition;
         static Vec2 m_scrollOffset;
         static bool m_initialized;
 
@@ -54,9 +54,9 @@ namespace Engine
         static void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
         // --- Events ---
-        static Event<MouseButton> s_buttonPressed;
-        static Event<MouseButton> s_buttonReleased;
-        static Event<Vec2> s_moved;
-        static Event<Vec2> s_scrolled;
+        static Event<void(MouseButton button)> s_buttonPressed;
+        static Event<void(MouseButton button)> s_buttonReleased;
+        static Event<void(Vec2 screenPosition)> s_moved;
+        static Event<void(Vec2 scrollOffset)> s_scrolled;
     };
 }
