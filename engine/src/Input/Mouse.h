@@ -33,11 +33,10 @@ namespace Engine
         static void SetCursorVisibility(bool visible);
 
         // --- Events ---
-        static EventSubscriber<MouseButton> &OnButtonPressed() { return s_buttonPressed; }
-        static EventSubscriber<MouseButton> &OnButtonReleased() { return s_buttonReleased; }
-        // Carries the new screen position.
-        static EventSubscriber<Vec2> &OnMoved() { return s_moved; }
-        static EventSubscriber<Vec2> &OnScrolled() { return s_scrolled; }
+        static EventSubscriber<void(MouseButton button)> &OnButtonPressed() { return s_buttonPressed; }
+        static EventSubscriber<void(MouseButton button)> &OnButtonReleased() { return s_buttonReleased; }
+        static EventSubscriber<void(Vec2 screenPosition)> &OnMoved() { return s_moved; }
+        static EventSubscriber<void(Vec2 scrollOffset)> &OnScrolled() { return s_scrolled; }
 
     private:
         // --- Fields ---
@@ -55,9 +54,9 @@ namespace Engine
         static void ScrollCallback(GLFWwindow *window, double xoffset, double yoffset);
 
         // --- Events ---
-        static Event<MouseButton> s_buttonPressed;
-        static Event<MouseButton> s_buttonReleased;
-        static Event<Vec2> s_moved;
-        static Event<Vec2> s_scrolled;
+        static Event<void(MouseButton button)> s_buttonPressed;
+        static Event<void(MouseButton button)> s_buttonReleased;
+        static Event<void(Vec2 screenPosition)> s_moved;
+        static Event<void(Vec2 scrollOffset)> s_scrolled;
     };
 }

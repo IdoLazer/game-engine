@@ -21,8 +21,8 @@ namespace Engine
         static bool IsKeyReleased(Key key);
 
         // --- Events ---
-        static EventSubscriber<Key> &OnKeyPressed() { return s_keyPressed; }
-        static EventSubscriber<Key> &OnKeyReleased() { return s_keyReleased; }
+        static EventSubscriber<void(Key key)> &OnKeyPressed() { return s_keyPressed; }
+        static EventSubscriber<void(Key key)> &OnKeyReleased() { return s_keyReleased; }
 
     private:
         // --- Fields ---
@@ -35,7 +35,7 @@ namespace Engine
         static void KeyCallback(GLFWwindow *window, int key, int scancode, int action, int mods);
 
         // --- Events ---
-        static Event<Key> s_keyPressed;
-        static Event<Key> s_keyReleased;
+        static Event<void(Key key)> s_keyPressed;
+        static Event<void(Key key)> s_keyReleased;
     };
 }

@@ -19,7 +19,7 @@ engine/
     │   ├── GridTile.h                  # Simple renderable grid tile
     │   └── TextEntity.h                # Text label entity using BitmapFont
     ├── Events/                         # Observer pattern event system
-    │   ├── Event.h                     # Event<Args...> / EventSubscriber<Args...>
+    │   ├── Event.h                     # Event<void(Args...)> / EventSubscriber<void(Args...)>
     │   └── Subscription.h              # RAII subscription handle
     ├── Types/                          # Runtime type registry and self-registration
     │   ├── TypeRegistry.h              # Singleton mapping type names → factories + properties

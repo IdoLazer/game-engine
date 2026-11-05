@@ -12,10 +12,10 @@ namespace Engine
     Vec2 Mouse::m_previousScreenPosition(0.0f, 0.0f);
     Vec2 Mouse::m_scrollOffset(0.0f, 0.0f);
     bool Mouse::m_initialized = false;
-    Event<MouseButton> Mouse::s_buttonPressed;
-    Event<MouseButton> Mouse::s_buttonReleased;
-    Event<Vec2> Mouse::s_moved;
-    Event<Vec2> Mouse::s_scrolled;
+    Event<void(MouseButton button)> Mouse::s_buttonPressed;
+    Event<void(MouseButton button)> Mouse::s_buttonReleased;
+    Event<void(Vec2 screenPosition)> Mouse::s_moved;
+    Event<void(Vec2 scrollOffset)> Mouse::s_scrolled;
 
     // --- Lifecycle ---
 

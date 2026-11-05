@@ -8,8 +8,8 @@ namespace Engine
     std::unordered_map<int, bool> Keyboard::m_currentKeyState;
     std::unordered_map<int, bool> Keyboard::m_previousKeyState;
     bool Keyboard::m_initialized = false;
-    Event<Key> Keyboard::s_keyPressed;
-    Event<Key> Keyboard::s_keyReleased;
+    Event<void(Key key)> Keyboard::s_keyPressed;
+    Event<void(Key key)> Keyboard::s_keyReleased;
 
     // --- Lifecycle ---
 

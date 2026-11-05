@@ -95,6 +95,7 @@ Work is tracked in Notion as a ticketing system, where projects, tasks and pull 
 - **Modern C++20** — use newer features (concepts, constexpr, ranges) when they make code clearer or safer; explain the benefit when you do
 - **Test-driven** — new engine features should have tests in `tests/`. Write tests alongside or before implementation when practical
 - **`tests/` covers engine modules only** — the `Tests` target links `Engine` and nothing else, and that stays true. Game code is not tested there, and the target never gains an include path or link dependency on a game to make a test compile. If something in a game looks worth testing, that's evidence it may belong in the engine — propose promoting it, don't reach into the game from `tests/`.
+- **Events name their values** — declare an event with a named signature, `Event<void(Vec2 screenPosition)>`, so the header says what each value means
 
 ### Header vs Source
 

@@ -7,7 +7,7 @@ using namespace Engine;
 
 TEST(EventTest, SubscriberIsCalledOnNotify)
 {
-    Event<int> event;
+    Event<void(int value)> event;
     int received = 0;
 
     auto sub = event.Subscribe([&received](const int &value)
@@ -19,7 +19,7 @@ TEST(EventTest, SubscriberIsCalledOnNotify)
 
 TEST(EventTest, MultipleSubscribersAllCalled)
 {
-    Event<int> event;
+    Event<void(int value)> event;
     int countA = 0, countB = 0;
 
     auto subA = event.Subscribe([&countA](const int &) { countA++; });
@@ -32,7 +32,7 @@ TEST(EventTest, MultipleSubscribersAllCalled)
 
 TEST(EventTest, NoSubscribersDoesNothing)
 {
-    Event<int> event;
+    Event<void(int value)> event;
     event.Notify(42); // should not crash
 }
 
@@ -40,7 +40,7 @@ TEST(EventTest, NoSubscribersDoesNothing)
 
 TEST(EventTest, MultipleArgTypes)
 {
-    Event<int, float> event;
+    Event<void(int count, float scale)> event;
     int gotInt = 0;
     float gotFloat = 0.0f;
 
@@ -56,7 +56,7 @@ TEST(EventTest, StructArgs)
 {
     struct Damage { int amount; };
 
-    Event<Damage> event;
+    Event<void(Damage damage)> event;
     int received = 0;
 
     auto sub = event.Subscribe([&received](const Damage &d)
@@ -70,7 +70,7 @@ TEST(EventTest, StructArgs)
 
 TEST(EventTest, UnsubscribesOnDestruction)
 {
-    Event<int> event;
+    Event<void(int value)> event;
     int calls = 0;
 
     {
@@ -85,7 +85,7 @@ TEST(EventTest, UnsubscribesOnDestruction)
 
 TEST(EventTest, MoveSubscription)
 {
-    Event<int> event;
+    Event<void(int value)> event;
     int calls = 0;
 
     Subscription outer;
@@ -100,8 +100,8 @@ TEST(EventTest, MoveSubscription)
 
 TEST(EventTest, ReassignmentUnsubscribesPrevious)
 {
-    Event<int> eventA;
-    Event<int> eventB;
+    Event<void(int value)> eventA;
+    Event<void(int value)> eventB;
     int callsA = 0, callsB = 0;
 
     auto sub = eventA.Subscribe([&callsA](const int &) { callsA++; });
@@ -115,7 +115,7 @@ TEST(EventTest, ReassignmentUnsubscribesPrevious)
 
 TEST(EventTest, SubscriberCountTracked)
 {
-    Event<int> event;
+    Event<void(int value)> event;
     EXPECT_EQ(event.GetSubscriberCount(), 0u);
 
     auto subA = event.Subscribe([](const int &) {});
@@ -139,7 +139,7 @@ TEST(EventTest, MemberFunctionSubscription)
         void OnEvent(const int &v) { value = v; }
     };
 
-    Event<int> event;
+    Event<void(int value)> event;
     Listener listener;
 
     auto sub = event.Subscribe(&listener, &Listener::OnEvent);
@@ -151,7 +151,7 @@ TEST(EventTest, MemberFunctionSubscription)
 
 TEST(EventTest, UnsubscribeDuringNotification)
 {
-    Event<int> event;
+    Event<void(int value)> event;
     int calls = 0;
     Subscription sub;
 
@@ -170,7 +170,7 @@ TEST(EventTest, UnsubscribeDuringNotification)
 
 TEST(EventTest, ExplicitUnsubscribe)
 {
-    Event<int> event;
+    Event<void(int value)> event;
     int calls = 0;
 
     auto sub = event.Subscribe([&calls](const int &) { calls++; });
@@ -187,7 +187,7 @@ TEST(EventTest, ExplicitUnsubscribe)
 
 TEST(EventTest, DoubleUnsubscribeIsSafe)
 {
-    Event<int> event;
+    Event<void(int value)> event;
     auto sub = event.Subscribe([](const int &) {});
 
     sub.Unsubscribe();
@@ -199,10 +199,10 @@ TEST(EventTest, DoubleUnsubscribeIsSafe)
 
 TEST(EventTest, EventSubscriberCannotNotify)
 {
-    // Event<int> has Notify(), but EventSubscriber<int> does not.
+    // Event<void(int value)> has Notify(), but EventSubscriber<void(int value)> does not.
     // This is a compile-time guarantee — we verify the reference type works.
-    Event<int> event;
-    EventSubscriber<int> &subscriberView = event;
+    Event<void(int value)> event;
+    EventSubscriber<void(int value)> &subscriberView = event;
 
     int received = 0;
     auto sub = subscriberView.Subscribe([&received](const int &v)

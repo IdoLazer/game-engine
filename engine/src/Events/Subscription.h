@@ -31,7 +31,7 @@ namespace Engine
     private:
         explicit Subscription(std::function<void()> unsubscriber);
 
-        template <typename... Args>
+        template <typename Signature>
         friend class EventSubscriber;
 
         std::function<void()> m_unsubscribe;
