@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+  # Runs on main too, so its vcpkg cache is shared with every pull request.
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  VCPKG_VERSION: 2026.10.16
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.preset }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, preset: windows-x64-debug }
+          - { os: windows-latest, preset: windows-x64-release }
+          - { os: macos-latest, preset: macos-arm64-debug }
+          - { os: macos-latest, preset: macos-arm64-release }
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/../vcpkg
+      VCPKG_BINARY_SOURCES: clear;files,${{ github.workspace }}/../vcpkg-cache,readwrite
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install CMake and Ninja
+        uses: lukka/get-cmake@v4.5.0
+
+      # The Windows presets build with MinGW g++, which the runner ships in C:\mingw64.
+      - name: Put MinGW first on PATH
+        if: runner.os == 'Windows'
+        run: echo "C:\mingw64\bin" >> $env:GITHUB_PATH
+
+      - name: Install vcpkg
+        shell: bash
+        run: |
+          git clone --depth 1 --branch "$VCPKG_VERSION" https://github.com/microsoft/vcpkg "$VCPKG_ROOT"
+          if [ "$RUNNER_OS" = "Windows" ]; then "$VCPKG_ROOT/bootstrap-vcpkg.bat" -disableMetrics; else "$VCPKG_ROOT/bootstrap-vcpkg.sh" -disableMetrics; fi
+          mkdir -p "${{ github.workspace }}/../vcpkg-cache"
+
+      - name: Restore vcpkg packages
+        uses: actions/cache@v6
+        with:
+          path: ${{ github.workspace }}/../vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ env.VCPKG_VERSION }}-${{ hashFiles('vcpkg.json', 'vcpkg-configuration.json') }}
+          restore-keys: vcpkg-${{ runner.os }}-${{ env.VCPKG_VERSION }}-
+
+      - name: Configure
+        run: cmake --preset ${{ matrix.preset }}
+
+      - name: Build
+        run: cmake --build build/${{ matrix.preset }}
+
+      - name: Test
+        run: ctest --test-dir build/${{ matrix.preset }} --output-on-failure

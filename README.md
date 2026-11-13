@@ -5,6 +5,9 @@ A learning-focused C++ game engine built with OpenGL and GLFW, featuring engine-
 ## Project Structure
 
 ```text
+.github/
+└── workflows/
+    └── ci.yml                          # Builds everything and runs the tests on each platform
 engine/
 └── src/                                # Core engine systems
     ├── Engine.h                        # Single header API — everything a game needs
@@ -269,6 +272,8 @@ ctest --test-dir build/windows-x64-debug -R "Vec2"
 ```
 
 VS Code tasks are also available: **Build + Test (Debug)** builds and runs all tests via CTest.
+
+CI (GitHub Actions) builds every target and runs the tests for each configure preset — Windows and macOS, Debug and Release — on every pull request and on pushes to `main`.
 
 ## Technology
 
