@@ -35,7 +35,7 @@ void PlatformerInputManager::Bind(Player &player, Falcon &falcon, Cursor *cursor
     // opened never sent its press.
     m_horizontalInput = ReadHorizontalInput();
     m_onMove.Notify(Vec2{m_horizontalInput, 0.0f});
-    m_onCursorMove.Notify(Mouse::GetPosition());
+    m_onCursorMove.Notify(Mouse::GetScreenPosition());
 }
 
 void PlatformerInputManager::Unbind()

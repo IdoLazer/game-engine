@@ -33,12 +33,12 @@ void LevelCamera::Update(float deltaTime)
 
     Camera2D &camera = Renderer2D::GetCamera();
     Vec2 viewHalfSize = Vec2(camera.GetWorldWidth(), camera.GetWorldHeight()) * 0.5f;
-    camera.SetPosition(ViewCenter(m_target->GetWorldPosition(), m_levelBounds, viewHalfSize));
+    camera.SetWorldPosition(ViewCenter(m_target->GetWorldPosition(), m_levelBounds, viewHalfSize));
 }
 
 void LevelCamera::Destroy()
 {
-    Renderer2D::GetCamera().SetPosition(Vec2::Zero);
+    Renderer2D::GetCamera().SetWorldPosition(Vec2::Zero);
 }
 
 // --- Public Interface ---
