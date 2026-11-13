@@ -46,7 +46,7 @@ public:
     virtual bool OnContacts(const PlayerContacts &contacts) { return false; }
 
     // --- Rendering ---
-    virtual void Render(Engine::Vec2 &center, Engine::Vec2 &size) const {}
+    virtual void Render(Engine::Vec2 &worldCenter, Engine::Vec2 &worldSize) const {}
 
 protected:
     // --- Fields ---

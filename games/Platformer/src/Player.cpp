@@ -68,19 +68,19 @@ void Player::Update(float deltaTime)
 
 void Player::Render() const
 {
-    Vec2 center = m_worldPosition;
-    Vec2 size = m_worldSize;
+    Vec2 worldCenter = m_worldPosition;
+    Vec2 worldSize = m_worldSize;
 
-    m_stateMachine.Render(center, size);
+    m_stateMachine.Render(worldCenter, worldSize);
 
     // Stretch on the way up, squash on the way down, preserving area.
     float scale = m_velocity.y < 0.0f
         ? std::clamp(1.0f + (-m_velocity.y / m_jumpForce) * 0.25f, 1.0f, 1.25f)
         : std::clamp(1.0f - (m_velocity.y / m_jumpForce) * 0.15f, 0.85f, 1.0f);
-    size.x /= scale;
-    size.y *= scale;
+    worldSize.x /= scale;
+    worldSize.y *= scale;
 
-    Renderer2D::DrawTile(center, size, m_color);
+    Renderer2D::DrawTile(worldCenter, worldSize, m_color);
 }
 
 void Player::Destroy()
@@ -239,27 +239,27 @@ void Player::ForgetWallJumpHistory()
 
 void Player::HandleCollisions(float deltaTime)
 {
-    Vec2 position = GetGridPosition();
-    MoveAndSlide(position, deltaTime);
-    SetGridPosition(position);
+    Vec2 gridPosition = GetGridPosition();
+    MoveAndSlide(gridPosition, deltaTime);
+    SetGridPosition(gridPosition);
 
-    m_stateMachine.ContactsResolved(ProbeContacts(position));
+    m_stateMachine.ContactsResolved(ProbeContacts(gridPosition));
 }
 
 // Sweeps the full combined velocity for this frame in one pass, clipping and sliding along
 // whatever it hits rather than resolving X and Y as two independent 1D sweeps - a separated
 // sweep can let a diagonal approach slip into a corner before either axis, checked against the
 // other's stale position, ever sees it coming.
-void Player::MoveAndSlide(Vec2 &position, float deltaTime)
+void Player::MoveAndSlide(Vec2 &gridPosition, float deltaTime)
 {
     Vec2 remaining = m_velocity * deltaTime;
 
     constexpr int kMaxSlideIterations = 4;
     for (int i = 0; i < kMaxSlideIterations && remaining != Vec2::Zero; ++i)
     {
-        Rect box(position, m_halfExtents);
+        Rect box(gridPosition, m_halfExtents);
         SweepHit hit = m_world->SweepSolid(box, remaining);
-        position += remaining * hit.t;
+        gridPosition += remaining * hit.t;
 
         if (!hit.hit)
             break;
@@ -279,9 +279,9 @@ void Player::MoveAndSlide(Vec2 &position, float deltaTime)
 // Contact is an explicit query rather than something inferred from which direction the player
 // happened to be moving, so it correctly persists as long as any part of the body still overlaps
 // a solid, not just the center point.
-PlayerContacts Player::ProbeContacts(const Vec2 &position) const
+PlayerContacts Player::ProbeContacts(const Vec2 &gridPosition) const
 {
-    Rect box(position, m_halfExtents);
+    Rect box(gridPosition, m_halfExtents);
     PlayerContacts contacts;
 
     // Ground is never reported while ascending. Without this, a jump that resolves within an

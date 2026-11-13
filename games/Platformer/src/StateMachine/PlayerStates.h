@@ -37,7 +37,7 @@ public:
     bool OnGlidePressed() override;
     bool OnDirectionChanged(const Engine::Vec2 &direction) override;
     bool OnContacts(const PlayerContacts &contacts) override;
-    void Render(Engine::Vec2 &center, Engine::Vec2 &size) const override;
+    void Render(Engine::Vec2 &worldCenter, Engine::Vec2 &worldSize) const override;
     const char *GetName() const override { return "OnWall"; }
 
     // Which wall to attach to, set by whoever transitions us in.

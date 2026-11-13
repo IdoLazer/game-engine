@@ -44,7 +44,7 @@ void Falcon::AimingState::Update(float deltaTime)
 
 bool Falcon::AimingState::OnAimReleased()
 {
-    if (m_falcon.m_latchPoint)
+    if (m_falcon.m_gridLatchPoint)
         m_machine.TransitionTo(FalconStateId::Flying);
     else
         m_machine.TransitionTo(FalconStateId::OnShoulder);
@@ -69,13 +69,13 @@ void Falcon::AimingState::Render() const
 
 void Falcon::FlyingState::Update(float deltaTime)
 {
-    if (m_falcon.m_latchPoint && m_falcon.FlyTowards(*m_falcon.m_latchPoint, m_falcon.m_speed, deltaTime))
+    if (m_falcon.m_gridLatchPoint && m_falcon.FlyTowards(*m_falcon.m_gridLatchPoint, m_falcon.m_speed, deltaTime))
         m_machine.TransitionTo(FalconStateId::Latched);
 }
 
 bool Falcon::FlyingState::OnRetrieveRequested()
 {
-    m_falcon.m_latchPoint.reset();
+    m_falcon.m_gridLatchPoint.reset();
     m_machine.TransitionTo(FalconStateId::Returning);
     return true;
 }
@@ -84,7 +84,7 @@ bool Falcon::FlyingState::OnRetrieveRequested()
 
 void Falcon::ReturningState::Update(float deltaTime)
 {
-    if (m_falcon.m_player && m_falcon.FlyTowards(m_falcon.ShoulderPosition(), m_falcon.m_retrieveSpeed, deltaTime))
+    if (m_falcon.m_player && m_falcon.FlyTowards(m_falcon.ShoulderGridPosition(), m_falcon.m_retrieveSpeed, deltaTime))
         m_machine.TransitionTo(FalconStateId::OnShoulder);
 }
 
@@ -98,7 +98,7 @@ void Falcon::LatchedState::Enter()
 
 bool Falcon::LatchedState::OnRetrieveRequested()
 {
-    m_falcon.m_latchPoint.reset();
+    m_falcon.m_gridLatchPoint.reset();
     m_machine.TransitionTo(FalconStateId::Returning);
     return true;
 }

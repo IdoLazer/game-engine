@@ -30,7 +30,7 @@ public:
     // `direction` must be normalized; RaycastSolid's `maxDistance` scales it.
     bool OverlapsSolid(const Engine::Rect &box) const;
     Engine::SweepHit SweepSolid(const Engine::Rect &movingRect, const Engine::Vec2 &delta) const;
-    Engine::SweepHit RaycastSolid(const Engine::Vec2 &origin, const Engine::Vec2 &direction, float maxDistance) const;
+    Engine::SweepHit RaycastSolid(const Engine::Vec2 &gridOrigin, const Engine::Vec2 &direction, float maxDistance) const;
 
     // Static contact test: true if `box` is touching solid, even flush with no overlap - unlike
     // SweepSolid, which excludes that case (see Sweep.cpp). `direction` must be normalized.

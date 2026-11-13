@@ -63,11 +63,11 @@ private:
 
 // --- Flight & Aiming ---
 private:
-    Engine::Vec2 ShoulderPosition() const;
+    Engine::Vec2 ShoulderGridPosition() const;
     void FollowPlayer(const Engine::Vec2 &offset);
     void AimAtCursor();
-    void SetAimPoint(const Engine::Vec2 &aimPoint);
-    bool FlyTowards(const Engine::Vec2 &target, float speed, float deltaTime);
+    void SetGridAimPoint(const Engine::Vec2 &gridAimPoint);
+    bool FlyTowards(const Engine::Vec2 &gridTarget, float speed, float deltaTime);
 
 // --- Deferred Aim ---
 private:
@@ -95,8 +95,8 @@ private:
     PlatformerWorld *m_world{nullptr};
     Cursor *m_cursor{nullptr};
     Engine::Vec2 m_direction{1.0f, 0.0f}; // Direction the falcon is facing
-    Engine::Vec2 m_aimPoint{0.0f, 0.0f}; // The point the falcon is currently aiming at
-    std::optional<Engine::Vec2> m_latchPoint; // The point to fly to, if the current aim point is a valid latch target
+    Engine::Vec2 m_gridAimPoint{0.0f, 0.0f}; // The point the falcon is currently aiming at
+    std::optional<Engine::Vec2> m_gridLatchPoint; // The point to fly to, if the current aim point is a valid latch target
     Engine::Vec2 m_latchDirection{1.0f, 0.0f}; // Direction to face once latched - embeds into the surface, opposite its hit normal
     Engine::CommandQueue m_startAimingCommandQueue; // Queued command to start aiming, executed when the falcon is on the shoulder
     Engine::Event<void()> m_onReturnedEvent; // Notifies the player when the falcon has returned to its shoulder

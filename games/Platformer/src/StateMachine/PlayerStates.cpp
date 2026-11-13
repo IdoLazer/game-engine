@@ -117,13 +117,13 @@ void Player::OnWallState::LetGoOfWall()
     m_machine.TransitionTo(PlayerStateId::Falling);
 }
 
-void Player::OnWallState::Render(Vec2 &center, Vec2 &size) const
+void Player::OnWallState::Render(Vec2 &worldCenter, Vec2 &worldSize) const
 {
     if (!m_isWallSliding) return;
 
-    center.x += m_wallDirection * 0.025f;
-    size.x -= 0.05f;
-    size.y *= 1.0f + (0.05f / size.x); // preserve area
+    worldCenter.x += m_wallDirection * 0.025f;
+    worldSize.x -= 0.05f;
+    worldSize.y *= 1.0f + (0.05f / worldSize.x); // preserve area
 }
 
 // --- Airborne ---

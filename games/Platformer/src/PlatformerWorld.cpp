@@ -83,13 +83,13 @@ Engine::SweepHit PlatformerWorld::SweepSolid(const Engine::Rect &movingRect, con
 // DDA ray march (Amanatides-Woo style, one cell boundary at a time) to find the first solid
 // tile along `direction`, then hands off to SweepRectVsRect for the exact hit point/normal -
 // the DDA is only the broad phase here, deciding which single cell to test.
-Engine::SweepHit PlatformerWorld::RaycastSolid(const Engine::Vec2 &origin, const Engine::Vec2 &direction, float maxDistance) const
+Engine::SweepHit PlatformerWorld::RaycastSolid(const Engine::Vec2 &gridOrigin, const Engine::Vec2 &direction, float maxDistance) const
 {
     Engine::SweepHit result;
     if (direction.x == 0.0f && direction.y == 0.0f)
         return result;
 
-    Engine::Vec2 cell = m_coordSystem->GetCellFromGridPosition(origin);
+    Engine::Vec2 cell = m_coordSystem->GetCellFromGridPosition(gridOrigin);
     if (IsSolid(cell))
         return result; // Starting inside solid ground - no valid hit
 
@@ -101,8 +101,8 @@ Engine::SweepHit PlatformerWorld::RaycastSolid(const Engine::Vec2 &origin, const
     float tPerCol = colStep == 0 ? kInfinity : 1.0f / std::abs(direction.x);
     float tPerRow = rowStep == 0 ? kInfinity : 1.0f / std::abs(direction.y);
 
-    float tToNextCol = colStep == 0 ? kInfinity : ((cell.x + colStep * 0.5f) - origin.x) / direction.x;
-    float tToNextRow = rowStep == 0 ? kInfinity : ((cell.y + rowStep * 0.5f) - origin.y) / direction.y;
+    float tToNextCol = colStep == 0 ? kInfinity : ((cell.x + colStep * 0.5f) - gridOrigin.x) / direction.x;
+    float tToNextRow = rowStep == 0 ? kInfinity : ((cell.y + rowStep * 0.5f) - gridOrigin.y) / direction.y;
 
     while (true)
     {
@@ -127,7 +127,7 @@ Engine::SweepHit PlatformerWorld::RaycastSolid(const Engine::Vec2 &origin, const
         if (!IsSolid(cell))
             continue;
 
-        Engine::Rect rayPoint(origin, Engine::Vec2::Zero);
+        Engine::Rect rayPoint(gridOrigin, Engine::Vec2::Zero);
         return Engine::SweepRectVsRect(rayPoint, direction * maxDistance, m_coordSystem->GetCellRect(cell));
     }
 }

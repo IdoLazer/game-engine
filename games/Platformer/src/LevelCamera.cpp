@@ -13,11 +13,11 @@ END_TYPE_REGISTER()
 namespace
 {
     // Keeps the view within the level, centering it on any axis where the level is smaller.
-    Vec2 ViewCenter(const Vec2 &target, const Rect &levelBounds, const Vec2 &viewHalfSize)
+    Vec2 ViewCenter(const Vec2 &worldTarget, const Rect &levelBounds, const Vec2 &viewHalfSize)
     {
         Vec2 maxOffset(std::max(levelBounds.halfExtents.x - viewHalfSize.x, 0.0f),
                        std::max(levelBounds.halfExtents.y - viewHalfSize.y, 0.0f));
-        Vec2 offset = target - levelBounds.center;
+        Vec2 offset = worldTarget - levelBounds.center;
 
         return levelBounds.center + Vec2(std::clamp(offset.x, -maxOffset.x, maxOffset.x),
                                          std::clamp(offset.y, -maxOffset.y, maxOffset.y));

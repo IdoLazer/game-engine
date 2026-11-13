@@ -30,7 +30,7 @@ void Falcon::Initialize()
 
     if (m_player)
     {
-        SetGridPosition(ShoulderPosition());
+        SetGridPosition(ShoulderGridPosition());
     }
 
     m_stateMachine.TransitionTo(FalconStateId::OnShoulder);
@@ -84,7 +84,7 @@ void Falcon::StopGlide()
 
 // --- Flight & Aiming ---
 
-Vec2 Falcon::ShoulderPosition() const
+Vec2 Falcon::ShoulderGridPosition() const
 {
     return m_player ? m_player->GetGridPosition() + m_offsetFromPlayer : GetGridPosition();
 }
@@ -98,51 +98,51 @@ void Falcon::FollowPlayer(const Engine::Vec2 &offset)
 void Falcon::AimAtCursor()
 {
     if (!m_cursor || !m_grid) return;
-    SetAimPoint(m_grid->WorldToGrid(m_cursor->GetWorldPosition()));
+    SetGridAimPoint(m_grid->WorldToGrid(m_cursor->GetWorldPosition()));
 }
 
-void Falcon::SetAimPoint(const Engine::Vec2 &aimPoint)
+void Falcon::SetGridAimPoint(const Engine::Vec2 &gridAimPoint)
 {
-    m_aimPoint = aimPoint;
-    Vec2 origin = GetGridPosition();
-    m_direction = (aimPoint - origin).Normalized();
+    m_gridAimPoint = gridAimPoint;
+    Vec2 gridOrigin = GetGridPosition();
+    m_direction = (gridAimPoint - gridOrigin).Normalized();
 
     if (!m_world || !m_player)
     {
-        m_latchPoint.reset();
+        m_gridLatchPoint.reset();
         return;
     }
 
     // Cast from the player's position - the falcon can be embedded in a wall it's offset from.
-    Vec2 playerOrigin = m_player->GetGridPosition();
-    Vec2 toAimPoint = aimPoint - playerOrigin;
+    Vec2 playerGridOrigin = m_player->GetGridPosition();
+    Vec2 toAimPoint = gridAimPoint - playerGridOrigin;
     float maxDistance = toAimPoint.Length();
     Vec2 rayDirection = toAimPoint.Normalized();
-    SweepHit hit = m_world->RaycastSolid(playerOrigin, rayDirection, maxDistance);
+    SweepHit hit = m_world->RaycastSolid(playerGridOrigin, rayDirection, maxDistance);
 
     if (hit.hit)
     {
-        m_latchPoint = playerOrigin + rayDirection * (hit.t * maxDistance);
+        m_gridLatchPoint = playerGridOrigin + rayDirection * (hit.t * maxDistance);
         // hit.normal is one of the four cardinal directions (tiles are grid-aligned) and
         // points back the way we came, so its negation is the direction to embed into the surface.
         m_latchDirection = -hit.normal;
     }
     else
     {
-        m_latchPoint.reset();
+        m_gridLatchPoint.reset();
     }
 }
 
 // Steers towards target, moves, and snaps on arrival. Returns true once arrived.
 // Deliberately uncollided in both directions - see FUTURE.md.
-bool Falcon::FlyTowards(const Engine::Vec2 &target, float speed, float deltaTime)
+bool Falcon::FlyTowards(const Engine::Vec2 &gridTarget, float speed, float deltaTime)
 {
-    m_direction = (target - GetGridPosition()).Normalized();
+    m_direction = (gridTarget - GetGridPosition()).Normalized();
     SetGridPosition(GetGridPosition() + m_direction * speed * deltaTime);
 
-    if ((GetGridPosition() - target).Length() < m_snapRadius)
+    if ((GetGridPosition() - gridTarget).Length() < m_snapRadius)
     {
-        SetGridPosition(target); // Snap to the target
+        SetGridPosition(gridTarget); // Snap to the target
         return true;
     }
     return false;
@@ -179,14 +179,14 @@ void Falcon::DrawBody() const
     Vec2 worldDirection = Vec2(m_direction.x, -m_direction.y).Normalized(); // Invert y for rendering
 
     // Falcon's "face" - the point in the direction it's facing
-    Vec2 p1 = worldCenter + worldDirection * (worldSize.x / 2.0f);
+    Vec2 worldPoint1 = worldCenter + worldDirection * (worldSize.x / 2.0f);
 
     // The two other points are in the opposite direction, forming a triangle
     Vec2 perp = Vec2(-worldDirection.y, worldDirection.x).Normalized(); // Perpendicular vector to the direction
-    Vec2 p2 = worldCenter - worldDirection * (worldSize.x / 2.0f) + perp * (worldSize.y / 2.0f);
-    Vec2 p3 = worldCenter - worldDirection * (worldSize.x / 2.0f) - perp * (worldSize.y / 2.0f);
+    Vec2 worldPoint2 = worldCenter - worldDirection * (worldSize.x / 2.0f) + perp * (worldSize.y / 2.0f);
+    Vec2 worldPoint3 = worldCenter - worldDirection * (worldSize.x / 2.0f) - perp * (worldSize.y / 2.0f);
 
-    Renderer2D::DrawTriangle(p1, p2, p3, m_color);
+    Renderer2D::DrawTriangle(worldPoint1, worldPoint2, worldPoint3, m_color);
 }
 
 // Wings spread: two triangles in a fixed rotation, not one pointing where it faces.
@@ -196,24 +196,24 @@ void Falcon::DrawGlidingBody() const
     Vec2 worldSize = GetWorldSize();
 
     // Triangle 1 (left wing)
-    Vec2 p1 = worldCenter + Vec2(-3.0f, 0.5f) * (worldSize.x / 2.0f);
-    Vec2 p2 = worldCenter + Vec2(0.0f, 1.0f) * (worldSize.y / 2.0f);
-    Vec2 p3 = worldCenter + Vec2(0.0f, -1.0f) * (worldSize.y / 2.0f);
-    Renderer2D::DrawTriangle(p1, p2, p3, m_color);
+    Vec2 worldPoint1 = worldCenter + Vec2(-3.0f, 0.5f) * (worldSize.x / 2.0f);
+    Vec2 worldPoint2 = worldCenter + Vec2(0.0f, 1.0f) * (worldSize.y / 2.0f);
+    Vec2 worldPoint3 = worldCenter + Vec2(0.0f, -1.0f) * (worldSize.y / 2.0f);
+    Renderer2D::DrawTriangle(worldPoint1, worldPoint2, worldPoint3, m_color);
 
     // Triangle 2 (right wing)
-    p1 = worldCenter + Vec2(3.0f, 0.5f) * (worldSize.x / 2.0f);
-    Renderer2D::DrawTriangle(p1, p2, p3, m_color);
+    worldPoint1 = worldCenter + Vec2(3.0f, 0.5f) * (worldSize.x / 2.0f);
+    Renderer2D::DrawTriangle(worldPoint1, worldPoint2, worldPoint3, m_color);
 }
 
 // The line out to the aim point, marking where a release would latch.
 void Falcon::DrawAimOverlay() const
 {
-    Vec2 worldAimPoint = m_grid->GridToWorld(m_aimPoint);
+    Vec2 worldAimPoint = m_grid->GridToWorld(m_gridAimPoint);
 
-    if (m_latchPoint)
+    if (m_gridLatchPoint)
     {
-        Vec2 latchWorldPos = m_grid->GridToWorld(*m_latchPoint);
+        Vec2 latchWorldPos = m_grid->GridToWorld(*m_gridLatchPoint);
         Renderer2D::DrawLine(m_player->GetWorldPosition(), latchWorldPos, Color::White, 0.02f, LineStyle::Dashed);
         Renderer2D::DrawLine(latchWorldPos, worldAimPoint, Color::Grey, 0.02f, LineStyle::Dashed);
 

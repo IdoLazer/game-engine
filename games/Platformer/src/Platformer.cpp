@@ -70,14 +70,14 @@ void Platformer::Initialize()
     falcon->SetWorld(m_world);
     m_player->SetFalcon(falcon);
     
-    Vec2 spawnPos = m_world->FindSpawnCell(m_spawnName, m_exitCell);
+    Vec2 spawnGridPosition = m_world->FindSpawnCell(m_spawnName, m_exitCell);
     m_exitCell.reset();
 
     // If the spawn cell is right above a solid tile, spawn the player on the ground instead of in the middle of the cell
-    if (m_world->IsSolid(Vec2(spawnPos.x, spawnPos.y + 1.0f)))
-        spawnPos.y += 0.5f - m_player->GetGridSize().y / 2.0f;
+    if (m_world->IsSolid(Vec2(spawnGridPosition.x, spawnGridPosition.y + 1.0f)))
+        spawnGridPosition.y += 0.5f - m_player->GetGridSize().y / 2.0f;
 
-    m_player->SetGridPosition(spawnPos);
+    m_player->SetGridPosition(spawnGridPosition);
 
     // The grid is centered on the world origin.
     if (camera)

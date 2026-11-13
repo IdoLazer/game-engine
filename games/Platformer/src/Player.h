@@ -68,8 +68,8 @@ private:
     void StopAgainstWall(int wallDirection);
     void ForgetWallJumpHistory();
     void HandleCollisions(float deltaTime);
-    void MoveAndSlide(Engine::Vec2 &position, float deltaTime);
-    PlayerContacts ProbeContacts(const Engine::Vec2 &position) const;
+    void MoveAndSlide(Engine::Vec2 &gridPosition, float deltaTime);
+    PlayerContacts ProbeContacts(const Engine::Vec2 &gridPosition) const;
     bool CanGlide() const;
 
 // --- Jump Buffer ---

@@ -117,9 +117,9 @@ void PlatformerInputManager::HandleKeyRelease(const Key &key)
     }
 }
 
-void PlatformerInputManager::HandleCursorMove(const Vec2 &position)
+void PlatformerInputManager::HandleCursorMove(const Vec2 &screenPosition)
 {
-    m_onCursorMove.Notify(position);
+    m_onCursorMove.Notify(screenPosition);
 }
 
 void PlatformerInputManager::HandleClick(const Engine::MouseButton &button)

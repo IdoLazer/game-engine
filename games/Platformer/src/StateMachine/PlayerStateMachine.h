@@ -26,8 +26,8 @@ public:
     }
 
     // --- Rendering ---
-    void Render(Engine::Vec2 &center, Engine::Vec2 &size) const
+    void Render(Engine::Vec2 &worldCenter, Engine::Vec2 &worldSize) const
     {
-        if (const PlayerState *state = GetCurrentState()) state->Render(center, size);
+        if (const PlayerState *state = GetCurrentState()) state->Render(worldCenter, worldSize);
     }
 };
