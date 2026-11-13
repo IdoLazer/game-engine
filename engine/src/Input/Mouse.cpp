@@ -8,14 +8,14 @@ namespace Engine
     GLFWwindow *Mouse::m_window = nullptr;
     std::unordered_map<int, bool> Mouse::m_currentButtonState;
     std::unordered_map<int, bool> Mouse::m_previousButtonState;
-    Vec2 Mouse::m_currentPosition(0.0f, 0.0f);
-    Vec2 Mouse::m_previousPosition(0.0f, 0.0f);
+    Vec2 Mouse::m_currentScreenPosition(0.0f, 0.0f);
+    Vec2 Mouse::m_previousScreenPosition(0.0f, 0.0f);
     Vec2 Mouse::m_scrollOffset(0.0f, 0.0f);
     bool Mouse::m_initialized = false;
-    Event<MouseButton> Mouse::s_buttonPressed;
-    Event<MouseButton> Mouse::s_buttonReleased;
-    Event<Vec2> Mouse::s_moved;
-    Event<Vec2> Mouse::s_scrolled;
+    Event<void(MouseButton button)> Mouse::s_buttonPressed;
+    Event<void(MouseButton button)> Mouse::s_buttonReleased;
+    Event<void(Vec2 screenPosition)> Mouse::s_moved;
+    Event<void(Vec2 scrollOffset)> Mouse::s_scrolled;
 
     // --- Lifecycle ---
 
@@ -34,8 +34,8 @@ namespace Engine
         // Initialize cursor position
         double xpos, ypos;
         glfwGetCursorPos(window, &xpos, &ypos);
-        m_currentPosition = Vec2(static_cast<float>(xpos), static_cast<float>(ypos));
-        m_previousPosition = m_currentPosition;
+        m_currentScreenPosition = Vec2(static_cast<float>(xpos), static_cast<float>(ypos));
+        m_previousScreenPosition = m_currentScreenPosition;
 
         m_initialized = true;
         std::cout << "Mouse initialized with GLFW" << std::endl;
@@ -65,7 +65,7 @@ namespace Engine
         }
 
         m_previousButtonState = m_currentButtonState;
-        m_previousPosition = m_currentPosition;
+        m_previousScreenPosition = m_currentScreenPosition;
 
         // Reset scroll offset (scroll is per-frame)
         m_scrollOffset = Vec2(0.0f, 0.0f);
@@ -89,8 +89,8 @@ namespace Engine
 
     void Mouse::CursorPositionCallback(GLFWwindow *window, double xpos, double ypos)
     {
-        m_currentPosition = Vec2(static_cast<float>(xpos), static_cast<float>(ypos));
-        s_moved.Notify(m_currentPosition);
+        m_currentScreenPosition = Vec2(static_cast<float>(xpos), static_cast<float>(ypos));
+        s_moved.Notify(m_currentScreenPosition);
     }
 
     void Mouse::ScrollCallback(GLFWwindow *window, double xoffset, double yoffset)
@@ -162,7 +162,7 @@ namespace Engine
 
     // --- Position Queries ---
 
-    Vec2 Mouse::GetPosition()
+    Vec2 Mouse::GetScreenPosition()
     {
         if (!m_initialized)
         {
@@ -170,7 +170,7 @@ namespace Engine
             return Vec2(0.0f, 0.0f);
         }
 
-        return m_currentPosition;
+        return m_currentScreenPosition;
     }
 
     Vec2 Mouse::GetWorldPosition()
@@ -181,10 +181,10 @@ namespace Engine
             return Vec2(0.0f, 0.0f);
         }
 
-        return Renderer2D::GetCamera().ScreenToWorld(m_currentPosition);
+        return Renderer2D::GetCamera().ScreenToWorld(m_currentScreenPosition);
     }
 
-    Vec2 Mouse::GetDelta()
+    Vec2 Mouse::GetScreenDelta()
     {
         if (!m_initialized)
         {
@@ -192,7 +192,7 @@ namespace Engine
             return Vec2(0.0f, 0.0f);
         }
 
-        return m_currentPosition - m_previousPosition;
+        return m_currentScreenPosition - m_previousScreenPosition;
     }
 
     // --- Scroll Queries ---

@@ -8,11 +8,15 @@
 namespace Engine
 {
 
+    template <typename Signature>
+    class EventSubscriber;
+
     /// EventSubscriber is the read-only side of an Event. External code can
     /// subscribe to it but cannot raise notifications. The owning class holds
-    /// the full Event<Args...> and exposes EventSubscriber<Args...>& publicly.
+    /// the full Event<void(Args...)> and exposes EventSubscriber<void(Args...)>& publicly.
+    /// The signature's parameter names say what each value means: void(Vec2 screenPosition).
     template <typename... Args>
-    class EventSubscriber
+    class EventSubscriber<void(Args...)>
     {
     public:
         // --- Constructors & Destructors ---
@@ -47,7 +51,7 @@ namespace Engine
         std::size_t GetSubscriberCount() const { return m_handlers.size(); }
 
     protected:
-        // --- Notification (accessible to Event<Args...>) ---
+        // --- Notification (accessible to Event<void(Args...)>) ---
 
         void NotifySubscribers(const Args &...args)
         {
@@ -103,11 +107,14 @@ namespace Engine
         }
     };
 
+    template <typename Signature>
+    class Event;
+
     /// Event is the full interface — adds Notify() on top of EventSubscriber.
-    /// The owning class holds Event<Args...> privately and exposes
-    /// EventSubscriber<Args...>& through a public accessor.
+    /// The owning class holds Event<void(Args...)> privately and exposes
+    /// EventSubscriber<void(Args...)>& through a public accessor.
     template <typename... Args>
-    class Event : public EventSubscriber<Args...>
+    class Event<void(Args...)> : public EventSubscriber<void(Args...)>
     {
     public:
         /// Notify all subscribers with the given arguments.

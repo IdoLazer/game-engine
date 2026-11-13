@@ -12,7 +12,7 @@ namespace Engine
 
         // --- Configuration ---
         void SetWindowSize(int pixelWidth, int pixelHeight);
-        void SetPosition(const Vec2 &position);
+        void SetWorldPosition(const Vec2 &position);
 
         // --- Coordinate Conversion ---
         float WorldToOpenGLX(float worldX) const;
@@ -26,7 +26,7 @@ namespace Engine
         float GetWorldHeight() const;
         int GetPixelWidth() const;
         int GetPixelHeight() const;
-        Vec2 GetPosition() const;
+        Vec2 GetWorldPosition() const;
 
     private:
         // --- Fields ---
@@ -34,6 +34,6 @@ namespace Engine
         float m_worldWidth;
         int m_pixelWidth;
         int m_pixelHeight;
-        Vec2 m_position{}; // World point shown at the center of the screen
+        Vec2 m_worldPosition{}; // World point shown at the center of the screen
     };
 }
